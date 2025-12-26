@@ -10,17 +10,30 @@ import type {
 	UserSubjectCollection,
 	UserSubjectCollectionResponse,
 } from "@/types/bangumi";
+import { fetchSiteSettings } from "@/services/siteSettings";
 
 //参考：霞葉 https://kasuha.com/posts/fuwari-enhance-ep2/
 
-// 检查页面是否启用
-if (!siteConfig.pages.bangumi) {
-	return Astro.redirect("/404/");
+// 获取动态配置
+let dynamicSettings: Record<string, any> = {};
+try {
+	dynamicSettings = await fetchSiteSettings();
+} catch (error) {
+	console.warn("无法获取动态配置，使用静态配置");
 }
+
+// 检查页面是否启用（动态配置优先）
+const pageEnabled = dynamicSettings.page_bangumi ?? siteConfig.pages.bangumi;
+if (!pageEnabled) {
+	return Astro.redirect("/404");
+}
+
+// Bangumi 用户 ID（动态配置优先）
+const bangumiUserId = dynamicSettings.bangumi_user_id || siteConfig.bangumi?.userId;
 
 //////////////// Bangumi 配置 ////////////////////////
 const bangumiConfig = {
-	username: siteConfig.bangumi?.userId, // 在这里配置你的Bangumi用户名
+	username: bangumiUserId, // 使用动态配置的 Bangumi 用户 ID
 	apiUrl: "https://api.bgm.tv",
 	categories: {
 		book: true,

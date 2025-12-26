@@ -3,6 +3,22 @@ import { Icon } from "astro-icon/components";
 import ImageWrapper from "@/components/misc/ImageWrapper.astro";
 import { profileConfig } from "@/config/profileConfig";
 import { url } from "@/utils/url-utils";
+import { fetchSiteSettings } from "@/services/siteSettings";
+
+// 尝试从 API 获取动态配置
+let dynamicSettings: Record<string, any> = {};
+try {
+	dynamicSettings = await fetchSiteSettings();
+} catch (error) {
+	console.warn("无法获取动态配置，使用静态配置");
+}
+
+// 动态配置优先，静态配置作为回退
+const avatar = dynamicSettings.profile_avatar || profileConfig.avatar;
+const name = dynamicSettings.profile_name || profileConfig.name;
+const bio = dynamicSettings.profile_bio || profileConfig.bio;
+// 链接配置暂时只使用静态配置（后续可以扩展到数据库）
+const links = profileConfig.links;
 ---
 
 <div class="card-base p-3">
@@ -22,7 +38,7 @@ import { url } from "@/utils/url-utils";
       />
     </div>
     <ImageWrapper
-      src={profileConfig.avatar || ""}
+      src={avatar || ""}
       alt="Profile Image of the Author"
       class="mx-auto lg:w-full h-full lg:mt-0"
     />
@@ -31,17 +47,17 @@ import { url } from "@/utils/url-utils";
     <div
       class="font-bold text-xl text-center mb-1 dark:text-neutral-50 transition"
     >
-      {profileConfig.name}
+      {name}
     </div>
     <div
       class="h-1 w-5 bg-[var(--primary)] mx-auto rounded-full mb-2 transition"
     >
     </div>
     <div class="text-center text-neutral-400 mb-2.5 transition">
-      {profileConfig.bio}
+      {bio}
     </div>
         <div class="flex flex-wrap gap-2 justify-center mb-1">
-            {profileConfig.links.length > 1 && profileConfig.links.map(item =>
+            {links.length > 1 && links.map(item =>
                     {
                     const showName = item.showName;
                     const className = showName 
@@ -74,7 +90,7 @@ import { url } from "@/utils/url-utils";
                     }
                     }
             )}
-            {profileConfig.links.length == 1 && (function(item){
+            {links.length == 1 && (function(item){
                 if (item.url.startsWith("mailto:")) {
                         const encodedEmail = Buffer.from(item.url.replace("mailto:", "")).toString("base64");
                         return <a rel="me" aria-label={item.name} href="#" data-encoded-email={encodedEmail} onclick={`
@@ -100,7 +116,7 @@ import { url } from "@/utils/url-utils";
                                 {item.name}
                             </a>
                     }
-            })(profileConfig.links[0])}
+            })(links[0])}
         </div>
   </div>
 </div>

@@ -36,3 +36,10 @@ Docs-Firefly/
 cache/
 package/
 .obsidian/
+
+# python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+backend/.env

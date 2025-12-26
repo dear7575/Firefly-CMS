@@ -1,25 +1,82 @@
 ---
-import type { GetStaticPaths } from "astro";
 import Pagination from "@/components/common/controls/Pagination.astro";
 import PostPage from "@/components/layout/PostPage.astro";
 import { siteConfig } from "@/config";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
 import { getSortedPosts } from "@/utils/content-utils";
-export const getStaticPaths = (async ({ paginate }) => {
-	const allBlogPosts = await getSortedPosts();
-	// 使用配置中的文章数量
-	const pageSize = siteConfig.pagination.postsPerPage;
-	return paginate(allBlogPosts, { pageSize });
-}) satisfies GetStaticPaths;
-// https://github.com/withastro/astro/issues/6507#issuecomment-1489916992
+import { fetchSiteSettings } from "@/services/siteSettings";
 
-const { page } = Astro.props;
+export const prerender = false;
+
+// 获取动态配置
+let dynamicSettings: Record<string, any> = {};
+try {
+  dynamicSettings = await fetchSiteSettings();
+} catch (error) {
+  console.warn("无法获取动态配置，使用静态配置");
+}
+
+const { page: pageParam } = Astro.params;
+const allBlogPosts = await getSortedPosts();
+// 优先使用动态配置的分页数，否则使用静态配置
+const pageSize = dynamicSettings.post_per_page || siteConfig.pagination.postsPerPage;
+const totalPages = Math.ceil(allBlogPosts.length / pageSize);
+
+// 文章列表布局配置（动态配置优先）
+const defaultLayout = dynamicSettings.post_default_layout || siteConfig.postListLayout?.defaultMode || 'list';
+const allowSwitchLayout = dynamicSettings.post_allow_switch_layout ?? siteConfig.postListLayout?.allowSwitch ?? true;
+const gridMasonry = dynamicSettings.post_grid_masonry ?? siteConfig.postListLayout?.grid?.masonry ?? true;
+
+// 验证页码参数
+let currentPage = 1;
+if (pageParam) {
+  // 检查是否为纯数字
+  if (!/^\d+$/.test(pageParam)) {
+    // 非数字路径，返回 404
+    return new Response(null, { status: 404, statusText: 'Not Found' });
+  }
+  currentPage = parseInt(pageParam);
+  // 检查页码是否在有效范围内
+  if (currentPage < 1 || currentPage > totalPages) {
+    return new Response(null, { status: 404, statusText: 'Not Found' });
+  }
+  // 第一页应该访问根路径
+  if (currentPage === 1) {
+    return Astro.redirect("/", 301);
+  }
+}
+
+const start = (currentPage - 1) * pageSize;
+const end = start + pageSize;
+const postsOnPage = allBlogPosts.slice(start, end);
+
+const page = {
+  data: postsOnPage,
+  start: start,
+  end: end - 1,
+  total: allBlogPosts.length,
+  currentPage: currentPage,
+  size: pageSize,
+  lastPage: totalPages,
+  url: {
+    current: Astro.url.pathname,
+    prev:
+      currentPage > 1
+        ? currentPage === 2
+          ? "/"
+          : `/${currentPage - 1}`
+        : undefined,
+    next: currentPage < totalPages ? `/${currentPage + 1}` : undefined,
+    first: "/",
+    last: totalPages > 1 ? `/${totalPages}` : "/",
+  },
+};
 
 const len = page.data.length;
 ---
 
 <MainGridLayout>
-  <PostPage page={page} />
+  <PostPage page={page} defaultLayout={defaultLayout} allowSwitchLayout={allowSwitchLayout} gridMasonry={gridMasonry} />
   {
     page.total > page.size && (
       <Pagination
@@ -47,7 +104,7 @@ const len = page.data.length;
         resizeTimeout = setTimeout(function () {
           const newDeviceType = getDeviceType();
           const currentDeviceType = document.body.className.match(
-            /device-(mobile|tablet|desktop)/
+            /device-(mobile|tablet|desktop)/,
           )?.[1];
 
           if (currentDeviceType !== newDeviceType) {

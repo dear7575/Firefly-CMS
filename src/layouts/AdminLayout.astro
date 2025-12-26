@@ -399,15 +399,6 @@ const menuItems = [
             background: rgba(255, 255, 255, 0.25);
         }
 
-        /* 用户区域美化 */
-        .sidebar-user-section {
-            background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.02) 100%);
-        }
-
-        .dark .sidebar-user-section {
-            background: linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.02) 100%);
-        }
-
         /* 侧边栏折叠样式 */
         #sidebar.collapsed {
             width: 4.5rem; /* 72px */
@@ -437,28 +428,6 @@ const menuItems = [
         #sidebar.collapsed .menu-item {
             justify-content: center;
             padding: 0.75rem;
-        }
-
-        /* 用户区域居中 */
-        #sidebar.collapsed .sidebar-user-section {
-            padding: 0.75rem 0.5rem;
-        }
-
-        #sidebar.collapsed .sidebar-user-info {
-            justify-content: center;
-            margin-bottom: 0.5rem;
-        }
-
-        #sidebar.collapsed .sidebar-buttons {
-            flex-direction: column;
-            gap: 0.25rem;
-        }
-
-        #sidebar.collapsed .sidebar-buttons a,
-        #sidebar.collapsed .sidebar-buttons button {
-            padding: 0.625rem;
-            flex: none;
-            justify-content: center;
         }
 
         /* 过渡动画 */
@@ -494,6 +463,7 @@ const menuItems = [
             rel="stylesheet"
             href="/assets/vendor/vditor/index.css"
     />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" is:inline></script>
 </head>
 <body
         class="min-h-screen font-sans selection:bg-indigo-100 dark:selection:bg-indigo-900/30"
@@ -590,7 +560,7 @@ const menuItems = [
             >
                 <!-- Logo -->
                 <div class="h-16 flex items-center px-6 border-b border-zinc-200 dark:border-zinc-800">
-                    <a href="/admin" class="flex items-center gap-3 group sidebar-logo">
+                    <a href="/admin" data-no-swup class="flex items-center gap-3 group sidebar-logo">
                         <div
                                 class="w-9 h-9 rounded-xl bg-[var(--primary)] text-white flex items-center justify-center font-bold shadow-lg group-hover:scale-110 transition-transform flex-shrink-0"
                         >
@@ -639,50 +609,25 @@ const menuItems = [
                     </ul>
                 </nav>
 
-                <!-- User Section -->
-                <div class="p-4 border-t border-zinc-200 dark:border-zinc-800 sidebar-user-section">
-                    <div class="flex items-center gap-3 mb-3 sidebar-user-info">
-                        <div id="userAvatarContainer"
-                             class="w-10 h-10 rounded-full bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                            <!-- 默认图标，用户头像加载后会被替换 -->
-                            <svg id="defaultAvatarIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-zinc-500"
-                                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                            </svg>
-                        </div>
-                        <div class="flex-1 min-w-0 sidebar-text">
-                            <p id="usernameDisplay" class="text-sm font-medium truncate">加载中...</p>
-                            <p class="text-xs text-zinc-500 truncate">管理员</p>
-                        </div>
-                    </div>
-                    <div class="flex gap-2 sidebar-buttons">
-                        <a
-                                href="/"
-                                target="_blank"
-                                title={i18n(I18nKey.home)}
-                                class="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
-                                 viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-                            </svg>
-                            <span class="sidebar-text">{i18n(I18nKey.home)}</span>
-                        </a>
-                        <button
-                                id="logoutBtn"
-                                title={i18n(I18nKey.adminLogout)}
-                                class="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-xs font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
-                                 viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                            </svg>
-                            <span class="sidebar-text">{i18n(I18nKey.adminLogout)}</span>
-                        </button>
-                    </div>
+                <!-- Collapse Button -->
+                <div class="hidden lg:block p-3 border-t border-zinc-200 dark:border-zinc-800">
+                    <button
+                            id="sidebarCollapseBtn"
+                            class="w-full flex items-center justify-center gap-2 p-2.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+                            title="收起/展开菜单"
+                    >
+                        <!-- 展开状态图标：左双箭头 -->
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 collapse-icon-left" fill="none"
+                             viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
+                        </svg>
+                        <!-- 折叠状态图标：右双箭头 -->
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 collapse-icon-right hidden"
+                             fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>
+                        </svg>
+                        <span class="sidebar-text text-sm">收起菜单</span>
+                    </button>
                 </div>
 
             </aside>
@@ -697,7 +642,7 @@ const menuItems = [
             <div class="flex-1 flex flex-col overflow-hidden">
                 <!-- Top Bar -->
                 <header class="h-16 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between px-6 lg:px-8">
-                    <!-- Left: Mobile Menu Button + Desktop Collapse Button -->
+                    <!-- Left: Mobile Menu Button + Page Title -->
                     <div class="flex items-center gap-2">
                         <!-- Mobile Menu Button -->
                         <button
@@ -711,26 +656,8 @@ const menuItems = [
                             </svg>
                         </button>
 
-                        <!-- Desktop Collapse Button -->
-                        <button
-                                id="sidebarCollapseBtn"
-                                class="hidden lg:flex p-2 -ml-2 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
-                                title="收起/展开菜单"
-                        >
-                            <!-- 展开状态图标：左双箭头 -->
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 collapse-icon-left" fill="none"
-                                 viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
-                            </svg>
-                            <!-- 折叠状态图标：右双箭头 -->
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 collapse-icon-right hidden"
-                                 fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>
-                            </svg>
-                        </button>
-
                         <!-- Page Title -->
-                        <h1 class="text-xl font-bold text-zinc-900 dark:text-zinc-100 hidden lg:block ml-2">
+                        <h1 class="text-xl font-bold text-zinc-900 dark:text-zinc-100 hidden lg:block">
                             {title.split(' - ')[0]}
                         </h1>
                     </div>
@@ -753,6 +680,52 @@ const menuItems = [
                                       d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
                             </svg>
                         </button>
+
+                        <!-- User Dropdown -->
+                        <div class="relative" id="userDropdownContainer">
+                            <button
+                                    id="userDropdownBtn"
+                                    class="flex items-center gap-2 p-1.5 pr-3 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition-colors"
+                            >
+                                <div id="userAvatarContainer"
+                                     class="w-8 h-8 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center overflow-hidden">
+                                    <svg id="defaultAvatarIcon" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-zinc-500"
+                                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                    </svg>
+                                </div>
+                                <span id="usernameDisplay" class="text-sm font-medium text-zinc-700 dark:text-zinc-300 hidden sm:block">加载中...</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </button>
+
+                            <!-- Dropdown Menu -->
+                            <div id="userDropdownMenu"
+                                 class="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-700 py-1 hidden z-50 opacity-0 transform scale-95 transition-all duration-150">
+                                <div class="px-4 py-2 border-b border-zinc-100 dark:border-zinc-800">
+                                    <p id="dropdownUsername" class="text-sm font-medium text-zinc-900 dark:text-zinc-100">管理员</p>
+                                    <p class="text-xs text-zinc-500">管理员账户</p>
+                                </div>
+                                <a href="/" target="_blank"
+                                   class="flex items-center gap-2 px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                    </svg>
+                                    {i18n(I18nKey.home)}
+                                </a>
+                                <button id="logoutBtn"
+                                        class="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                                    </svg>
+                                    {i18n(I18nKey.adminLogout)}
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </header>
 
@@ -1061,6 +1034,46 @@ const menuItems = [
 
         collapseBtn?.addEventListener("click", toggleSidebarCollapse);
 
+        // ============== User Dropdown ==============
+        const userDropdownBtn = document.getElementById("userDropdownBtn");
+        const userDropdownMenu = document.getElementById("userDropdownMenu");
+
+        function openDropdown() {
+            if (!userDropdownMenu) return;
+            userDropdownMenu.classList.remove("hidden");
+            // 触发动画
+            setTimeout(() => {
+                userDropdownMenu.classList.remove("opacity-0", "scale-95");
+                userDropdownMenu.classList.add("opacity-100", "scale-100");
+            }, 10);
+        }
+
+        function closeDropdown() {
+            if (!userDropdownMenu) return;
+            userDropdownMenu.classList.remove("opacity-100", "scale-100");
+            userDropdownMenu.classList.add("opacity-0", "scale-95");
+            setTimeout(() => {
+                userDropdownMenu.classList.add("hidden");
+            }, 150);
+        }
+
+        userDropdownBtn?.addEventListener("click", (e) => {
+            e.stopPropagation();
+            if (userDropdownMenu?.classList.contains("hidden")) {
+                openDropdown();
+            } else {
+                closeDropdown();
+            }
+        });
+
+        // 点击外部关闭下拉菜单
+        document.addEventListener("click", (e) => {
+            const container = document.getElementById("userDropdownContainer");
+            if (container && !container.contains(e.target)) {
+                closeDropdown();
+            }
+        });
+
         // ============== Logout button event ==============
         document
             .getElementById("logoutBtn")
@@ -1081,25 +1094,25 @@ const menuItems = [
         function loadUserInfo() {
             const token = localStorage.getItem("adminToken");
             const usernameDisplay = document.getElementById("usernameDisplay");
+            const dropdownUsername = document.getElementById("dropdownUsername");
             const avatarContainer = document.getElementById("userAvatarContainer");
             const defaultIcon = document.getElementById("defaultAvatarIcon");
 
-            if (!token || !usernameDisplay) return;
+            if (!token) return;
 
             try {
                 // 解析 JWT token 获取用户名
                 const payload = token.split('.')[1];
                 if (payload) {
                     const decoded = JSON.parse(atob(payload));
-                    if (decoded.sub) {
-                        usernameDisplay.textContent = decoded.sub;
-                    } else {
-                        usernameDisplay.textContent = "管理员";
-                    }
+                    const username = decoded.sub || "管理员";
+                    if (usernameDisplay) usernameDisplay.textContent = username;
+                    if (dropdownUsername) dropdownUsername.textContent = username;
                 }
             } catch (e) {
                 console.error("解析 token 失败:", e);
-                usernameDisplay.textContent = "管理员";
+                if (usernameDisplay) usernameDisplay.textContent = "管理员";
+                if (dropdownUsername) dropdownUsername.textContent = "管理员";
             }
 
             // 尝试加载个人资料头像

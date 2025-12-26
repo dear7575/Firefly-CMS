@@ -53,7 +53,7 @@ const groupIcons: Record<string, string> = {
             <div class="flex gap-3">
                 <button
                     id="initSettingsBtn"
-                    class="bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 px-4 py-2.5 rounded-xl font-medium transition-all flex items-center gap-2"
+                    class="bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 px-4 py-2.5 rounded-xl font-medium transition-all flex items-center gap-2 border border-zinc-200 dark:border-zinc-700"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -62,12 +62,12 @@ const groupIcons: Record<string, string> = {
                 </button>
                 <button
                     id="addSettingBtn"
-                    class="bg-[var(--primary)] hover:opacity-90 text-white px-6 py-2.5 rounded-xl font-medium transition-all shadow-lg hover:shadow-xl active:scale-95 flex items-center gap-2"
+                    class="bg-[var(--primary)] dark:bg-zinc-800 hover:opacity-90 dark:hover:bg-zinc-700 text-white dark:text-zinc-100 px-6 py-2.5 rounded-xl font-medium transition-all shadow-lg hover:shadow-xl active:scale-95 flex items-center gap-2 dark:border dark:border-indigo-500/50 dark:shadow-[0_0_15px_rgba(99,102,241,0.3)]"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
                     </svg>
-                    添加配置
+                    {i18n(I18nKey.adminAdd)} {i18n(I18nKey.adminSettings)}
                 </button>
             </div>
         </div>
@@ -75,7 +75,7 @@ const groupIcons: Record<string, string> = {
         <!-- 分组标签页 -->
         <div class="mb-6 overflow-x-auto">
             <div id="groupTabs" class="flex gap-2 min-w-max">
-                <button data-group="all" class="group-tab active px-4 py-2 rounded-lg text-sm font-medium transition-all bg-[var(--primary)] text-white">
+                <button data-group="all" class="group-tab active px-4 py-2 rounded-lg text-sm font-medium transition-all bg-[var(--primary)] dark:bg-zinc-800 text-white dark:text-zinc-100 dark:border dark:border-indigo-500/50 dark:shadow-[0_0_15px_rgba(99,102,241,0.3)]">
                     {i18n(I18nKey.bangumiFilterAll)}
                 </button>
             </div>
@@ -140,7 +140,7 @@ const groupIcons: Record<string, string> = {
             </form>
             <div class="p-6 border-t border-zinc-200 dark:border-zinc-800 flex justify-end gap-3 sticky bottom-0 bg-white dark:bg-zinc-900">
                 <button type="button" id="cancelBtn" class="px-4 py-2 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors">{i18n(I18nKey.adminCancel)}</button>
-                <button type="submit" form="settingForm" class="px-6 py-2 bg-[var(--primary)] text-white rounded-lg hover:opacity-90 transition-colors">{i18n(I18nKey.adminSave)}</button>
+                <button type="submit" form="settingForm" class="px-6 py-2 bg-[var(--primary)] dark:bg-zinc-800 text-white dark:text-zinc-100 rounded-lg hover:opacity-90 dark:hover:bg-zinc-700 transition-colors dark:border dark:border-indigo-500/50 dark:shadow-[0_0_15px_rgba(99,102,241,0.3)]">{i18n(I18nKey.adminSave)}</button>
             </div>
         </div>
     </div>
@@ -201,7 +201,7 @@ const groupIcons: Record<string, string> = {
         tabsContainer.innerHTML = groups.map(function(group) {
             var label = group === 'all' ? (t.all || '全部') : (GROUP_LABELS[group] || group);
             var isActive = currentGroup === group;
-            var activeClass = isActive ? 'bg-[var(--primary)] text-white' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700';
+            var activeClass = isActive ? 'bg-[var(--primary)] dark:bg-zinc-800 text-white dark:text-zinc-100 dark:border dark:border-indigo-500/50 dark:shadow-[0_0_15px_rgba(99,102,241,0.3)]' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700';
             return '<button data-group="' + group + '" class="group-tab px-4 py-2 rounded-lg text-sm font-medium transition-all ' + activeClass + '">' + label + '</button>';
         }).join('');
 
@@ -277,8 +277,8 @@ const groupIcons: Record<string, string> = {
 
             return '<div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">' +
                 '<div class="p-4 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 flex items-center gap-3">' +
-                    '<div class="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center">' +
-                        '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[var(--primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="' + groupIcon + '" /></svg>' +
+                    '<div class="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center">' +
+                        '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="' + groupIcon + '" /></svg>' +
                     '</div>' +
                     '<div>' +
                         '<h2 class="font-bold text-zinc-900 dark:text-zinc-100">' + groupLabel + '</h2>' +

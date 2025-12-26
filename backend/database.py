@@ -32,6 +32,20 @@ class Settings(BaseSettings):
     # 默认 1440 分钟 = 24 小时
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
 
+    # CORS 允许的域名列表（逗号分隔）
+    # 生产环境请设置为具体域名，如: "https://yourdomain.com,https://admin.yourdomain.com"
+    # 设置为 "*" 表示允许所有域名（仅用于开发环境）
+    CORS_ORIGINS: str = "*"
+
+    # 上传文件存储路径
+    UPLOAD_DIR: str = "uploads"
+
+    # 最大上传文件大小（MB）
+    MAX_UPLOAD_SIZE: int = 10
+
+    # API 频率限制（每分钟请求数）
+    RATE_LIMIT_PER_MINUTE: int = 60
+
     class Config:
         # 从 .env 文件加载配置
         env_file = ".env"

@@ -2,12 +2,13 @@
 仪表盘路由模块
 提供统计数据 API 接口
 """
-from typing import Dict, Any
+from typing import Dict, Any, List
 from datetime import datetime, timedelta
+from collections import defaultdict
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, extract
 
 import models
 from database import get_db
@@ -26,6 +27,15 @@ def get_dashboard_stats(db: Session = Depends(get_db)) -> Dict[str, Any]:
     ).scalar()
     draft_posts = db.query(func.count(models.Post.id)).filter(
         models.Post.is_draft == 1
+    ).scalar()
+    # 加密文章统计（有密码的文章）
+    encrypted_posts = db.query(func.count(models.Post.id)).filter(
+        models.Post.password != None,
+        models.Post.password != ""
+    ).scalar()
+    # 置顶文章统计
+    pinned_posts = db.query(func.count(models.Post.id)).filter(
+        models.Post.pinned == True
     ).scalar()
 
     # 分类统计
@@ -68,11 +78,93 @@ def get_dashboard_stats(db: Session = Depends(get_db)) -> Dict[str, Any]:
 
     category_data = [{"name": c[0], "count": c[1]} for c in category_stats]
 
+    # 最近30天每日发布统计
+    thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+    daily_posts = db.query(
+        func.date(models.Post.published_at).label('date'),
+        func.count(models.Post.id).label('count')
+    ).filter(
+        models.Post.published_at >= thirty_days_ago,
+        models.Post.is_draft == 0
+    ).group_by(func.date(models.Post.published_at)).all()
+
+    # 填充缺失的日期
+    daily_data = defaultdict(int)
+    for row in daily_posts:
+        daily_data[str(row.date)] = row.count
+
+    daily_stats = []
+    for i in range(30):
+        date = (datetime.utcnow() - timedelta(days=29-i)).strftime('%Y-%m-%d')
+        daily_stats.append({"date": date, "count": daily_data.get(date, 0)})
+
+    # 月度发布统计（最近12个月）
+    monthly_posts = db.query(
+        extract('year', models.Post.published_at).label('year'),
+        extract('month', models.Post.published_at).label('month'),
+        func.count(models.Post.id).label('count')
+    ).filter(
+        models.Post.is_draft == 0
+    ).group_by(
+        extract('year', models.Post.published_at),
+        extract('month', models.Post.published_at)
+    ).order_by(
+        extract('year', models.Post.published_at).desc(),
+        extract('month', models.Post.published_at).desc()
+    ).limit(12).all()
+
+    monthly_stats = [{
+        "year": int(m.year),
+        "month": int(m.month),
+        "count": m.count
+    } for m in reversed(monthly_posts)]
+
+    # 标签使用统计（Top 10）
+    tag_stats = db.query(
+        models.Tag.name,
+        func.count(models.post_tags.c.post_id).label('count')
+    ).join(models.post_tags).group_by(models.Tag.id).order_by(
+        func.count(models.post_tags.c.post_id).desc()
+    ).limit(10).all()
+
+    tag_data = [{"name": t[0], "count": t[1]} for t in tag_stats]
+
+    # 登录日志统计（最近7天）
+    login_stats = db.query(
+        func.date(models.AccessLog.created_at).label('date'),
+        models.AccessLog.log_type,
+        func.count(models.AccessLog.id).label('count')
+    ).filter(
+        models.AccessLog.created_at >= seven_days_ago,
+        models.AccessLog.log_type.in_(['login_success', 'login_failed'])
+    ).group_by(
+        func.date(models.AccessLog.created_at),
+        models.AccessLog.log_type
+    ).all()
+
+    login_data = defaultdict(lambda: {"success": 0, "failed": 0})
+    for row in login_stats:
+        if row.log_type == 'login_success':
+            login_data[str(row.date)]["success"] = row.count
+        else:
+            login_data[str(row.date)]["failed"] = row.count
+
+    login_stats_list = []
+    for i in range(7):
+        date = (datetime.utcnow() - timedelta(days=6-i)).strftime('%Y-%m-%d')
+        login_stats_list.append({
+            "date": date,
+            "success": login_data[date]["success"],
+            "failed": login_data[date]["failed"]
+        })
+
     return {
         "posts": {
             "total": total_posts,
             "published": published_posts,
             "draft": draft_posts,
+            "encrypted": encrypted_posts,
+            "pinned": pinned_posts,
             "recent": recent_posts
         },
         "categories": {
@@ -80,11 +172,17 @@ def get_dashboard_stats(db: Session = Depends(get_db)) -> Dict[str, Any]:
             "stats": category_data
         },
         "tags": {
-            "total": total_tags
+            "total": total_tags,
+            "stats": tag_data
         },
         "friends": {
             "total": total_friends,
             "enabled": enabled_friends
         },
-        "latest_posts": latest_posts_data
+        "latest_posts": latest_posts_data,
+        "charts": {
+            "daily": daily_stats,
+            "monthly": monthly_stats,
+            "login": login_stats_list
+        }
     }

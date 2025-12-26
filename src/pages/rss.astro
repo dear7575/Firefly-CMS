@@ -1,10 +1,27 @@
 ---
+export const prerender = false;
 import MainGridLayout from "@layouts/MainGridLayout.astro";
 import { getSortedPosts } from "@utils/content-utils";
 import { formatDateToYYYYMMDD } from "@utils/date-utils";
+import { getPostUrlBySlug } from "@utils/url-utils";
 import { Icon } from "astro-icon/components";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
+import { fetchSiteSettings } from "@/services/siteSettings";
+
+// 获取动态配置
+let dynamicSettings: Record<string, any> = {};
+try {
+	dynamicSettings = await fetchSiteSettings();
+} catch (error) {
+	console.warn("无法获取动态配置，使用静态配置");
+}
+
+// 检查 RSS 功能是否启用（动态配置优先）
+const featureRss = dynamicSettings.feature_rss ?? true;
+if (!featureRss) {
+	return Astro.redirect("/404");
+}
 
 const posts = await getSortedPosts();
 const recentPosts = posts.slice(0, 6);
@@ -64,7 +81,7 @@ const recentPosts = posts.slice(0, 6);
                 {recentPosts.map((post) => (
                     <article class="bg-[var(--card-bg)] rounded-xl p-4 border border-[var(--line-divider)] hover:border-[var(--primary)] transition-all duration-300">
                         <h3 class="text-lg font-semibold text-90 mb-2 hover:text-[var(--primary)] transition-colors">
-                            <a href={`/posts/${post.id}/`} class="hover:underline">
+                            <a href={getPostUrlBySlug(post.id)} class="hover:underline">
                                 {post.data.title}
                             </a>
                         </h3>

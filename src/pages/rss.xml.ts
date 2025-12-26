@@ -1,9 +1,11 @@
 import { getImage } from "astro:assets";
+export const prerender = false;
 import type { RSSFeedItem } from "@astrojs/rss";
 import rss from "@astrojs/rss";
 import type { APIContext, ImageMetadata } from "astro";
 import { parse as htmlParser } from "node-html-parser";
 import { getSortedPosts } from "@/utils/content-utils";
+import { getPostUrlBySlug } from "@/utils/url-utils";
 import { siteConfig } from "../config";
 
 // Build regex pattern for control characters programmatically to avoid lint warnings
@@ -164,7 +166,7 @@ export async function GET(context: APIContext) {
 			title: sanitizeXmlContent(post.data.title),
 			description: sanitizeXmlContent(post.data.description || ""),
 			pubDate: post.data.published,
-			link: `/posts/${post.id}/`,
+			link: getPostUrlBySlug(post.id),
 			// content:encoded should contain HTML but must be XML-safe
 			content: sanitizeHtmlForXml(
 				sanitizeHtml(html.toString(), {

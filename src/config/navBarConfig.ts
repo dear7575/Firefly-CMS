@@ -58,10 +58,11 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 
 // 导航搜索配置
 export const navBarSearchConfig: NavBarSearchConfig = {
-	// 可选：PageFind， MeiliSearch
-	// 选择PageFind时：NavBarSearchMethod.PageFind,
-	// 选择MeiliSearch时：NavBarSearchMethod.MeiliSearch,
-	method: NavBarSearchMethod.PageFind,
+	// 可选：PageFind，MeiliSearch，BackendAPI
+	// 选择PageFind时：NavBarSearchMethod.PageFind
+	// 选择MeiliSearch时：NavBarSearchMethod.MeiliSearch
+	// 选择BackendAPI时：NavBarSearchMethod.BackendAPI（推荐：使用后端 API 搜索，适用于动态 CMS）
+	method: NavBarSearchMethod.BackendAPI,
 	// 当选择 MeiliSearch 时的配置
 	meiliSearchConfig: {
 		INDEX_NAME: "posts",

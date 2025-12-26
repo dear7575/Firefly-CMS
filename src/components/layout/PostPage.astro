@@ -3,8 +3,26 @@ import type { CollectionEntry } from "astro:content";
 import { getPostUrlBySlug } from "@utils/url-utils";
 import PostCard from "@/components/content/PostCard.astro";
 import { sidebarLayoutConfig, siteConfig } from "@/config";
+import { fetchSiteSettings } from "@/services/siteSettings";
 
-const { page } = Astro.props;
+interface Props {
+	page: any;
+	defaultLayout?: string;
+	allowSwitchLayout?: boolean;
+	gridMasonry?: boolean;
+}
+
+const { page, defaultLayout: propDefaultLayout, allowSwitchLayout: propAllowSwitch, gridMasonry: propGridMasonry } = Astro.props;
+
+// 获取动态配置（如果没有通过 props 传入）
+let dynamicSettings: Record<string, any> = {};
+if (propDefaultLayout === undefined || propAllowSwitch === undefined || propGridMasonry === undefined) {
+	try {
+		dynamicSettings = await fetchSiteSettings();
+	} catch (error) {
+		console.warn("无法获取动态配置，使用静态配置");
+	}
+}
 
 let delay = 0;
 const interval = 50;
@@ -14,10 +32,12 @@ type PostEntry = CollectionEntry<"posts">;
 
 // 检查是否启用双侧边栏
 const isBothSidebars = sidebarLayoutConfig.position === "both";
-const masonryEnabled = siteConfig.postListLayout.grid.masonry;
 
-// 根据配置设置初始布局模式，避免闪烁
-const defaultLayout = siteConfig.postListLayout.defaultMode || "list";
+// 使用 props 传入的值，否则使用动态配置，最后使用静态配置
+const masonryEnabled = propGridMasonry ?? dynamicSettings.post_grid_masonry ?? siteConfig.postListLayout?.grid?.masonry ?? true;
+const defaultLayout = propDefaultLayout || dynamicSettings.post_default_layout || siteConfig.postListLayout?.defaultMode || "list";
+const allowSwitchLayout = propAllowSwitch ?? dynamicSettings.post_allow_switch_layout ?? siteConfig.postListLayout?.allowSwitch ?? true;
+
 const initialLayoutClass =
 	defaultLayout === "grid"
 		? "grid grid-cols-1 md:grid-cols-2 gap-4 grid-mode"

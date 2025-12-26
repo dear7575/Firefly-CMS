@@ -6,7 +6,7 @@
         "version": "2.0.0"
     },
     "paths": {
-        "/posts/": {
+        "/posts": {
             "get": {
                 "tags": [
                     "文章管理"
@@ -254,7 +254,7 @@
                 }
             }
         },
-        "/categories/": {
+        "/categories": {
             "get": {
                 "tags": [
                     "分类管理"
@@ -521,7 +521,7 @@
                 }
             }
         },
-        "/tags/": {
+        "/tags": {
             "get": {
                 "tags": [
                     "标签管理"
@@ -788,7 +788,7 @@
                 }
             }
         },
-        "/friends/": {
+        "/friends": {
             "get": {
                 "tags": [
                     "友情链接"
@@ -1055,7 +1055,7 @@
                 }
             }
         },
-        "/social-links/": {
+        "/social-links": {
             "get": {
                 "tags": [
                     "社交链接"
@@ -1322,7 +1322,7 @@
                 }
             }
         },
-        "/settings/": {
+        "/settings": {
             "get": {
                 "tags": [
                     "站点设置"

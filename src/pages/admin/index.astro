@@ -72,6 +72,29 @@ import { i18n } from "@/i18n/translation";
             </div>
         </div>
 
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Daily Post Trends -->
+            <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+                <div class="p-6 border-b border-zinc-200 dark:border-zinc-800">
+                    <h2 class="text-lg font-bold text-zinc-900 dark:text-zinc-100">发布趋势（近30天）</h2>
+                </div>
+                <div class="p-6">
+                    <canvas id="dailyChart" height="200"></canvas>
+                </div>
+            </div>
+
+            <!-- Login Stats -->
+            <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+                <div class="p-6 border-b border-zinc-200 dark:border-zinc-800">
+                    <h2 class="text-lg font-bold text-zinc-900 dark:text-zinc-100">登录统计（近7天）</h2>
+                </div>
+                <div class="p-6">
+                    <canvas id="loginChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Recent Posts -->
             <div class="lg:col-span-2 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
@@ -103,7 +126,7 @@ import { i18n } from "@/i18n/translation";
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
                 </div>
-                <span class="font-medium text-zinc-700 dark:text-zinc-300">{i18n(I18nKey.adminNewPost)}</span>
+                <span class="font-medium text-zinc-700 dark:text-zinc-300">{i18n(I18nKey.adminAdd)} {i18n(I18nKey.adminPost)}</span>
             </a>
             <a href="/admin/categories" class="flex items-center gap-3 p-4 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-[var(--primary)] hover:shadow-lg transition-all group">
                 <div class="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -202,19 +225,228 @@ import { i18n } from "@/i18n/translation";
                         return '<div class="space-y-2">' +
                             '<div class="flex items-center justify-between text-sm">' +
                                 '<span class="text-zinc-700 dark:text-zinc-300">' + cat.name + '</span>' +
-                                '<span class="text-zinc-500">' + cat.count + '</span>' +
+                                '<span class="font-medium text-indigo-600 dark:text-indigo-400">' + cat.count + '</span>' +
                             '</div>' +
-                            '<div class="h-2 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">' +
-                                '<div class="h-full bg-[var(--primary)] rounded-full transition-all" style="width: ' + widthPercent + '%"></div>' +
+                            '<div class="h-2 bg-zinc-100 dark:bg-zinc-700 rounded-full overflow-hidden">' +
+                                '<div class="h-full bg-indigo-500 dark:bg-indigo-400 rounded-full transition-all" style="width: ' + widthPercent + '%"></div>' +
                             '</div>' +
                         '</div>';
                     }).join('');
                 }
             }
+
+            // Render charts
+            renderCharts(data.charts);
         } catch (err) {
             console.error('Failed to load dashboard stats:', err);
         }
     }
+
+    // Chart instances
+    var dailyChartInstance = null;
+    var loginChartInstance = null;
+
+    function renderCharts(chartsData) {
+        if (!chartsData) return;
+
+        // Check if Chart.js is loaded
+        if (typeof Chart === 'undefined') {
+            console.error('Chart.js is not loaded');
+            return;
+        }
+
+        var isDark = document.documentElement.classList.contains('dark');
+        var gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)';
+        var textColor = isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)';
+
+        // Daily Chart - 发布趋势
+        var dailyCtx = document.getElementById('dailyChart');
+        if (dailyCtx && chartsData.daily) {
+            if (dailyChartInstance) {
+                dailyChartInstance.destroy();
+            }
+
+            var labels = chartsData.daily.map(function(d) {
+                var date = new Date(d.date);
+                return (date.getMonth() + 1) + '/' + date.getDate();
+            });
+            var counts = chartsData.daily.map(function(d) { return d.count; });
+
+            dailyChartInstance = new Chart(dailyCtx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '发布文章数',
+                        data: counts,
+                        borderColor: 'rgb(99, 102, 241)',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: counts.length > 20 ? 0 : 3,
+                        pointHoverRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: isDark ? 'rgba(24, 24, 27, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+                            titleColor: isDark ? '#fff' : '#000',
+                            bodyColor: isDark ? '#fff' : '#000',
+                            borderColor: gridColor,
+                            borderWidth: 1,
+                            padding: 10,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return '发布: ' + context.parsed.y + ' 篇';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: gridColor,
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: textColor,
+                                maxRotation: 0,
+                                autoSkipPadding: 20
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: gridColor,
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: textColor,
+                                stepSize: 1
+                            }
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    }
+                }
+            });
+        }
+
+        // Login Chart - 登录统计
+        var loginCtx = document.getElementById('loginChart');
+        if (loginCtx && chartsData.login) {
+            if (loginChartInstance) {
+                loginChartInstance.destroy();
+            }
+
+            var loginLabels = chartsData.login.map(function(d) {
+                var date = new Date(d.date);
+                return (date.getMonth() + 1) + '/' + date.getDate();
+            });
+            var successData = chartsData.login.map(function(d) { return d.success; });
+            var failedData = chartsData.login.map(function(d) { return d.failed; });
+
+            loginChartInstance = new Chart(loginCtx, {
+                type: 'bar',
+                data: {
+                    labels: loginLabels,
+                    datasets: [
+                        {
+                            label: '成功',
+                            data: successData,
+                            backgroundColor: 'rgba(34, 197, 94, 0.8)',
+                            borderRadius: 4
+                        },
+                        {
+                            label: '失败',
+                            data: failedData,
+                            backgroundColor: 'rgba(239, 68, 68, 0.8)',
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            align: 'end',
+                            labels: {
+                                color: textColor,
+                                usePointStyle: true,
+                                padding: 20
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: isDark ? 'rgba(24, 24, 27, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+                            titleColor: isDark ? '#fff' : '#000',
+                            bodyColor: isDark ? '#fff' : '#000',
+                            borderColor: gridColor,
+                            borderWidth: 1,
+                            padding: 10
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false,
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: textColor
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: gridColor,
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: textColor,
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    // Update charts when theme changes
+    var themeObserver = new MutationObserver(function() {
+        var API_URL = 'http://localhost:8000';
+        fetch(API_URL + '/dashboard/stats')
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                if (data.charts) {
+                    renderCharts(data.charts);
+                }
+            })
+            .catch(function(err) { console.error('Failed to refresh charts:', err); });
+    });
+
+    // Start observing theme changes
+    setTimeout(function() {
+        var html = document.documentElement;
+        if (html) {
+            themeObserver.observe(html, {
+                attributes: true,
+                attributeFilter: ['class']
+            });
+        }
+    }, 1000);
 
     loadDashboardStats();
 })();

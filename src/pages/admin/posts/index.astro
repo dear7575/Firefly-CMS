@@ -17,12 +17,12 @@ import { i18n } from "@/i18n/translation";
             </div>
             <button
                 id="newPostBtn"
-                class="bg-[var(--primary)] hover:brightness-110 text-white px-6 py-2.5 rounded-xl font-medium transition-all active:scale-95 flex items-center gap-2 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+                class="bg-[var(--primary)] dark:bg-zinc-800 hover:brightness-110 dark:hover:bg-zinc-700 text-white dark:text-zinc-100 px-6 py-2.5 rounded-xl font-medium transition-all active:scale-95 flex items-center gap-2 shadow-lg hover:shadow-xl hover:-translate-y-0.5 dark:border dark:border-indigo-500/50 dark:shadow-[0_0_15px_rgba(99,102,241,0.3)]"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
                 </svg>
-                {i18n(I18nKey.adminNewPost)}
+                {i18n(I18nKey.adminAdd)} {i18n(I18nKey.adminPost)}
             </button>
         </div>
 
@@ -63,7 +63,7 @@ import { i18n } from "@/i18n/translation";
 
 <script is:inline>
     document.getElementById("newPostBtn")?.addEventListener("click", () => {
-        window.location.href = "/admin/new/";
+        window.location.href = "/admin/new";
     });
 
     // Load posts when page loads

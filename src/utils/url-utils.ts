@@ -21,9 +21,9 @@ function joinUrl(...parts: string[]): string {
 }
 
 export function getPostUrlBySlug(slug: string): string {
-	// 移除文件扩展名（如 .md, .mdx 等）
-	const slugWithoutExt = removeFileExtension(slug);
-	return url(`/posts/${slugWithoutExt}/`);
+	// 移除文件扩展名（如 .md, .mdx 等）和动态文章前缀
+	const slugWithoutExt = removeFileExtension(slug).replace(/^dynamic-/, '');
+	return url(`/posts/${slugWithoutExt}`);
 }
 
 export function getTagUrl(tag: string): string {

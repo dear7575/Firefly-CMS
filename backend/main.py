@@ -5,16 +5,26 @@ FastAPI 应用程序配置和启动
 from fastapi import FastAPI, Depends, HTTPException, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
+from collections import defaultdict
+import time
+import os
 
 import auth
 import models
-from database import engine, Base, get_db, SessionLocal
-from routes import posts, categories, tags, friends, social, settings, dashboard, logs
+from database import engine, Base, get_db, SessionLocal, settings as db_settings
+from routes import posts, categories, tags, friends, social, settings, dashboard, logs, search, upload, backup
+from exception_handlers import register_exception_handlers
+from exceptions import RateLimitError
 
 # 创建数据库表（如果不存在）
 Base.metadata.create_all(bind=engine)
+
+# 创建上传目录
+os.makedirs(db_settings.UPLOAD_DIR, exist_ok=True)
 
 # 创建 FastAPI 应用实例
 app = FastAPI(
@@ -23,15 +33,31 @@ app = FastAPI(
     version="2.0.0"
 )
 
+# 注册全局异常处理器
+register_exception_handlers(app)
+
+# 解析 CORS 允许的域名
+def get_cors_origins():
+    """从配置获取 CORS 允许的域名列表"""
+    origins = db_settings.CORS_ORIGINS
+    if origins == "*":
+        return ["*"]
+    return [origin.strip() for origin in origins.split(",") if origin.strip()]
+
 # 配置 CORS 跨域中间件
-# 注意：生产环境请将 allow_origins 设置为具体的前端域名
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 生产环境请替换为具体域名，如 ["https://yourdomain.com"]
+    allow_origins=get_cors_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# 挂载静态文件目录（用于图片上传）
+app.mount("/uploads", StaticFiles(directory=db_settings.UPLOAD_DIR), name="uploads")
+
+# API 频率限制存储
+rate_limit_store = defaultdict(list)
 
 
 def get_client_ip(request: Request) -> str:
@@ -45,6 +71,25 @@ def get_client_ip(request: Request) -> str:
         return real_ip
     # 直接连接的客户端 IP
     return request.client.host if request.client else "unknown"
+
+
+def check_rate_limit(client_ip: str) -> bool:
+    """检查 API 频率限制"""
+    current_time = time.time()
+    window_start = current_time - 60  # 1分钟窗口
+
+    # 清理过期记录
+    rate_limit_store[client_ip] = [
+        t for t in rate_limit_store[client_ip] if t > window_start
+    ]
+
+    # 检查是否超过限制
+    if len(rate_limit_store[client_ip]) >= db_settings.RATE_LIMIT_PER_MINUTE:
+        return False
+
+    # 记录本次请求
+    rate_limit_store[client_ip].append(current_time)
+    return True
 
 
 def save_access_log(
@@ -74,6 +119,29 @@ def save_access_log(
         print(f"保存日志失败: {e}")
     finally:
         db.close()
+
+
+@app.middleware("http")
+async def rate_limit_middleware(request: Request, call_next):
+    """API 频率限制中间件"""
+    # 跳过静态资源
+    if request.url.path.startswith("/uploads") or request.url.path.startswith("/docs"):
+        return await call_next(request)
+
+    client_ip = get_client_ip(request)
+    if not check_rate_limit(client_ip):
+        # 使用统一的错误响应格式
+        return JSONResponse(
+            status_code=429,
+            content={
+                "success": False,
+                "error": {
+                    "code": "RATE_LIMIT_EXCEEDED",
+                    "message": "请求过于频繁，请稍后再试"
+                }
+            }
+        )
+    return await call_next(request)
 
 
 @app.middleware("http")
@@ -132,6 +200,9 @@ app.include_router(social.router)
 app.include_router(settings.router)
 app.include_router(dashboard.router)
 app.include_router(logs.router)
+app.include_router(search.router)
+app.include_router(upload.router)
+app.include_router(backup.router)
 
 
 @app.post("/token", summary="用户登录", tags=["认证"])

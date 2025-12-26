@@ -92,7 +92,7 @@ class LogStatsResponse(BaseModel):
 
 # ============== API 端点 ==============
 
-@router.get("/", response_model=List[LogResponse], summary="获取日志列表")
+@router.get("", response_model=List[LogResponse], summary="获取日志列表")
 async def get_logs(
     page: int = Query(1, ge=1, description="页码"),
     page_size: int = Query(20, ge=1, le=100, description="每页数量"),

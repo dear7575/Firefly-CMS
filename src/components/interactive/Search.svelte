@@ -118,6 +118,16 @@ const search = async (keyword: string, isDesktop: boolean): Promise<void> => {
 				} else if (import.meta.env.DEV) {
 					searchResults = fakeResult;
 				}
+			} else if (searchMethod === NavBarSearchMethod.BackendAPI) {
+				// 使用后端 API 进行搜索
+				const apiUrl = import.meta.env.PUBLIC_API_URL || "http://localhost:8000";
+				const response = await fetch(
+					`${apiUrl}/search/?q=${encodeURIComponent(keyword)}&limit=10`
+				);
+				if (!response.ok) {
+					throw new Error(`搜索请求失败: ${response.status}`);
+				}
+				searchResults = await response.json();
 			}
 
 			result = searchResults;
@@ -169,6 +179,10 @@ onMount(() => {
 				});
 			}
 		}
+	} else if (searchMethod === NavBarSearchMethod.BackendAPI) {
+		// 后端 API 搜索不需要额外初始化，直接设置为已初始化
+		initialized = true;
+		console.log("Backend API search enabled.");
 	}
 });
 

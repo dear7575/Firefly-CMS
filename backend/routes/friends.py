@@ -59,7 +59,7 @@ class FriendLinkResponse(BaseModel):
 
 # ============== API 接口 ==============
 
-@router.get("/", response_model=List[FriendLinkResponse], summary="获取友链列表")
+@router.get("", response_model=List[FriendLinkResponse], summary="获取友链列表")
 def get_friend_links(
     enabled_only: bool = False,
     db: Session = Depends(get_db)
@@ -82,7 +82,7 @@ def get_friend_link(friend_id: str, db: Session = Depends(get_db)):
     return friend
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED, summary="创建友链")
+@router.post("", status_code=status.HTTP_201_CREATED, summary="创建友链")
 def create_friend_link(
     friend: FriendLinkCreate,
     db: Session = Depends(get_db),

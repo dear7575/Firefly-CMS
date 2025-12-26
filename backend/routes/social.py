@@ -55,7 +55,7 @@ class SocialLinkResponse(BaseModel):
 
 # ============== API 接口 ==============
 
-@router.get("/", response_model=List[SocialLinkResponse], summary="获取社交链接列表")
+@router.get("", response_model=List[SocialLinkResponse], summary="获取社交链接列表")
 def get_social_links(
     enabled_only: bool = False,
     db: Session = Depends(get_db)
@@ -78,7 +78,7 @@ def get_social_link(link_id: str, db: Session = Depends(get_db)):
     return link
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED, summary="创建社交链接")
+@router.post("", status_code=status.HTTP_201_CREATED, summary="创建社交链接")
 def create_social_link(
     link: SocialLinkCreate,
     db: Session = Depends(get_db),

@@ -9,9 +9,9 @@ import { i18n } from "@i18n/translation";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
 import { getSortedPosts } from "@utils/content-utils";
 import {
-	getFileDirFromPath,
-	getPostUrlBySlug,
-	removeFileExtension,
+  getFileDirFromPath,
+  getPostUrlBySlug,
+  removeFileExtension,
 } from "@utils/url-utils";
 import { Icon } from "astro-icon/components";
 import dayjs from "dayjs";
@@ -27,69 +27,178 @@ import { sponsorConfig } from "@/config/sponsorConfig";
 import { formatDateToYYYYMMDD } from "@/utils/date-utils";
 import { processCoverImageSync } from "@/utils/image-utils";
 import { url } from "@/utils/url-utils";
+import { fetchSiteSettings } from "@/services/siteSettings";
 
-export async function getStaticPaths() {
-	const blogEntries = await getSortedPosts();
-	return blogEntries.map((entry) => {
-		// 将 id 转换为 slug（移除扩展名）以匹配路由参数
-		const slug = removeFileExtension(entry.id);
-		return {
-			params: { slug },
-			props: { entry },
-		};
-	});
+import { marked, Renderer } from "marked";
+
+export const prerender = false;
+
+// 获取动态配置
+let dynamicSettings: Record<string, any> = {};
+try {
+  dynamicSettings = await fetchSiteSettings();
+} catch (error) {
+  console.warn("无法获取动态配置，使用静态配置");
 }
 
-const { entry } = Astro.props;
-const { Content, headings } = await render(entry);
+// 获取作者信息（动态配置优先）
+const authorName = dynamicSettings.profile_name || profileConfig.name;
+const authorAvatar = dynamicSettings.profile_avatar || profileConfig.avatar;
+const dynamicSiteTitle = dynamicSettings.site_title || siteConfig.title;
 
-const { remarkPluginFrontmatter } = await render(entry);
+// 文章详情页配置（动态配置优先）
+const showLastModified = dynamicSettings.post_show_last_modified ?? siteConfig.showLastModified ?? true;
+const outdatedThreshold = dynamicSettings.post_outdated_threshold ?? siteConfig.outdatedThreshold ?? 30;
+const showToc = dynamicSettings.post_show_toc ?? true;
+const showUpdated = dynamicSettings.post_show_updated ?? true;
+
+// 配置 marked 为标题添加 id 属性
+const slugCount: Record<string, number> = {};
+
+function generateSlug(text: string): string {
+  let slug = text
+    .toLowerCase()
+    .replace(/[^\w\u4e00-\u9fa5\s-]/g, "") // 保留中文、字母、数字、空格、连字符
+    .replace(/\s+/g, "-") // 空格转连字符
+    .replace(/-+/g, "-"); // 多个连字符合并
+
+  // 处理重复的 slug
+  if (slugCount[slug]) {
+    slugCount[slug]++;
+    slug = `${slug}-${slugCount[slug] - 1}`;
+  } else {
+    slugCount[slug] = 1;
+  }
+
+  return slug;
+}
+
+const renderer = new Renderer();
+renderer.heading = function ({ tokens, depth }) {
+  const text = this.parser.parseInline(tokens);
+  // 提取纯文本用于生成 slug
+  const plainText = text.replace(/<[^>]*>/g, "");
+  const slug = generateSlug(plainText);
+  return `<h${depth} id="${slug}">${text}</h${depth}>\n`;
+};
+
+marked.use({ renderer });
+
+const { slug } = Astro.params;
+const blogEntries = await getSortedPosts();
+// 匹配逻辑：支持静态文章（移除 .md 扩展名）和动态文章（移除 dynamic- 前缀）
+const entry = blogEntries.find((e) => {
+  const cleanId = removeFileExtension(e.id).replace(/^dynamic-/, '');
+  return cleanId === slug;
+});
+
+if (!entry) {
+  return new Response(null, {
+    status: 404,
+    statusText: 'Not Found'
+  });
+}
+
+// Check if post is password protected
+const hasPassword = entry.data.has_password || false;
+const postId = entry.id.startsWith("dynamic-")
+  ? entry.id.replace("dynamic-", "")
+  : null;
+
+let Content: any;
+let isDynamic = false;
+let headings: any[] = [];
+let remarkPluginFrontmatter: any = { words: 0, minutes: 0 };
+
+if (entry.id.startsWith("dynamic-")) {
+  // For dynamic posts from DB
+  isDynamic = true;
+
+  // 先从 Markdown 内容中提取标题生成目录
+  const content = entry.data.content || "";
+  const headingRegex = /^(#{1,6})\s+(.+)$/gm;
+  let match;
+
+  // 重置 slug 计数器
+  Object.keys(slugCount).forEach((key) => delete slugCount[key]);
+
+  while ((match = headingRegex.exec(content)) !== null) {
+    const depth = match[1].length;
+    const text = match[2].trim();
+    const slug = generateSlug(text);
+
+    headings.push({
+      depth,
+      slug,
+      text,
+    });
+  }
+
+  // 重置 slug 计数器，让 marked 渲染时生成相同的 slug
+  Object.keys(slugCount).forEach((key) => delete slugCount[key]);
+
+  // 渲染 Markdown
+  Content = await marked.parse(content);
+
+  // Simple estimation for dynamic posts
+  const words = content.split(/\s+/).length;
+  remarkPluginFrontmatter = {
+    words,
+    minutes: Math.ceil(words / 200),
+  };
+} else {
+  // For static posts from collection
+  const rendered = await render(entry);
+  Content = rendered.Content;
+  headings = rendered.headings;
+  remarkPluginFrontmatter = rendered.remarkPluginFrontmatter;
+}
 
 // 处理随机图：如果image为"api"，则从配置的API获取随机图
 const processedImage = processCoverImageSync(entry.data.image, entry.id);
 
 let posterCoverUrl = processedImage;
 if (processedImage) {
-	const isLocal = !(
-		processedImage.startsWith("/") ||
-		processedImage.startsWith("http") ||
-		processedImage.startsWith("https") ||
-		processedImage.startsWith("data:")
-	);
-	if (isLocal) {
-		const basePath = getFileDirFromPath(entry.filePath || "");
-		const files = import.meta.glob<ImageMetadata>("../../**", {
-			import: "default",
-		});
-		let normalizedPath = path
-			.normalize(path.join("../../", basePath, processedImage))
-			.replace(/\\/g, "/");
-		const file = files[normalizedPath];
-		if (file) {
-			const img = await file();
-			posterCoverUrl = img.src;
-		}
-	}
+  const isLocal = !(
+    processedImage.startsWith("/") ||
+    processedImage.startsWith("http") ||
+    processedImage.startsWith("https") ||
+    processedImage.startsWith("data:")
+  );
+  if (isLocal) {
+    const basePath = getFileDirFromPath(entry.filePath || "");
+    const files = import.meta.glob<ImageMetadata>("../../**", {
+      import: "default",
+    });
+    let normalizedPath = path
+      .normalize(path.join("../../", basePath, processedImage))
+      .replace(/\\/g, "/");
+    const file = files[normalizedPath];
+    if (file) {
+      const img = await file();
+      posterCoverUrl = img.src;
+    }
+  }
 }
 
 dayjs.extend(utc);
 
 const jsonLd = {
-	"@context": "https://schema.org",
-	"@type": "BlogPosting",
-	headline: entry.data.title,
-	description: entry.data.description || entry.data.title,
-	keywords: entry.data.tags,
-	author: {
-		"@type": "Person",
-		name: profileConfig.name,
-		url: Astro.site,
-	},
-	datePublished: formatDateToYYYYMMDD(entry.data.published),
-	inLanguage: entry.data.lang
-		? entry.data.lang.replace("_", "-")
-		: siteConfig.lang.replace("_", "-"),
-	// TODO include cover image here
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  headline: entry.data.title,
+  description: entry.data.description || entry.data.title,
+  keywords: entry.data.tags,
+  author: {
+    "@type": "Person",
+    name: authorName,
+    url: Astro.site,
+  },
+  datePublished: formatDateToYYYYMMDD(entry.data.published),
+  inLanguage: entry.data.lang
+    ? entry.data.lang.replace("_", "-")
+    : siteConfig.lang.replace("_", "-"),
+  // TODO include cover image here
 };
 ---
 
@@ -111,11 +220,64 @@ const jsonLd = {
   <div
     class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative mb-4"
   >
+    <!-- Password Protection Overlay -->
+    {
+      hasPassword && postId && (
+        <div
+          id="password-overlay"
+          data-post-id={postId}
+          class="absolute inset-0 z-50 bg-white/95 dark:bg-black/95 backdrop-blur-md flex items-center justify-center"
+        >
+          <div class="card-base p-8 max-w-md w-full mx-4">
+            <div class="text-center mb-6">
+              <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--primary)]/10 mb-4">
+                <svg
+                  class="w-8 h-8 text-[var(--primary)]"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </div>
+              <h2 class="text-2xl font-bold text-black/90 dark:text-white/90 mb-2">
+                受保护的帖子
+              </h2>
+              <p class="text-sm text-black/60 dark:text-white/60">
+                请输入密码才能查看此内容
+              </p>
+            </div>
+            <form id="password-form" class="space-y-4">
+              <div>
+                <input
+                  type="password"
+                  id="post-password"
+                  placeholder="Password"
+                  class="w-full px-4 py-3 rounded-lg border border-black/10 dark:border-white/10 bg-white dark:bg-black/50 text-black/90 dark:text-white/90 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all"
+                  autocomplete="off"
+                />
+              </div>
+              <div id="password-error" class="text-sm text-red-500 hidden" />
+              <button
+                type="submit"
+                class="w-full px-6 py-3 bg-[var(--primary)] text-white dark:text-black/70 rounded-lg font-medium hover:opacity-90 active:scale-95 transition-all"
+              >
+                解锁
+              </button>
+            </form>
+          </div>
+        </div>
+      )
+    }
+
     <div
       id="post-container"
       class:list={[
         "card-base z-10 px-6 md:px-9 pt-6 pb-4 relative w-full ",
-        {},
+        { "blur-sm pointer-events-none": hasPassword },
       ]}
     >
       <!-- word count and reading time -->
@@ -146,7 +308,7 @@ const jsonLd = {
                 i18n(
                   remarkPluginFrontmatter.minutes === 1
                     ? I18nKey.minuteCount
-                    : I18nKey.minutesCount
+                    : I18nKey.minutesCount,
                 )
             }
           </div>
@@ -194,7 +356,7 @@ const jsonLd = {
             <RandomCoverImage
               id="post-cover"
               src={processedImage}
-              basePath={getFileDirFromPath(entry.filePath || '')}
+              basePath={getFileDirFromPath(entry.filePath || "")}
               class="mb-8 rounded-xl banner-container onload-animation"
               seed={entry.id}
               preview={false}
@@ -204,15 +366,19 @@ const jsonLd = {
       }
 
       <Markdown class="mb-6 markdown-content onload-animation">
-        <Content />
+        {isDynamic ? <Fragment set:html={Content} /> : <Content />}
       </Markdown>
 
       {/* 赞助按钮 & 分享按钮 */}
       <div class="mb-6 rounded-xl onload-animation">
         <div class="p-6 bg-[var(--license-block-bg)] rounded-xl">
-          <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div
+            class="flex flex-col sm:flex-row items-center justify-between gap-4"
+          >
             <div class="flex items-center gap-3 flex-1">
-              <div class="h-12 w-12 rounded-lg bg-[var(--primary)] flex items-center justify-center text-white dark:text-black/70 flex-shrink-0">
+              <div
+                class="h-12 w-12 rounded-lg bg-[var(--primary)] flex items-center justify-center text-white dark:text-black/70 flex-shrink-0"
+              >
                 <Icon
                   name={sponsorConfig.showButtonInPost &&
                   siteConfig.pages.sponsor
@@ -222,7 +388,9 @@ const jsonLd = {
                 />
               </div>
               <div>
-                <h3 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-1">
+                <h3
+                  class="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-1"
+                >
                   {
                     sponsorConfig.showButtonInPost && siteConfig.pages.sponsor
                       ? i18n(I18nKey.sponsorButton)
@@ -242,13 +410,13 @@ const jsonLd = {
               <SharePoster
                 client:load
                 title={entry.data.title}
-                author={profileConfig.name}
+                author={authorName}
                 description={entry.data.description || entry.data.title}
                 pubDate={formatDateToYYYYMMDD(entry.data.published)}
                 coverImage={posterCoverUrl}
                 url={Astro.url.href}
-                siteTitle={siteConfig.title}
-                avatar={profileConfig.avatar}
+                siteTitle={dynamicSiteTitle}
+                avatar={authorAvatar}
               />
               {
                 sponsorConfig.showButtonInPost && siteConfig.pages.sponsor && (
@@ -272,7 +440,7 @@ const jsonLd = {
             title={entry.data.title}
             id={entry.id}
             pubDate={entry.data.published}
-            author={entry.data.author}
+            author={entry.data.author || authorName}
             sourceLink={entry.data.sourceLink}
             licenseName={entry.data.licenseName}
             licenseUrl={entry.data.licenseUrl}
@@ -285,51 +453,49 @@ const jsonLd = {
 
   <!-- 上次编辑时间 -->
   {
-    siteConfig.showLastModified && (() => {
-      const lastModified = dayjs(
-        entry.data.updated || entry.data.published
-      );
-      const now = dayjs();
-      const daysDiff = now.diff(lastModified, "day");
-      // 使用用户定义的阈值，如果没有定义则默认为1天
-      const outdatedThreshold = siteConfig.outdatedThreshold ?? 1;
-      const shouldShowOutdatedCard = daysDiff >= outdatedThreshold;
+    showLastModified &&
+      (() => {
+        const lastModified = dayjs(entry.data.updated || entry.data.published);
+        const now = dayjs();
+        const daysDiff = now.diff(lastModified, "day");
+        // 使用动态配置的阈值
+        const shouldShowOutdatedCard = daysDiff >= outdatedThreshold;
 
-      return shouldShowOutdatedCard ? (
-        <div class="card-base p-6 mb-4">
-          <div class="flex items-center gap-2">
-            <div class="transition h-9 w-9 rounded-lg overflow-hidden relative flex items-center justify-center mr-0">
-              <Icon
-                name="material-symbols:history-rounded"
-                class="text-4xl text-[var(--primary)] transition-transform group-hover:translate-x-0.5 bg-[var(--enter-btn-bg)] p-2 rounded-md"
-              />
-            </div>
+        return shouldShowOutdatedCard ? (
+          <div class="card-base p-6 mb-4">
+            <div class="flex items-center gap-2">
+              <div class="transition h-9 w-9 rounded-lg overflow-hidden relative flex items-center justify-center mr-0">
+                <Icon
+                  name="material-symbols:history-rounded"
+                  class="text-4xl text-[var(--primary)] transition-transform group-hover:translate-x-0.5 bg-[var(--enter-btn-bg)] p-2 rounded-md"
+                />
+              </div>
 
-            {(() => {
-              const dateStr = lastModified.format("YYYY-MM-DD");
-              const isOutdated = daysDiff >= 1;
+              {(() => {
+                const dateStr = lastModified.format("YYYY-MM-DD");
+                const isOutdated = daysDiff >= 1;
 
-              return (
-                <div class="flex flex-col gap-0.1">
-                  <div class="text-[1.0rem] leading-tight text-black/75 dark:text-white/75">
-                    {`${i18n(I18nKey.lastModifiedPrefix)}${dateStr}${
-                      isOutdated
-                        ? `，${i18n(I18nKey.lastModifiedDaysAgo).replace("{days}", daysDiff.toString())}`
-                        : ""
-                    }`}
+                return (
+                  <div class="flex flex-col gap-0.1">
+                    <div class="text-[1.0rem] leading-tight text-black/75 dark:text-white/75">
+                      {`${i18n(I18nKey.lastModifiedPrefix)}${dateStr}${
+                        isOutdated
+                          ? `，${i18n(I18nKey.lastModifiedDaysAgo).replace("{days}", daysDiff.toString())}`
+                          : ""
+                      }`}
+                    </div>
+                    {isOutdated && (
+                      <p class="text-[0.8rem] leading-tight text-black/75 dark:text-white/75">
+                        {i18n(I18nKey.lastModifiedOutdated)}
+                      </p>
+                    )}
                   </div>
-                  {isOutdated && (
-                    <p class="text-[0.8rem] leading-tight text-black/75 dark:text-white/75">
-                      {i18n(I18nKey.lastModifiedOutdated)}
-                    </p>
-                  )}
-                </div>
-              );
-            })()}
+                );
+              })()}
+            </div>
           </div>
-        </div>
-      ) : null;
-    })()
+        ) : null;
+      })()
   }
 
   <div
@@ -383,3 +549,83 @@ const jsonLd = {
   <!-- 评论 -->
   <Comment post={entry} />
 </MainGridLayout>
+
+<script>
+  const overlay = document.getElementById("password-overlay");
+  const form = document.getElementById("password-form");
+  const postContainer = document.getElementById("post-container");
+  const errorDiv = document.getElementById("password-error");
+
+  if (overlay && form) {
+    const postId = overlay.dataset.postId;
+    const storageKey = `post-password-${postId}`;
+
+    // Check if password is already stored
+    const storedPassword = sessionStorage.getItem(storageKey);
+    if (storedPassword) {
+      // Validate stored password
+      validatePassword(postId, storedPassword, true);
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const passwordInput = document.getElementById(
+        "post-password",
+      ) as HTMLInputElement;
+      const password = passwordInput.value;
+
+      if (!password) {
+        showError("Please enter a password");
+        return;
+      }
+
+      await validatePassword(postId, password, false);
+    });
+
+    async function validatePassword(
+      postId: string,
+      password: string,
+      silent: boolean,
+    ) {
+      try {
+        const response = await fetch(`http://localhost:8000/posts/${postId}`);
+        if (!response.ok) {
+          if (!silent) showError("Failed to verify password");
+          return;
+        }
+
+        const data = await response.json();
+
+        if (data.password === password) {
+          // Password correct - store and reveal content
+          sessionStorage.setItem(storageKey, password);
+          overlay?.classList.add("opacity-0", "pointer-events-none");
+          postContainer?.classList.remove("blur-sm", "pointer-events-none");
+          setTimeout(() => overlay?.remove(), 300);
+        } else {
+          if (!silent) {
+            showError("Incorrect password");
+            sessionStorage.removeItem(storageKey);
+          }
+        }
+      } catch (err) {
+        console.error("Password validation error:", err);
+        if (!silent) showError("An error occurred");
+      }
+    }
+
+    function showError(message: string) {
+      if (errorDiv) {
+        errorDiv.textContent = message;
+        errorDiv.classList.remove("hidden");
+        setTimeout(() => errorDiv.classList.add("hidden"), 3000);
+      }
+    }
+  }
+</script>
+
+<style>
+  #password-overlay {
+    transition: opacity 0.3s ease;
+  }
+</style>

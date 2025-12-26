@@ -9,6 +9,7 @@ import {
 	getTagList,
 } from "@/utils/content-utils";
 import WidgetLayout from "./WidgetLayout.astro";
+import { fetchSiteSettings } from "@/services/siteSettings";
 
 interface Props {
 	class?: string;
@@ -17,8 +18,16 @@ interface Props {
 
 const { class: className, style } = Astro.props;
 
-// 从配置中获取站点开始日期
-const siteStartDate = siteConfig.siteStartDate || "2025-01-01";
+// 获取动态配置
+let dynamicSettings: Record<string, any> = {};
+try {
+	dynamicSettings = await fetchSiteSettings();
+} catch (error) {
+	console.warn("无法获取动态配置，使用静态配置");
+}
+
+// 从动态配置或静态配置中获取站点开始日期
+const siteStartDate = dynamicSettings.site_start_date || siteConfig.siteStartDate || "2025-01-01";
 
 // 获取所有文章
 const posts = await getSortedPosts();
@@ -28,9 +37,11 @@ const tags = await getTagList();
 // 计算总字数
 let totalWords = 0;
 for (const post of posts) {
-	if (post.body) {
+	// 优先使用 data.content（动态文章），其次使用 body（静态文章）
+	const content = (post as any).data?.content || (post as any).body || "";
+	if (content) {
 		// 移除 Markdown 空白字符后计算字数
-		const text = post.body
+		const text = content
 			.replace(/\s+/g, " ") // 合并空白
 			.trim();
 
@@ -50,11 +61,15 @@ function formatNumber(num: number): string {
 // 获取最新文章日期（用于客户端计算）
 const latestPost = posts.reduce((latest, post) => {
 	if (!latest) return post;
-	return post.data.published > latest.data.published ? post : latest;
+	const latestDate = latest.data.published instanceof Date ? latest.data.published : new Date(latest.data.published);
+	const postDate = post.data.published instanceof Date ? post.data.published : new Date(post.data.published);
+	return postDate > latestDate ? post : latest;
 }, posts[0]);
 
 const lastPostDate = latestPost
-	? latestPost.data.published.toISOString()
+	? (latestPost.data.published instanceof Date
+		? latestPost.data.published.toISOString()
+		: new Date(latestPost.data.published).toISOString())
 	: null;
 
 const stats = [
