@@ -4,8 +4,10 @@
 """
 from datetime import datetime, timedelta
 from typing import Optional
-from jose import JWTError, jwt
+
+from jose import jwt
 from passlib.context import CryptContext
+
 from database import settings
 
 # 密码加密上下文，使用 PBKDF2-SHA256 算法

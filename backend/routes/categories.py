@@ -60,7 +60,7 @@ class CategoryResponse(BaseModel):
 
 # ============== API 接口 ==============
 
-@router.get("/", response_model=List[CategoryResponse], summary="获取分类列表")
+@router.get("", response_model=List[CategoryResponse], summary="获取分类列表")
 def get_categories(
     enabled_only: bool = False,
     db: Session = Depends(get_db)
@@ -119,7 +119,7 @@ def get_category(category_id: str, db: Session = Depends(get_db)):
     }
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED, summary="创建分类")
+@router.post("", status_code=status.HTTP_201_CREATED, summary="创建分类")
 def create_category(
     category: CategoryCreate,
     db: Session = Depends(get_db),

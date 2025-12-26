@@ -20,6 +20,15 @@ export const ru: Translation = {
 	[Key.recentPosts]: "Последние посты",
 	[Key.postList]: "Список постов",
 	[Key.tableOfContents]: "Содержание",
+	[Key.postPasswordTitle]: "Защищённая запись",
+	[Key.postPasswordDescription]: "Введите пароль для просмотра этого содержимого",
+	[Key.postPasswordPlaceholder]: "Введите пароль",
+	[Key.postPasswordUnlock]: "Разблокировать",
+	[Key.postPasswordRequired]: "Введите пароль",
+	[Key.postPasswordInvalid]: "Неверный пароль",
+	[Key.postPasswordVerifyFailed]:
+		"Не удалось проверить пароль. Попробуйте позже.",
+	[Key.postPasswordError]: "Произошла ошибка. Попробуйте позже.",
 
 	// Объявление
 	[Key.announcement]: "Объявление",

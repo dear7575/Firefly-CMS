@@ -7,10 +7,20 @@ import { commentConfig, siteConfig } from "@/config";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import { fetchSiteSettings } from "@/services/siteSettings";
 
-// 检查页面是否启用
-if (!siteConfig.pages.guestbook) {
-	return Astro.redirect("/404/");
+// 获取动态配置
+let dynamicSettings: Record<string, any> = {};
+try {
+	dynamicSettings = await fetchSiteSettings();
+} catch (error) {
+	console.warn("无法获取动态配置，使用静态配置");
+}
+
+// 检查页面是否启用（动态配置优先）
+const pageEnabled = dynamicSettings.page_guestbook ?? siteConfig.pages.guestbook;
+if (!pageEnabled) {
+	return Astro.redirect("/404");
 }
 
 const guestbookPost = await getEntry("spec", "guestbook");

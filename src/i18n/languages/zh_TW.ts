@@ -20,6 +20,14 @@ export const zh_TW: Translation = {
 	[Key.recentPosts]: "最新文章",
 	[Key.postList]: "文章列表",
 	[Key.tableOfContents]: "目錄",
+	[Key.postPasswordTitle]: "受保護的文章",
+	[Key.postPasswordDescription]: "請輸入密碼才能查看內容",
+	[Key.postPasswordPlaceholder]: "請輸入密碼",
+	[Key.postPasswordUnlock]: "解鎖",
+	[Key.postPasswordRequired]: "請輸入密碼",
+	[Key.postPasswordInvalid]: "密碼錯誤",
+	[Key.postPasswordVerifyFailed]: "驗證失敗，請稍後再試",
+	[Key.postPasswordError]: "發生錯誤，請稍後再試",
 
 	// 公告欄
 	[Key.announcement]: "公告",

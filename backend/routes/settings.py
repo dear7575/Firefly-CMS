@@ -182,7 +182,7 @@ def get_public_settings_by_group(group: str, db: Session = Depends(get_db)):
 
 # ============== 需要认证的 API 接口 ==============
 
-@router.get("/", response_model=List[SettingResponse], summary="获取所有设置")
+@router.get("", response_model=List[SettingResponse], summary="获取所有设置")
 def get_settings(
     group: Optional[str] = None,
     db: Session = Depends(get_db)
@@ -228,7 +228,7 @@ def get_setting(setting_id: str, db: Session = Depends(get_db)):
     return setting
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED, summary="创建设置")
+@router.post("", status_code=status.HTTP_201_CREATED, summary="创建设置")
 def create_setting(
     setting: SettingCreate,
     db: Session = Depends(get_db),

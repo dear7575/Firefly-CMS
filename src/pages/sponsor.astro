@@ -5,10 +5,20 @@ import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
 import { url } from "@/utils/url-utils";
+import { fetchSiteSettings } from "@/services/siteSettings";
 
-// 检查页面是否启用
-if (!siteConfig.pages.sponsor) {
-	return Astro.redirect("/404/");
+// 获取动态配置
+let dynamicSettings: Record<string, any> = {};
+try {
+	dynamicSettings = await fetchSiteSettings();
+} catch (error) {
+	console.warn("无法获取动态配置，使用静态配置");
+}
+
+// 检查页面是否启用（动态配置优先）
+const pageEnabled = dynamicSettings.page_sponsor ?? siteConfig.pages.sponsor;
+if (!pageEnabled) {
+	return Astro.redirect("/404");
 }
 
 const title = sponsorConfig.title || i18n(I18nKey.sponsorTitle);

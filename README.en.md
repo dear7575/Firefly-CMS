@@ -1,284 +1,275 @@
 
-<img src="./docs/images/1131.png" width = "405" height = "511" alt="Firefly" align=right />
+<img src="./docs/images/1131.png" width = "405" height = "511" alt="Firefly CMS" align=right />
 
 <div align="center">
 
-# Firefly
-> A Fresh and Beautiful Astro Blog Theme Template
-> 
-> ![Node.js >= 22](https://img.shields.io/badge/node.js-%3E%3D22-brightgreen) 
-![pnpm >= 9](https://img.shields.io/badge/pnpm-%3E%3D9-blue)
-![Astro](https://img.shields.io/badge/Astro-5.16.6-orange)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.9.2-blue)
+# Firefly CMS
+> A Dynamic Blog Content Management System Based on Firefly Theme
 >
-> [![Stars](https://img.shields.io/github/stars/CuteLeaf/Firefly?style=social)](https://github.com/CuteLeaf/Firefly/stargazers)
-[![Forks](https://img.shields.io/github/forks/CuteLeaf/Firefly?style=social)](https://github.com/CuteLeaf/Firefly/network/members)
-[![Issues](https://img.shields.io/github/issues/CuteLeaf/Firefly)](https://github.com/CuteLeaf/Firefly/issues)
-> 
-> ![GitHub License](https://img.shields.io/github/license/CuteLeaf/Firefly)
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/CuteLeaf/Firefly)
-[![Afdian Sponsor](https://img.shields.io/badge/Afdian-Sponsor%20Author-ff69b4.svg)](https://afdian.com/a/cuteleaf)
+> ![Node.js >= 20](https://img.shields.io/badge/node.js-%3E%3D20-brightgreen)
+![pnpm >= 9](https://img.shields.io/badge/pnpm-%3E%3D9-blue)
+![Astro](https://img.shields.io/badge/Astro-5.x-orange)
+![Python](https://img.shields.io/badge/Python-3.10+-blue)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-green)
+>
+> [![Stars](https://img.shields.io/github/stars/dear7575/Firefly?style=social)](https://github.com/dear7575/Firefly/stargazers)
+[![Forks](https://img.shields.io/github/forks/dear7575/Firefly?style=social)](https://github.com/dear7575/Firefly/network/members)
+[![Issues](https://img.shields.io/github/issues/dear7575/Firefly)](https://github.com/dear7575/Firefly/issues)
+>
+> ![GitHub License](https://img.shields.io/github/license/dear7575/Firefly)
+>
 </div>
 
+---
+
+**Firefly CMS** is a secondary development project based on [CuteLeaf/Firefly](https://github.com/CuteLeaf/Firefly) theme. While preserving the beautiful frontend, it adds a complete admin management system, upgrading from a static blog to a dynamic content management system.
+
+📖 README: **[简体中文](README.md)** | **[English](README.en.md)**
+
+## 🆕 New Features in This Fork
+
+### Admin Management System
+- **FastAPI Backend** - High-performance async API service based on Python
+- **MySQL Database** - Persistent data storage with UUID primary keys
+- **JWT Authentication** - Secure user authentication mechanism
+- **RESTful API** - Standardized interface design
+
+### Management Features
+- **Post Management** - Online editor (Vditor), draft/publish, pinning, password protection
+- **Category Management** - CRUD operations, color tags, enable/disable
+- **Tag Management** - CRUD operations, color tags, enable/disable
+- **Friend Links** - Link management, sorting weight, avatar/description
+- **System Settings** - Dynamic management of site info, profile, theme config
+- **Social Links** - Social media link management
+- **Access Logs** - Login records, API access statistics, log cleanup
+
+### Dynamic Configuration
+- **Site Info** - Title, subtitle, description, keywords
+- **Profile** - Avatar, nickname, bio
+- **Brand Settings** - Logo, navbar title
+- **Banner Settings** - Homepage banner text
+- **Theme Settings** - Theme color, default mode
+- **Footer Settings** - ICP filing, copyright info
 
 ---
-🚀 Quick Guide:
-[**🖥️Live Demo**](https://firefly.cuteleaf.cn/) /
-[**📝Documentation**](https://docs-firefly.cuteleaf.cn/) /
-[**🍀My Blog**](https://blog.cuteleaf.cn)
 
-📖 README:
-**[简体中文](README.md)** | **[繁體中文](docs/README.zh-TW.md)** | **[English](README.en.md)** | **[日本語](docs/README.ja.md)** | **[Русский](docs/README.ru.md)** 
+## ✨ Original Features
 
-⚡ Static Site Generation: Ultra-fast loading speed and SEO optimization based on Astro
-
-🎨 Modern Design: Clean and beautiful interface with customizable theme colors
-
-📱 Mobile-Friendly: Perfect responsive experience with mobile-specific optimizations
-
-🔧 Highly Configurable: Most features can be customized through configuration files
-
-<img alt="firefly" src="./docs/images/1.webp" />
-
->[!TIP]
->In important layouts, Firefly innovatively adds dual sidebars, article grid (multi-column) layout, masonry layout,
->
->Includes site statistics, calendar component, table of contents and other widgets to enrich the sidebar,
->
->While also retaining fuwari layout system, freely switchable in the configuration file.
->
->**For more layout configurations and demos, please see: [Firefly Layout System Details](https://firefly.cuteleaf.cn/posts/firefly-layout-system/)**
-
-## ✨ Features
+> The following features are inherited from [CuteLeaf/Firefly](https://github.com/CuteLeaf/Firefly)
 
 ### Core Features
-
 - [x] **Astro + Tailwind CSS** - Ultra-fast static site generation based on modern tech stack
-- [x] **Smooth Animations** - Swup page transition animations for silky smooth browsing experience
-- [x] **Responsive Design** - Perfect adaptation for desktop, tablet and mobile devices
-- [x] **Multi-language Support** - i18n internationalization, supports Simplified Chinese, Traditional Chinese, English, Japanese, Russian
-- [x] **Full-text Search** - Client-side search based on Pagefind, supports article content indexing. Also supports MeiliSearch search engine
+- [x] **Smooth Animations** - Swup page transitions for silky browsing experience
+- [x] **Responsive Design** - Perfect adaptation for desktop, tablet, and mobile
+- [x] **Multi-language Support** - i18n internationalization, supports Chinese, English, Japanese, Russian
+- [x] **Full-text Search** - Pagefind client-side search, supports MeiliSearch
 
 ### Personalization
-- [x] **Sidebar** - Supports single sidebar, dual sidebar configuration, freely switchable in frontend
-- [x] **Article Layout** - Supports list (single column) and grid (multi-column/masonry) layout, freely switchable in frontend
-- [x] **Font Management** - Custom font support with rich font selector
-- [x] **Footer Configuration** - HTML content injection, fully customizable
-- [x] **Navbar Customization** - Logo, title, links fully customizable
-- [x] **Wallpaper Mode Switching** - Banner wallpaper, fullscreen wallpaper, solid background, freely switchable in frontend
-- [x] **Theme Color Customization** - 360° hue adjustment, supports light/dark/system three modes, freely switchable in frontend
+- [x] **Sidebar** - Single or dual sidebar configuration
+- [x] **Post Layout** - List, grid, waterfall layouts
+- [x] **Wallpaper Mode** - Banner wallpaper, fullscreen wallpaper, solid background
+- [x] **Theme Color** - 360° hue adjustment, light/dark/system modes
 
 ### Page Components
-- [x] **Guestbook** - Supports guestbook page with integrated comment system
-- [x] **Announcement Bar** - Top announcement notification, supports closing and custom styles
-- [x] **Mascot** - Supports both Spine and Live2D animation engines
-- [x] **Site Statistics** - Displays article, category, tag counts, total word count, running time, last update time
-- [x] **Site Calendar** - Displays current month calendar and published articles for the month
-- [x] **Sponsor Page** - Multiple payment methods, payment QR codes, sponsor list, in-article sponsor button
-- [x] **Share Poster** - Supports generating beautiful article share posters containing article summary, QR code, etc.
-- [x] **Sakura Effect** - Supports sakura effect, fullscreen sakura animation
-- [x] **Friend Links** - Beautiful friend link display cards
-- [x] **Ad Component** - Supports custom sidebar advertising content
-- [x] **Bangumi** - Display anime and game tracking based on Bangumi API
-- [x] **Comment System** - Integrates Twikoo, Waline, Giscus, Disqus, Artalk comment systems
-- [x] **Visit Counter** - Supports calling Waline, Twikoo built-in visit tracking
-- [x] **Music Player** - Based on APlayer, supports local music and Meting API online music
+- [x] **Guestbook** - Integrated comment system
+- [x] **Announcement** - Top announcement banner
+- [x] **Live2D** - Spine and Live2D animations
+- [x] **Site Statistics** - Posts, categories, tags count, total words, uptime
+- [x] **Site Calendar** - Monthly calendar with published posts
+- [x] **Share Poster** - Article share poster generation
+- [x] **Friend Links** - Beautiful friend link cards
+- [x] **Bangumi** - Bangumi API anime tracking
+- [x] **Comment System** - Twikoo, Waline, Giscus, Disqus, Artalk
+- [x] **Music Player** - APlayer + Meting API
 
 ### Content Enhancement
-- [x] **Image Lightbox** - Fancybox image preview functionality
-- [x] **Floating TOC** - Dynamically displays article table of contents, supports anchor jumping, shown when sidebar TOC is hidden
-- [x] **Email Protection** - Prevent automated crawlers from directly scraping email addresses to avoid spam
-- [x] **Sidebar TOC** - Dynamically displays article table of contents, supports anchor jumping
-- [x] **Enhanced Code Blocks** - Based on Expressive Code, supports code folding, line numbers, language identification
-- [x] **Math Formula Support** - KaTeX rendering engine, supports inline and block formulas
-- [x] **Markdown Extensions** - [Markdown extended features](https://github.com/saicaca/fuwari?tab=readme-ov-file#-markdown-extended-syntax), also includes [Admonitions](https://firefly.cuteleaf.cn/posts/markdown-extended/#%E6%8F%90%E9%86%92%E6%A1%86), [GitHub repository cards](https://firefly.cuteleaf.cn/posts/markdown-extended/#github-%E4%BB%93%E5%BA%93%E5%8D%A1%E7%89%87), [Expressive Code](http://firefly.cuteleaf.cn/posts/code-examples/)
-- [x] **Random Cover Images** - Supports fetching random cover images via API
+- [x] **Image Lightbox** - Fancybox image preview
+- [x] **Table of Contents** - Dynamic TOC with anchor navigation
+- [x] **Code Highlighting** - Expressive Code
+- [x] **Math Formulas** - KaTeX rendering
+- [x] **Random Covers** - API random cover images
 
-### SEO
-- [x] **SEO Optimization** - Complete meta tags and structured data
-- [x] **RSS Feed** - Automatically generates RSS Feed
-- [x] **Sitemap** - Automatically generates XML Sitemap with page filtering configuration
-
-
-## 📝 Planned...
-
-- [ ] **Refactor Live2D Mascot**
-- [ ] **Continuous Animation Smoothness Optimization**
-- [ ] More features in continuous development...
-
-If you have useful features and optimizations, please submit a [Pull Request](https://github.com/CuteLeaf/Firefly/pulls)
+---
 
 ## 🚀 Quick Start
 
 ### Requirements
 
-- Node.js ≤ 22
-- pnpm ≤ 9
+**Frontend:**
+- Node.js >= 20
+- pnpm >= 9
 
-### Local Development
+**Backend:**
+- Python >= 3.10
+- MySQL >= 5.7
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/Cuteleaf/Firefly.git
-   cd Firefly
-   ```
-   **First [Fork](https://github.com/CuteLeaf/Firefly/fork) to your own repository then clone (recommended)**
-   ```bash
-   git clone https://github.com/you-github-name/Firefly.git
-   cd Firefly
-   ```
-3. **Install dependencies:**
-   ```bash
-   # Install pnpm if not installed
-   npm install -g pnpm
-   
-   # Install project dependencies
-   pnpm install
-   ```
+### 1. Clone Repository
 
-4. **Configure blog:**
-   - Edit configuration files in `src/config/` directory to customize blog settings
-
-5. **Start development server:**
-   ```bash
-   pnpm dev
-   ```
-   Blog will be available at `http://localhost:4321`
-
-### Platform Hosting Deployment
-- **Refer to the [official guide](https://docs.astro.build/en/guides/deploy/) to deploy your blog to Vercel, Netlify, GitHub Pages, Cloudflare Pages, EdgeOne Pages, etc.**
-
-   Framework Preset: `Astro`
-
-   Root Directory: `./`
-
-   Output Directory: `dist`
-
-   Build Command: `pnpm run build`
-
-   Install Command: `pnpm install`
-
-## 📖 Configuration
-
-> 📚 **Detailed Configuration Documentation**: Check [Firefly Documentation](https://docs-firefly.cuteleaf.cn/) for complete configuration guide
-
-### Setting Website Language
-
-To set the default language for your blog, edit the `src/config/siteConfig.ts` file:
-
-```typescript
-// Define site language
-const SITE_LANG = "zh_CN";
+```bash
+git clone https://github.com/dear7575/Firefly.git
+cd Firefly
 ```
 
-**Supported language codes:**
-- `zh_CN` - Simplified Chinese
-- `zh_TW` - Traditional Chinese
-- `en` - English
-- `ja` - Japanese
-- `ru` - Russian
+### 2. Backend Deployment
 
+```bash
+# Enter backend directory
+cd backend
 
-### Configuration File Structure
+# Create virtual environment
+python -m venv venv
 
+# Activate virtual environment
+# Windows:
+venv\Scripts\activate
+# Linux/Mac:
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure database (edit connection info in database.py)
+# DATABASE_URL = "mysql+pymysql://username:password@host:port/database"
+
+# Initialize database (required for first deployment)
+python setup.py                  # Basic init (tables + admin + default settings)
+# or
+python setup.py --demo           # Basic init + demo data (categories, tags, sample posts)
+# or
+python setup.py --full           # Full init (basic + demo data + frontend config import)
+# or
+python setup.py --import-posts   # Import static Markdown posts to database
+# or
+python setup.py --reset          # Reset database (DANGER: deletes all data and reinitializes)
+
+# Start backend service
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
-src/
-├── config/
-│   ├── index.ts              # Configuration index file
-│   ├── siteConfig.ts         # Site basic configuration
-│   ├── backgroundWallpaper.ts # Background wallpaper configuration
-│   ├── profileConfig.ts      # User profile configuration
-│   ├── commentConfig.ts      # Comment system configuration
-│   ├── announcementConfig.ts # Announcement configuration
-│   ├── licenseConfig.ts      # License configuration
-│   ├── footerConfig.ts       # Footer configuration
-│   ├── FooterConfig.html     # Footer HTML content
-│   ├── expressiveCodeConfig.ts # Code highlighting configuration
-│   ├── sakuraConfig.ts       # Sakura effect configuration
-│   ├── fontConfig.ts         # Font configuration
-│   ├── sidebarConfig.ts      # Sidebar layout configuration
-│   ├── navBarConfig.ts       # Navbar configuration
-│   ├── musicConfig.ts        # Music player configuration
-│   ├── pioConfig.ts          # Mascot configuration
-│   ├── adConfig.ts           # Ad configuration
-│   ├── friendsConfig.ts      # Friend links configuration
-│   ├── sponsorConfig.ts      # Sponsor configuration
-│   └── coverImageConfig.ts   # Article cover image configuration
+
+Backend API docs: `http://localhost:8000/docs`
+
+### 3. Frontend Deployment
+
+```bash
+# Return to project root
+cd ..
+
+# Install dependencies
+pnpm install
+
+# Configure API URL (optional, defaults to http://localhost:8000)
+# Edit .env file: PUBLIC_API_URL=http://your-api-url
+
+# Start development server
+pnpm dev
 ```
 
+Frontend: `http://localhost:4321`
+Admin Panel: `http://localhost:4321/admin/`
 
-## ⚙️ Article Frontmatter
+### 4. Default Admin Account
 
-```yaml
+The backend automatically creates a default admin on first start:
+- Username: `admin`
+- Password: `admin123`
+
+**Please change the password immediately after login!**
+
 ---
-title: My First Blog Post
-published: 2023-09-09
-description: This is the first post of my new Astro blog.
-image: ./cover.jpg  # Or use "api" to enable random cover images
-tags: [Foo, Bar]
-category: Front-end
-draft: false
-lang: zh-CN      # Only set when article language differs from site language in `siteConfig.ts`
----
+
+## 📁 Project Structure
+
+```
+Firefly/
+├── backend/                 # Backend service
+│   ├── main.py             # FastAPI entry
+│   ├── setup.py            # Database initialization script
+│   ├── models.py           # Database models
+│   ├── database.py         # Database config
+│   ├── auth.py             # Authentication module
+│   ├── routes/             # API routes
+│   │   ├── posts.py        # Posts API
+│   │   ├── categories.py   # Categories API
+│   │   ├── tags.py         # Tags API
+│   │   ├── friends.py      # Friend links API
+│   │   ├── settings.py     # Settings API
+│   │   ├── social_links.py # Social links API
+│   │   ├── logs.py         # Logs API
+│   │   └── auth.py         # Auth API
+│   └── requirements.txt    # Python dependencies
+├── src/
+│   ├── pages/
+│   │   └── admin/          # Admin pages
+│   ├── services/           # Frontend services
+│   │   ├── api.ts          # API calls
+│   │   └── siteSettings.ts # Dynamic config
+│   └── ...                 # Other frontend files
+└── ...
 ```
 
-## 🧞 Commands
+---
 
-All commands need to be executed in the project root directory:
+## 🔧 Configuration
 
-| Command                    | Action                                              |
-|:---------------------------|:----------------------------------------------------|
-| `pnpm install`             | Install dependencies                                |
-| `pnpm dev`                 | Start local development server at `localhost:4321`  |
-| `pnpm build`               | Build site to `./dist/`                             |
-| `pnpm preview`             | Preview built site locally                          |
-| `pnpm check`               | Check for errors in code                            |
-| `pnpm format`              | Format your code using Biome                        |
-| `pnpm new-post <filename>` | Create new article                                  |
-| `pnpm astro ...`           | Execute `astro add`, `astro check` and other commands |
-| `pnpm astro --help`        | Display Astro CLI help                              |
+### Backend Configuration
+
+Edit `backend/database.py`:
+
+```python
+DATABASE_URL = "mysql+pymysql://username:password@host:port/database?charset=utf8mb4"
+```
+
+### Frontend Configuration
+
+Create `.env` file:
+
+```env
+PUBLIC_API_URL=http://localhost:8000
+```
+
+### Production Deployment
+
+1. **Backend**: Deploy with Gunicorn + Uvicorn
+   ```bash
+   gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000
+   ```
+
+2. **Frontend**: Build static files or use SSR mode
+   ```bash
+   pnpm build
+   ```
+
+---
 
 ## 🙏 Acknowledgments
 
-- Special thanks to [saicaca](https://github.com/saicaca) for developing the [Fuwari](https://github.com/saicaca/fuwari) template, which Firefly is based on
-- Referenced blogger [Kasuka](https://kasuha.com)'s [Bangumi Collection Display](https://kasuha.com/posts/fuwari-enhance-ep2/) and [Email Protection/Image Title](https://kasuha.com/posts/fuwari-enhance-ep1/) solutions
-- Referenced [Mizuki](https://github.com/matsuzaka-yuki/Mizuki)'s banner title, multi-level menu navbar, sakura effect, KaTeX, and Fancybox solutions
-- Built with [Astro](https://astro.build) and [Tailwind CSS](https://tailwindcss.com)
-- Uses [MetingJS](https://github.com/metowolf/MetingJS) and [APlayer](https://github.com/MoePlayer/APlayer) music player
-- Uses Chibi `Firefly` mascot spine model provided by Bilibili creator [公公的日常](https://space.bilibili.com/3546750017080050)
-- Icons from [Iconify](https://iconify.design/)
-- Firefly-related image assets are copyrighted by [miHoYo](https://www.mihoyo.com/), the developer of ["Honkai: Star Rail"](https://sr.mihoyo.com/).
+### Original Projects
+- **[CuteLeaf/Firefly](https://github.com/CuteLeaf/Firefly)** - This project is based on this theme, thanks to [CuteLeaf](https://github.com/CuteLeaf) for the open source contribution
+- **[saicaca/fuwari](https://github.com/saicaca/fuwari)** - Upstream project of Firefly, thanks to [saicaca](https://github.com/saicaca) for the original design
+
+### Tech Stack
+- [Astro](https://astro.build) - Frontend framework
+- [Tailwind CSS](https://tailwindcss.com) - CSS framework
+- [FastAPI](https://fastapi.tiangolo.com) - Backend framework
+- [SQLAlchemy](https://www.sqlalchemy.org) - ORM
+- [Vditor](https://github.com/Vanessa219/vditor) - Markdown editor
+
+---
 
 ## 📝 License
 
-This project is licensed under the [MIT license](https://mit-license.org/). See the [LICENSE](./LICENSE) file for details.
+This project is licensed under the [MIT License](./LICENSE).
 
 **Copyright Notice:**
-- Copyright (c) 2024 [saicaca](https://github.com/saicaca) - [fuwari](https://github.com/saicaca/fuwari)
-- Copyright (c) 2025 [CuteLeaf](https://github.com/CuteLeaf) - [Firefly](https://github.com/CuteLeaf/Firefly)
+- Copyright (c) 2024 [saicaca](https://github.com/saicaca) - Original Fuwari project
+- Copyright (c) 2025 [CuteLeaf](https://github.com/CuteLeaf) - Firefly theme
+- Copyright (c) 2025 [dear7575](https://github.com/dear7575) - Firefly CMS fork
 
-Under the MIT license, you are free to use, modify, and distribute the code, but you must retain the above copyright notice.
+Under the MIT License, you are free to use, modify, and distribute this project, but you must retain the above copyright notices.
 
-## 🍀 Contributors
+---
 
-Thanks to the following contributors for their contributions to this project. If you have any questions or suggestions, please submit an [Issue](https://github.com/CuteLeaf/Firefly/issues) or [Pull Request](https://github.com/CuteLeaf/Firefly/pulls).
+## 🤝 Contributing
 
-<a href="https://github.com/CuteLeaf/Firefly/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=CuteLeaf/Firefly" />
-</a>
+Welcome to submit [Issues](https://github.com/dear7575/Firefly/issues) or [Pull Requests](https://github.com/dear7575/Firefly/pulls)!
 
-![Alt](https://repobeats.axiom.co/api/embed/6139639d8e88da4d3dc9d45fd43f4e4b2d580086.svg "Repobeats analytics image")
-
-## ⭐ Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=CuteLeaf/Firefly&type=Date)](https://star-history.com/#CuteLeaf/Firefly&Date)
-
-
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-<!-- prettier-ignore-start -->
-<!-- markdownlint-disable -->
-
-<!-- markdownlint-restore -->
-<!-- prettier-ignore-end -->
-
-<!-- ALL-CONTRIBUTORS-LIST:END -->

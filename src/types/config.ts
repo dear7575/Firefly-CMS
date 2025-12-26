@@ -113,6 +113,7 @@ export type NavBarLink = {
 export enum NavBarSearchMethod {
 	PageFind = 0,
 	MeiliSearch = 1,
+	BackendAPI = 2,
 }
 
 /**

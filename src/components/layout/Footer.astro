@@ -3,10 +3,27 @@ import fs from "node:fs";
 import path from "node:path";
 import { footerConfig, profileConfig } from "@/config";
 import { url } from "@/utils/url-utils";
+import { fetchSiteSettings } from "@/services/siteSettings";
 
 const currentYear = new Date().getFullYear();
 
-// 读取FooterConfig.html文件内容
+// 尝试从 API 获取动态配置
+let dynamicSettings: Record<string, any> = {};
+try {
+	dynamicSettings = await fetchSiteSettings();
+} catch (error) {
+	console.warn("无法获取动态配置，使用静态配置");
+}
+
+// 动态配置优先，静态配置作为回退
+const footerIcp = dynamicSettings.footer_icp || "";
+const footerIcpUrl = dynamicSettings.footer_icp_url || "https://beian.miit.gov.cn/";
+const footerCopyright = dynamicSettings.footer_copyright || "";
+const footerCustomHtml = dynamicSettings.footer_custom_html || "";
+const footerPoweredBy = dynamicSettings.footer_powered_by ?? true;
+const authorName = dynamicSettings.profile_name || profileConfig.name;
+
+// 读取FooterConfig.html文件内容（静态配置）
 let customFooterHtml = "";
 if (footerConfig.enable) {
 	try {
@@ -23,6 +40,9 @@ if (footerConfig.enable) {
 		console.warn("FooterConfig.html文件读取失败:", error.message);
 	}
 }
+
+// 合并动态和静态的自定义 HTML
+const finalCustomHtml = footerCustomHtml || customFooterHtml;
 ---
 
 <!--<div class="border-t border-[var(&#45;&#45;primary)] mx-16 border-dashed py-8 max-w-[var(&#45;&#45;page-width)] flex flex-col items-center justify-center px-6">-->
@@ -35,9 +55,25 @@ if (footerConfig.enable) {
   class="transition border-dashed border-[oklch(85%_0.01_var(--hue))] dark:border-white/15 rounded-2xl mb-12 flex flex-col items-center justify-center px-6"
 >
   <div class="transition text-50 text-sm text-center">
-    {customFooterHtml && <div class="mb-2" set:html={customFooterHtml} />}
+    {/* ICP 备案号 */}
+    {footerIcp && (
+      <div class="mb-2">
+        <a
+          href={footerIcpUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="transition link text-[var(--primary)] font-medium"
+        >
+          {footerIcp}
+        </a>
+      </div>
+    )}
+    {/* 版权信息 */}
+    {footerCopyright && <div class="mb-2">{footerCopyright}</div>}
+    {/* 自定义 HTML */}
+    {finalCustomHtml && <div class="mb-2" set:html={finalCustomHtml} />}
     &copy; <span id="copyright-year">{currentYear}</span>
-    {profileConfig.name}. All Rights Reserved. /
+    {authorName}. All Rights Reserved. /
     <a
       class="transition link text-[var(--primary)] font-medium"
       target="_blank"
@@ -48,19 +84,25 @@ if (footerConfig.enable) {
       class="transition link text-[var(--primary)] font-medium"
       target="_blank"
       href={url("sitemap-index.xml")}>Sitemap</a
-    ><br />
-    Powered by
-    <a
-      class="transition link text-[var(--primary)] font-medium"
-      target="_blank"
-      href="https://astro.build">Astro</a
-    > &
-    <a
-      class="transition link text-[var(--primary)] font-medium"
-      target="_blank"
-      href="https://github.com/CuteLeaf/Firefly">Firefly</a
-    ><br />
-    <!-- 
+    >
+    {footerPoweredBy && (
+      <>
+        <br />
+        Powered by
+        <a
+          class="transition link text-[var(--primary)] font-medium"
+          target="_blank"
+          href="https://astro.build">Astro</a
+        > &
+        <a
+          class="transition link text-[var(--primary)] font-medium"
+          target="_blank"
+          href="https://github.com/CuteLeaf/Firefly">Firefly</a
+        >
+      </>
+    )}
+    <br />
+    <!--
       注意：请勿随意修改或删除 "Powered by Astro & Firefly" 部分，这是对开源项目的尊重和支持。
       如果您需要在底部增加内容，请在src/config/footerConfig.ts中修改enable属性为true，然后编辑src/config/FooterConfig.html文件。
       您可以随意在src/config/FooterConfig.html中随意添加自定义内容，不需要修改Footer.astro文件。

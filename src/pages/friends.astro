@@ -1,12 +1,29 @@
 ---
+export const prerender = false;
 import { getEntry, render } from "astro:content";
 import Comment from "@components/comment/index.astro";
 import Markdown from "@components/misc/Markdown.astro";
 import Icon from "@/components/misc/Icon.astro";
 import { friendsPageConfig, getEnabledFriends } from "@/config";
+import { fetchEnabledFriends } from "@/services/api";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import { fetchSiteSettings } from "@/services/siteSettings";
+
+// 获取动态配置
+let dynamicSettings: Record<string, any> = {};
+try {
+	dynamicSettings = await fetchSiteSettings();
+} catch (error) {
+	console.warn("无法获取动态配置，使用静态配置");
+}
+
+// 检查友链功能是否启用（动态配置优先）
+const featureFriends = dynamicSettings.feature_friends ?? true;
+if (!featureFriends) {
+	return Astro.redirect("/404");
+}
 
 const friendsPost = await getEntry("spec", "friends");
 
@@ -16,8 +33,12 @@ if (!friendsPost) {
 
 const { Content } = await render(friendsPost);
 
-// 使用配置文件中的友链数据，按权重排序
-const items = getEnabledFriends();
+// 优先从后端 API 获取友链数据，失败时回退到静态配置
+let items = await fetchEnabledFriends();
+if (items.length === 0) {
+	// 后端无数据或请求失败，使用静态配置
+	items = getEnabledFriends();
+}
 const allTags = [...new Set(items.flatMap((item) => item.tags || []))].sort();
 
 // 页面标题和描述

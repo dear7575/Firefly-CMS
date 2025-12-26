@@ -51,7 +51,7 @@ class TagResponse(BaseModel):
 
 # ============== API 接口 ==============
 
-@router.get("/", response_model=List[TagResponse], summary="获取标签列表")
+@router.get("", response_model=List[TagResponse], summary="获取标签列表")
 def get_tags(
     enabled_only: bool = False,
     db: Session = Depends(get_db)
@@ -104,7 +104,7 @@ def get_tag(tag_id: str, db: Session = Depends(get_db)):
     }
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED, summary="创建标签")
+@router.post("", status_code=status.HTTP_201_CREATED, summary="创建标签")
 def create_tag(
     tag: TagCreate,
     db: Session = Depends(get_db),

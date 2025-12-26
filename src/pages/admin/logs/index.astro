@@ -168,7 +168,7 @@ import { i18n } from "@/i18n/translation";
             if (!response.ok) {
                 if (response.status === 401) {
                     alert(t.loginExpired || '登录已过期，请重新登录');
-                    window.location.href = '/admin/login/';
+                    window.location.href = '/admin/login';
                     return;
                 }
                 throw new Error('Failed to load');

@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import List, Optional
 
 import models
+import auth
 from database import get_db, settings
 from fastapi import APIRouter, Depends, HTTPException, status, Header
 from fastapi.security import OAuth2PasswordBearer
@@ -124,7 +125,7 @@ class PostResponse(BaseModel):
 
 # ============== API 接口 ==============
 
-@router.get("/", response_model=List[dict], summary="获取文章列表")
+@router.get("", response_model=List[dict], summary="获取文章列表")
 def get_posts(
     page: int = 1,
     page_size: int = 10,
@@ -222,7 +223,7 @@ def get_post(post_id: str, db: Session = Depends(get_db)):
     }
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED, summary="创建文章")
+@router.post("", status_code=status.HTTP_201_CREATED, summary="创建文章")
 def create_post(
         post: PostBase,
         db: Session = Depends(get_db),
@@ -251,6 +252,9 @@ def create_post(
         db.refresh(db_category)
 
     # 创建文章
+    # 如果设置了密码，进行哈希处理
+    hashed_password = auth.get_password_hash(post.password) if post.password else None
+
     db_post = models.Post(
         title=post.title,
         slug=post.slug,
@@ -258,7 +262,7 @@ def create_post(
         content=post.content,
         image=post.image if post.image else None,
         category_id=db_category.id,
-        password=post.password if post.password else None,
+        password=hashed_password,
         is_draft=1 if post.is_draft else 0,
         pinned=post.pinned,
         pin_order=post.pin_order
@@ -331,7 +335,12 @@ def update_post(
     db_post.content = post.content
     db_post.image = post.image if post.image else None
     db_post.category_id = db_category.id
-    db_post.password = post.password if post.password else None
+    # 如果设置了新密码，进行哈希处理；如果清空密码，则设为 None
+    if post.password:
+        db_post.password = auth.get_password_hash(post.password)
+    elif post.password == "":
+        db_post.password = None
+    # 如果 password 字段未提供（None），保持原密码不变
     db_post.is_draft = 1 if post.is_draft else 0
     db_post.pinned = post.pinned
     db_post.pin_order = post.pin_order
@@ -451,4 +460,47 @@ def set_post_pin(
         "message": "置顶状态更新成功",
         "pinned": db_post.pinned
     }
+
+
+class PasswordVerifyRequest(BaseModel):
+    """密码验证请求模型"""
+    password: str = Field(..., description="用户输入的密码")
+
+
+@router.post("/{post_id}/verify-password", summary="验证文章密码")
+def verify_post_password(
+        post_id: str,
+        request: PasswordVerifyRequest,
+        db: Session = Depends(get_db)
+):
+    """
+    验证文章访问密码
+
+    公开接口，无需认证。用于前端验证用户输入的密码是否正确。
+
+    Args:
+        post_id: 文章 UUID
+        request: 包含用户输入密码的请求体
+
+    Returns:
+        dict: 验证结果，包含 valid 字段表示密码是否正确
+
+    Raises:
+        HTTPException: 文章不存在时返回 404
+    """
+    db_post = db.query(models.Post).filter(models.Post.id == post_id).first()
+    if not db_post:
+        raise HTTPException(status_code=404, detail="文章不存在")
+
+    # 如果文章没有密码保护
+    if not db_post.password:
+        return {"valid": True, "message": "文章无密码保护"}
+
+    # 验证密码
+    is_valid = auth.verify_password(request.password, db_post.password)
+
+    if is_valid:
+        return {"valid": True, "message": "密码正确"}
+    else:
+        return {"valid": False, "message": "密码错误"}
 
