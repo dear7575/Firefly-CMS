@@ -1,0 +1,73 @@
+---
+export const prerender = false;
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { siteConfig } from "@/config";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+---
+
+<AdminLayout title={`${i18n(I18nKey.adminPostManagement)} - ${siteConfig.title}`} activeMenu="posts">
+    <div class="p-6 lg:p-8 animate-fade-in-up">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <div>
+                <h1 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                    {i18n(I18nKey.adminPostManagement)}
+                </h1>
+                <p class="text-sm text-zinc-500 mt-1">{i18n(I18nKey.adminManageBlogPosts)}</p>
+            </div>
+            <button
+                id="newPostBtn"
+                class="bg-[var(--primary)] hover:brightness-110 text-white px-6 py-2.5 rounded-xl font-medium transition-all active:scale-95 flex items-center gap-2 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                </svg>
+                {i18n(I18nKey.adminNewPost)}
+            </button>
+        </div>
+
+        <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden backdrop-blur-sm">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-zinc-50/80 dark:bg-zinc-800/50 border-b border-zinc-200 dark:border-zinc-700/50">
+                        <tr>
+                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-zinc-500 text-center">
+                                {i18n(I18nKey.adminPostTitle)} & {i18n(I18nKey.adminPostSlug)}
+                            </th>
+                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-zinc-500 text-center">
+                                {i18n(I18nKey.adminPostStatus)}
+                            </th>
+                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-zinc-500 text-center">
+                                {i18n(I18nKey.adminPostCategory)}
+                            </th>
+                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-zinc-500 text-center">
+                                {i18n(I18nKey.adminPostDate)}
+                            </th>
+                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-zinc-500 text-center">
+                                {i18n(I18nKey.adminPostActions)}
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="postsTableBody" class="divide-y divide-zinc-100 dark:divide-zinc-800/50">
+                        <tr>
+                            <td colspan="5" class="px-6 py-12 text-center text-zinc-500">{i18n(I18nKey.adminLoading)}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- 分页控件容器 -->
+            <div id="paginationContainer"></div>
+        </div>
+    </div>
+</AdminLayout>
+
+<script is:inline>
+    document.getElementById("newPostBtn")?.addEventListener("click", () => {
+        window.location.href = "/admin/new/";
+    });
+
+    // Load posts when page loads
+    if (typeof window.adminLoadPosts === 'function') {
+        window.adminLoadPosts();
+    }
+</script>

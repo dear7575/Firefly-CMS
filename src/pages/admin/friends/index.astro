@@ -1,0 +1,277 @@
+---
+export const prerender = false;
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { siteConfig } from "@/config";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+---
+
+<AdminLayout title={`${i18n(I18nKey.adminFriendManagement)} - ${siteConfig.title}`} activeMenu="friends">
+    <div class="p-6 lg:p-8">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <div>
+                <h1 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{i18n(I18nKey.adminFriendManagement)}</h1>
+                <p class="text-sm text-zinc-500 mt-1">{i18n(I18nKey.adminManageFriendLinks)}</p>
+            </div>
+            <button
+                id="addFriendBtn"
+                class="bg-[var(--primary)] hover:opacity-90 text-white px-6 py-2.5 rounded-xl font-medium transition-all shadow-lg hover:shadow-xl active:scale-95 flex items-center gap-2"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                </svg>
+                {i18n(I18nKey.adminAdd)} {i18n(I18nKey.friends)}
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="friendsGrid">
+            <div class="col-span-full text-center py-12 text-zinc-500">{i18n(I18nKey.adminLoading)}</div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="friendModal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-zinc-200 dark:border-zinc-800 sticky top-0 bg-white dark:bg-zinc-900">
+                <h2 id="modalTitle" class="text-xl font-bold text-zinc-900 dark:text-zinc-100">{i18n(I18nKey.adminAdd)} {i18n(I18nKey.friends)}</h2>
+            </div>
+            <form id="friendForm" class="p-6 space-y-4">
+                <input type="hidden" id="friendId" />
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">{i18n(I18nKey.adminName)} *</label>
+                    <input type="text" id="friendTitle" required class="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-[var(--primary)] outline-none" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">{i18n(I18nKey.rssLink)} *</label>
+                    <input type="url" id="friendUrl" required class="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-[var(--primary)] outline-none" placeholder="https://" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">{i18n(I18nKey.adminPostImage)}</label>
+                    <input type="url" id="friendAvatar" class="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-[var(--primary)] outline-none" placeholder="https://" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">{i18n(I18nKey.adminDescription)}</label>
+                    <textarea id="friendDescription" rows="2" class="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-[var(--primary)] outline-none resize-none"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">{i18n(I18nKey.adminPostTags)}</label>
+                    <input type="text" id="friendTags" class="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-[var(--primary)] outline-none" placeholder="{i18n(I18nKey.adminPostTagsPlaceholder)}" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">{i18n(I18nKey.adminSortOrder)}</label>
+                    <input type="number" id="friendWeight" value="0" class="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-[var(--primary)] outline-none" />
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" id="friendEnabled" checked class="w-4 h-4 rounded" />
+                    <label for="friendEnabled" class="text-sm text-zinc-700 dark:text-zinc-300">{i18n(I18nKey.adminEnabled)}</label>
+                </div>
+            </form>
+            <div class="p-6 border-t border-zinc-200 dark:border-zinc-800 flex justify-end gap-3 sticky bottom-0 bg-white dark:bg-zinc-900">
+                <button type="button" id="cancelBtn" class="px-4 py-2 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors">{i18n(I18nKey.adminCancel)}</button>
+                <button type="submit" form="friendForm" class="px-6 py-2 bg-[var(--primary)] text-white rounded-lg hover:opacity-90 transition-colors">{i18n(I18nKey.adminSave)}</button>
+            </div>
+        </div>
+    </div>
+</AdminLayout>
+
+<script is:inline>
+(function() {
+    var API_URL = 'http://localhost:8000';
+    var friends = [];
+
+    var t = window.adminI18n || {};
+
+    async function loadFriends() {
+        var grid = document.getElementById('friendsGrid');
+        if (!grid) return; // 不在 friends 页面，直接返回
+
+        try {
+            var response = await fetch(API_URL + '/friends');
+            if (!response.ok) throw new Error('Failed to load');
+            friends = await response.json();
+
+            if (friends.length === 0) {
+                grid.innerHTML = '<div class="col-span-full text-center py-12 text-zinc-500">' + (t.noFriendsYet || t.empty || 'No friend links yet') + '</div>';
+                return;
+            }
+
+            grid.innerHTML = friends.map(function(friend) {
+                var avatar = friend.avatar || '/assets/images/avatar.webp';
+                var statusClass = friend.enabled ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500';
+                var statusText = friend.enabled ? t.active : t.disabled;
+                var descHtml = friend.description ? '<p class="text-sm text-zinc-500 mb-3 line-clamp-2">' + friend.description + '</p>' : '';
+                var tagsHtml = '';
+                if (friend.tags) {
+                    var tagItems = friend.tags.split(',').map(function(tag) {
+                        return '<span class="px-2 py-0.5 text-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded">' + tag.trim() + '</span>';
+                    }).join('');
+                    tagsHtml = '<div class="flex flex-wrap gap-1 mb-3">' + tagItems + '</div>';
+                }
+                var titleEscaped = friend.title.replace(/'/g, "\\'");
+
+                return '<div class="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-5 hover:shadow-lg transition-all">' +
+                    '<div class="flex items-start gap-4 mb-3">' +
+                        '<img src="' + avatar + '" alt="' + friend.title + '" class="w-12 h-12 rounded-xl object-cover bg-zinc-100 dark:bg-zinc-800" onerror="this.src=\'/assets/images/avatar.webp\'" />' +
+                        '<div class="flex-1 min-w-0">' +
+                            '<div class="flex items-center gap-2">' +
+                                '<h3 class="font-semibold text-zinc-900 dark:text-zinc-100 truncate">' + friend.title + '</h3>' +
+                                '<span class="px-2 py-0.5 text-[10px] rounded-full ' + statusClass + '">' + statusText + '</span>' +
+                            '</div>' +
+                            '<a href="' + friend.url + '" target="_blank" class="text-xs text-zinc-500 hover:text-[var(--primary)] truncate block">' + friend.url + '</a>' +
+                        '</div>' +
+                    '</div>' +
+                    descHtml +
+                    tagsHtml +
+                    '<div class="flex items-center justify-between pt-3 border-t border-zinc-100 dark:border-zinc-800">' +
+                        '<span class="text-xs text-zinc-400">' + (t.sortOrder || 'Sort Order') + ': ' + friend.weight + '</span>' +
+                        '<div class="flex gap-2">' +
+                            '<button onclick="editFriend(\'' + friend.id + '\')" class="p-2 text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors">' +
+                                '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">' +
+                                    '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />' +
+                                '</svg>' +
+                            '</button>' +
+                            '<button onclick="deleteFriend(\'' + friend.id + '\', \'' + titleEscaped + '\')" class="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors">' +
+                                '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">' +
+                                    '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />' +
+                                '</svg>' +
+                            '</button>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            }).join('');
+        } catch (err) {
+            console.error(err);
+            if (grid) grid.innerHTML = '<div class="col-span-full text-center py-12 text-red-500">' + (t.friendLoadFailed || t.loadFailed || 'Failed to load friend links') + '</div>';
+        }
+    }
+
+    function showModal(isEdit) {
+        var modalTitle = document.getElementById('modalTitle');
+        var friendModal = document.getElementById('friendModal');
+        if (modalTitle) modalTitle.textContent = isEdit ? (t.edit || 'Edit') + ' ' + (t.friends || 'Friend') : (t.add || 'Add') + ' ' + (t.friends || 'Friend');
+        if (friendModal) {
+            friendModal.classList.remove('hidden');
+            friendModal.classList.add('flex');
+        }
+    }
+
+    function hideModal() {
+        var friendModal = document.getElementById('friendModal');
+        var friendForm = document.getElementById('friendForm');
+        var friendId = document.getElementById('friendId');
+        if (friendModal) {
+            friendModal.classList.add('hidden');
+            friendModal.classList.remove('flex');
+        }
+        if (friendForm) friendForm.reset();
+        if (friendId) friendId.value = '';
+    }
+
+    window.editFriend = function(id) {
+        var friend = friends.find(function(f) { return f.id === id; });
+        if (!friend) return;
+
+        var friendIdEl = document.getElementById('friendId');
+        var friendTitleEl = document.getElementById('friendTitle');
+        var friendUrlEl = document.getElementById('friendUrl');
+        var friendAvatarEl = document.getElementById('friendAvatar');
+        var friendDescriptionEl = document.getElementById('friendDescription');
+        var friendTagsEl = document.getElementById('friendTags');
+        var friendWeightEl = document.getElementById('friendWeight');
+        var friendEnabledEl = document.getElementById('friendEnabled');
+
+        if (friendIdEl) friendIdEl.value = friend.id;
+        if (friendTitleEl) friendTitleEl.value = friend.title;
+        if (friendUrlEl) friendUrlEl.value = friend.url;
+        if (friendAvatarEl) friendAvatarEl.value = friend.avatar || '';
+        if (friendDescriptionEl) friendDescriptionEl.value = friend.description || '';
+        if (friendTagsEl) friendTagsEl.value = friend.tags || '';
+        if (friendWeightEl) friendWeightEl.value = friend.weight || 0;
+        if (friendEnabledEl) friendEnabledEl.checked = friend.enabled;
+
+        showModal(true);
+    };
+
+    window.deleteFriend = async function(id, name) {
+        if (!confirm((t.confirmDeleteFriend || 'Delete friend "{name}"?').replace('{name}', name))) return;
+
+        try {
+            var response = await fetch(API_URL + '/friends/' + id, {
+                method: 'DELETE',
+                headers: { Authorization: 'Bearer ' + localStorage.getItem('adminToken') }
+            });
+
+            if (response.ok) {
+                loadFriends();
+            } else {
+                var err = await response.json();
+                alert(err.detail || t.deleteFailed || 'Delete failed');
+            }
+        } catch (err) {
+            alert(t.deleteFailed || 'Delete failed');
+        }
+    };
+
+    var addFriendBtn = document.getElementById('addFriendBtn');
+    var cancelBtn = document.getElementById('cancelBtn');
+    var friendModal = document.getElementById('friendModal');
+    var friendForm = document.getElementById('friendForm');
+
+    if (addFriendBtn) addFriendBtn.addEventListener('click', function() { showModal(false); });
+    if (cancelBtn) cancelBtn.addEventListener('click', hideModal);
+    if (friendModal) {
+        friendModal.addEventListener('click', function(e) {
+            if (e.target === e.currentTarget) hideModal();
+        });
+    }
+
+    if (friendForm) {
+        friendForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            var friendIdEl = document.getElementById('friendId');
+            var friendTitleEl = document.getElementById('friendTitle');
+            var friendUrlEl = document.getElementById('friendUrl');
+            var friendAvatarEl = document.getElementById('friendAvatar');
+            var friendDescriptionEl = document.getElementById('friendDescription');
+            var friendTagsEl = document.getElementById('friendTags');
+            var friendWeightEl = document.getElementById('friendWeight');
+            var friendEnabledEl = document.getElementById('friendEnabled');
+
+            var id = friendIdEl ? friendIdEl.value : '';
+            var data = {
+                title: friendTitleEl ? friendTitleEl.value : '',
+                url: friendUrlEl ? friendUrlEl.value : '',
+                avatar: friendAvatarEl ? friendAvatarEl.value || undefined : undefined,
+                description: friendDescriptionEl ? friendDescriptionEl.value || undefined : undefined,
+                tags: friendTagsEl ? friendTagsEl.value || undefined : undefined,
+                weight: friendWeightEl ? parseInt(friendWeightEl.value) || 0 : 0,
+                enabled: friendEnabledEl ? friendEnabledEl.checked : true
+            };
+
+            try {
+                var response = await fetch(API_URL + '/friends/' + (id || ''), {
+                    method: id ? 'PUT' : 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: 'Bearer ' + localStorage.getItem('adminToken')
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    hideModal();
+                    loadFriends();
+                } else {
+                    var err = await response.json();
+                    alert(err.detail || t.saveFailed || 'Save failed');
+                }
+            } catch (err) {
+                alert(t.saveFailed || 'Save failed');
+            }
+        });
+    }
+
+    loadFriends();
+})();
+</script>
