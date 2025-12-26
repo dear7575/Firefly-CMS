@@ -1,4 +1,5 @@
 import sitemap from "@astrojs/sitemap";
+import node from "@astrojs/node";
 import svelte from "@astrojs/svelte";
 import tailwind from "@astrojs/tailwind";
 import { pluginCollapsibleSections } from "@expressive-code/plugin-collapsible-sections";
@@ -35,9 +36,11 @@ import rehypeFigure from "./src/plugins/rehype-figure.mjs";
 // https://astro.build/config
 export default defineConfig({
 	site: siteConfig.site_url,
-
+	adapter: node({
+		mode: "standalone",
+	}),
 	base: "/",
-	trailingSlash: "always",
+	trailingSlash: "ignore",
 	integrations: [
 		tailwind({
 			nesting: true,
@@ -58,6 +61,10 @@ export default defineConfig({
 			// 滚动相关配置优化
 			resolveUrl: (url) => url,
 			animateHistoryBrowsing: false,
+			// 忽略后台管理页面，避免脚本重复执行
+			linkSelector: 'a[href^="/"]:not([data-no-swup]):not([href^="/admin"])',
+			// 完全忽略后台管理页面的访问
+			ignoreVisit: (url) => url.includes('/admin'),
 			skipPopStateHandling: (event) => {
 				// 跳过锚点链接的处理，让浏览器原生处理
 				return event.state && event.state.url && event.state.url.includes("#");
@@ -114,13 +121,13 @@ export default defineConfig({
 				const url = new URL(page);
 				const pathname = url.pathname;
 
-				if (pathname === "/sponsor/" && !siteConfig.pages.sponsor) {
+				if (pathname === "/sponsor" && !siteConfig.pages.sponsor) {
 					return false;
 				}
-				if (pathname === "/guestbook/" && !siteConfig.pages.guestbook) {
+				if (pathname === "/guestbook" && !siteConfig.pages.guestbook) {
 					return false;
 				}
-				if (pathname === "/bangumi/" && !siteConfig.pages.bangumi) {
+				if (pathname === "/bangumi" && !siteConfig.pages.bangumi) {
 					return false;
 				}
 

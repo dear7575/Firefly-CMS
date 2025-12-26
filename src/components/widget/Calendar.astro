@@ -3,6 +3,8 @@ import { Icon } from "astro-icon/components";
 import { siteConfig } from "@/config/siteConfig";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
+import { getSortedPosts } from "@/utils/content-utils";
+import { getPostUrlBySlug } from "@/utils/url-utils";
 import WidgetLayout from "./WidgetLayout.astro";
 
 interface Props {
@@ -11,6 +13,28 @@ interface Props {
 }
 
 const { class: className, style } = Astro.props;
+
+// 获取所有文章
+const posts = await getSortedPosts();
+
+// 创建文章日期映射（格式：YYYY-MM-DD -> 文章列表）
+const postDateMap = new Map<string, { url: string; title: string }[]>();
+posts.forEach((post) => {
+	const date = new Date(post.data.published);
+	const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+	const existingPosts = postDateMap.get(dateKey) || [];
+	postDateMap.set(dateKey, [
+		...existingPosts,
+		{ url: getPostUrlBySlug(post.id), title: post.data.title },
+	]);
+});
+
+// 序列化所有文章数据供客户端使用
+const allPostsData = posts.map((post) => ({
+	url: getPostUrlBySlug(post.id),
+	title: post.data.title,
+	published: post.data.published.getTime(),
+}));
 
 // 月份名称（使用 i18n）
 const monthNames = [
@@ -343,15 +367,11 @@ const currentLang = siteConfig.lang || "en";
     const divider = document.getElementById('calendar-posts-divider');
     
     if (postsList) {
-      postsList.innerHTML = currentMonthPosts.map(post => {
-        const date = new Date(post.published);
-        const dateStr = `${date.getMonth() + 1}-${date.getDate()}`;
-        return `
-        <a href="/posts/${post.id}/" class="flex justify-between items-center text-sm text-neutral-700 dark:text-neutral-300 hover:text-[var(--primary)] dark:hover:text-[var(--primary)] transition-colors px-2 py-1 rounded hover:bg-[var(--btn-plain-bg-hover)]">
-          <span class="truncate">${post.title}</span>
-          <span class="text-xs text-neutral-500 dark:text-neutral-400 ml-2 whitespace-nowrap">${dateStr}</span>
+      postsList.innerHTML = currentMonthPosts.map(post => `
+        <a href="${post.url}" class="block text-sm text-neutral-700 dark:text-neutral-300 hover:text-[var(--primary)] dark:hover:text-[var(--primary)] transition-colors truncate px-2 py-1 rounded hover:bg-[var(--btn-plain-bg-hover)]">
+          ${post.title}
         </a>
-      `}).join('');
+      `).join('');
       
       // 显示/隐藏分割线
       if (divider) {
@@ -398,15 +418,11 @@ const currentLang = siteConfig.lang || "en";
         
         if (posts.length > 0 && postsList) {
           // 渲染文章列表
-          postsList.innerHTML = posts.map(post => {
-            const date = new Date(post.published);
-            const dateStr = `${date.getMonth() + 1}-${date.getDate()}`;
-            return `
-            <a href="/posts/${post.id}/" class="flex justify-between items-center text-sm text-neutral-700 dark:text-neutral-300 hover:text-[var(--primary)] dark:hover:text-[var(--primary)] transition-colors px-2 py-1 rounded hover:bg-[var(--btn-plain-bg-hover)]">
-              <span class="truncate">${post.title}</span>
-              <span class="text-xs text-neutral-500 dark:text-neutral-400 ml-2 whitespace-nowrap">${dateStr}</span>
+          postsList.innerHTML = posts.map(post => `
+            <a href="${post.url}" class="block text-sm text-neutral-700 dark:text-neutral-300 hover:text-[var(--primary)] dark:hover:text-[var(--primary)] transition-colors truncate px-2 py-1 rounded hover:bg-[var(--btn-plain-bg-hover)]">
+              ${post.title}
             </a>
-          `}).join('');
+          `).join('');
           
           // 显示分割线
           if (divider) {

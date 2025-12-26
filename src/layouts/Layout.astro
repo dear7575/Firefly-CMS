@@ -22,6 +22,7 @@ import { defaultFavicons } from "@/constants/icon";
 import type { Favicon } from "@/types/config";
 import { getDefaultBackground, isHomePage } from "@/utils/layout-utils";
 import { url } from "@/utils/url-utils";
+import { fetchSiteSettings } from "@/services/siteSettings";
 
 import "@/styles/navbar.css";
 import "@/styles/layout-styles.css";
@@ -39,6 +40,31 @@ interface Props {
 let { title, banner, description, lang, setOGTypeArticle, postSlug } =
 	Astro.props;
 
+// 尝试从 API 获取动态配置
+let dynamicSettings: Record<string, any> = {};
+try {
+	dynamicSettings = await fetchSiteSettings();
+} catch (error) {
+	console.warn("无法获取动态配置，使用静态配置");
+}
+
+// 动态配置优先，静态配置作为回退
+const siteTitle = dynamicSettings.site_title || siteConfig.title;
+const siteSubtitle = dynamicSettings.site_subtitle || siteConfig.subtitle;
+const siteDescription = dynamicSettings.site_description || siteConfig.description;
+const siteKeywords = dynamicSettings.site_keywords
+	? dynamicSettings.site_keywords.split(',').map((k: string) => k.trim())
+	: siteConfig.keywords;
+const siteLangConfig = dynamicSettings.site_lang || siteConfig.lang;
+const authorName = dynamicSettings.profile_name || profileConfig.name;
+const siteUrl = dynamicSettings.site_url || siteConfig.site_url;
+
+// 主题配置
+const themeFixed = dynamicSettings.theme_fixed ?? siteConfig.themeColor.fixed;
+
+// OG 图片配置
+const generateOgImages = dynamicSettings.post_generate_og_images ?? siteConfig.generateOgImages;
+
 // apply a class to the body element to decide the height of the banner, only used for initial page load
 // Swup can update the body for each page visit, but it's after the page transition, causing a delay for banner height change
 // so use Swup hooks instead to change the height immediately when a link is clicked
@@ -46,7 +72,7 @@ const isHomePageCheck = isHomePage(Astro.url.pathname);
 
 // defines global css variables
 // why doing this in Layout instead of GlobalStyles: https://github.com/withastro/astro/issues/6728#issuecomment-1502203757
-const configHue = siteConfig.themeColor.hue;
+const configHue = dynamicSettings.theme_hue ?? siteConfig.themeColor.hue;
 
 // 获取导航栏透明模式配置
 const navbarTransparentMode =
@@ -66,29 +92,37 @@ const enableBanner = backgroundWallpaper.mode === "banner";
 
 let pageTitle: string;
 if (title) {
-	pageTitle = `${title} - ${siteConfig.title}`;
+	pageTitle = `${title} - ${siteTitle}`;
 } else {
-	pageTitle = siteConfig.subtitle
-		? `${siteConfig.title} - ${siteConfig.subtitle}`
-		: siteConfig.title;
+	pageTitle = siteSubtitle
+		? `${siteTitle} - ${siteSubtitle}`
+		: siteTitle;
 }
 
 let ogImageUrl: string | undefined;
-if (siteConfig.generateOgImages && postSlug) {
+if (generateOgImages && postSlug) {
 	ogImageUrl = new URL(`/og/${postSlug}.png`, Astro.site).toString();
 }
 
-const favicons: Favicon[] =
-	siteConfig.favicon.length > 0 ? siteConfig.favicon : defaultFavicons;
+// Favicon 配置（动态配置优先）
+let favicons: Favicon[];
+if (dynamicSettings.brand_favicon) {
+	favicons = [{ src: dynamicSettings.brand_favicon, sizes: '32x32' }];
+} else {
+	favicons = siteConfig.favicon.length > 0 ? siteConfig.favicon : defaultFavicons;
+}
 
 // const siteLang = siteConfig.lang.replace('_', '-')
 if (!lang) {
-	lang = `${siteConfig.lang}`;
+	lang = `${siteLangConfig}`;
 }
 const siteLang = lang.replace("_", "-");
 
 // 使用固定的banner偏移量，position配置用于图片定位
 const bannerOffset = `${BANNER_HEIGHT_EXTEND / 2}vh`;
+
+// 获取动态主题默认模式
+const themeDefaultMode = dynamicSettings.theme_default_mode || siteConfig.themeColor.defaultMode || "light";
 ---
 
 <!doctype html>
@@ -125,21 +159,21 @@ const bannerOffset = `${BANNER_HEIGHT_EXTEND / 2}vh`;
     <meta charset="UTF-8" />
     <meta
       name="description"
-      content={description || siteConfig.description || pageTitle}
+      content={description || siteDescription || pageTitle}
     />
     {
-      siteConfig.keywords && siteConfig.keywords.length > 0 && (
-        <meta name="keywords" content={siteConfig.keywords.join(", ")} />
+      siteKeywords && siteKeywords.length > 0 && (
+        <meta name="keywords" content={siteKeywords.join(", ")} />
       )
     }
-    <meta name="author" content={profileConfig.name} />
+    <meta name="author" content={authorName} />
 
-    <meta property="og:site_name" content={siteConfig.title} />
+    <meta property="og:site_name" content={siteTitle} />
     <meta property="og:url" content={Astro.url} />
     <meta property="og:title" content={pageTitle} />
     <meta
       property="og:description"
-      content={description || siteConfig.description || pageTitle}
+      content={description || siteDescription || pageTitle}
     />
     {ogImageUrl && <meta property="og:image" content={ogImageUrl} />}
     {
@@ -155,7 +189,7 @@ const bannerOffset = `${BANNER_HEIGHT_EXTEND / 2}vh`;
     <meta name="twitter:title" content={pageTitle} />
     <meta
       name="twitter:description"
-      content={description || siteConfig.description || pageTitle}
+      content={description || siteDescription || pageTitle}
     />
 
     <meta name="viewport" content="width=device-width" />
@@ -178,8 +212,8 @@ const bannerOffset = `${BANNER_HEIGHT_EXTEND / 2}vh`;
         BANNER_HEIGHT_EXTEND,
         PAGE_WIDTH,
         configHue,
-        defaultMode: siteConfig.themeColor.defaultMode ?? "light",
-        defaultWallpaperMode: backgroundWallpaper.mode,
+        defaultMode: themeDefaultMode,
+        defaultWallpaperMode: siteConfig.backgroundWallpaper.mode,
         isWallpaperSwitchable:
           backgroundWallpaper.switchable ?? true,
         darkTheme: expressiveCodeConfig.darkTheme,
@@ -424,7 +458,7 @@ const bannerOffset = `${BANNER_HEIGHT_EXTEND / 2}vh`;
     <link
       rel="alternate"
       type="application/rss+xml"
-      title={profileConfig.name}
+      title={authorName}
       href={`${Astro.site}rss.xml`}
     />
 
