@@ -1,0 +1,866 @@
+---
+export const prerender = false;
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { siteConfig } from "../../../config";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+
+const { id } = Astro.params;
+const isEdit = true;
+
+// i18n translations for inline script
+const editI18n = {
+    requiredFields: i18n(I18nKey.adminRequiredFields),
+    contentEmpty: i18n(I18nKey.adminContentEmpty),
+    saveFailed: i18n(I18nKey.adminSaveFailed),
+    updating: i18n(I18nKey.adminPostUpdating),
+    update: i18n(I18nKey.adminPostUpdate),
+    loadFailed: i18n(I18nKey.adminPostLoadFailed),
+};
+---
+
+<AdminLayout title={`${i18n(I18nKey.adminEditPost)} - ${siteConfig.title}`}>
+    <div
+        id="editorContainer"
+        data-post-id={id}
+        class="h-[calc(100vh-64px)] overflow-hidden flex flex-col"
+    >
+        <!-- Header -->
+        <div
+            class="px-8 py-4 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between shadow-sm z-10"
+        >
+            <div class="flex items-center gap-4">
+                <a
+                    href="/admin/"
+                    class="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors text-zinc-500"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                </a>
+                <h1 class="text-xl font-bold text-zinc-900 dark:text-zinc-100">
+                    {i18n(I18nKey.adminEditPost)}
+                </h1>
+            </div>
+            <div class="flex items-center gap-3">
+                <button
+                    id="saveBtn"
+                    class="bg-[var(--primary)] hover:opacity-90 text-white px-6 py-2 rounded-xl font-bold transition-all shadow-md hover:shadow-lg active:scale-95"
+                    data-update-text={i18n(I18nKey.adminPostUpdate)}
+                    data-updating-text={i18n(I18nKey.adminPostUpdating)}
+                >
+                    {i18n(I18nKey.adminPostUpdate)}
+                </button>
+            </div>
+        </div>
+
+        <div class="flex-1 flex overflow-hidden">
+            <!-- Left Side: Editor -->
+            <div
+                class="flex-1 flex flex-col p-8 overflow-y-auto custom-scrollbar bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800"
+            >
+                <input
+                    type="text"
+                    id="title"
+                    placeholder={i18n(I18nKey.adminPostTitlePlaceholder)}
+                    class="text-4xl font-bold bg-transparent border-none outline-none mb-6 placeholder:text-zinc-300 dark:placeholder:text-zinc-700 text-zinc-900 dark:text-zinc-100"
+                />
+                <div id="vditor" class="flex-1 border-none shadow-none"></div>
+            </div>
+
+            <!-- Right Side: Settings -->
+            <div
+                class="w-80 bg-zinc-50/50 dark:bg-zinc-950/50 p-6 overflow-y-auto custom-scrollbar backdrop-blur-sm"
+            >
+                <div class="space-y-8">
+                    <!-- Basic Info Section -->
+                    <section>
+                        <h3
+                            class="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-4 flex items-center gap-2 text-right justify-end"
+                        >
+                            {i18n(I18nKey.adminSectionBasicInfo)}
+                            <svg
+                                class="w-1 h-1 rounded-full bg-zinc-400"
+                                fill="currentColor"
+                                viewBox="0 0 4 4"
+                                ><circle cx="2" cy="2" r="2"></circle></svg
+                            >
+                        </h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label
+                                    class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight text-right"
+                                    >{i18n(I18nKey.adminPostSlug)}</label
+                                >
+                                <input
+                                    id="slug"
+                                    type="text"
+                                    placeholder={i18n(I18nKey.adminPostSlugPlaceholder)}
+                                    class="admin-input"
+                                />
+                            </div>
+                            <div>
+                                <label
+                                    class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight text-right"
+                                    >{i18n(I18nKey.adminPostCategoryLabel)}</label
+                                >
+                                <select
+                                    id="category"
+                                    class="admin-input"
+                                >
+                                    <option value="">{i18n(I18nKey.adminPostCategoryPlaceholder)}</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label
+                                    class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight text-right"
+                                    >{i18n(I18nKey.adminPostTags)}</label
+                                >
+                                <div id="tagsContainer" class="tags-selector">
+                                    <span class="text-sm text-zinc-400 italic">{i18n(I18nKey.adminLoading)}</span>
+                                </div>
+                                <p class="text-xs text-zinc-400 mt-2 text-right">{i18n(I18nKey.adminPostTagsHint)}</p>
+                                <input type="hidden" id="selectedTags" value="" />
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Media Section -->
+                    <section>
+                        <h3
+                            class="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-4 flex items-center gap-2 text-right justify-end"
+                        >
+                            {i18n(I18nKey.adminSectionAppearance)}
+                            <svg
+                                class="w-1 h-1 rounded-full bg-zinc-400"
+                                fill="currentColor"
+                                viewBox="0 0 4 4"
+                                ><circle cx="2" cy="2" r="2"></circle></svg
+                            >
+                        </h3>
+                        <div>
+                            <label
+                                class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight text-right"
+                                >{i18n(I18nKey.adminPostImage)}</label
+                            >
+                            <input
+                                id="image"
+                                type="text"
+                                placeholder={i18n(I18nKey.adminPostImagePlaceholder)}
+                                class="admin-input"
+                            />
+                            <div
+                                id="imagePreview"
+                                class="mt-2 w-full aspect-video rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 hidden"
+                            >
+                                <img
+                                    src=""
+                                    alt="Preview"
+                                    class="w-full h-full object-cover"
+                                />
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Advanced Section -->
+                    <section>
+                        <h3
+                            class="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-4 flex items-center gap-2 text-right justify-end"
+                        >
+                            {i18n(I18nKey.adminSectionAdvanced)}
+                            <svg
+                                class="w-1 h-1 rounded-full bg-zinc-400"
+                                fill="currentColor"
+                                viewBox="0 0 4 4"
+                                ><circle cx="2" cy="2" r="2"></circle></svg
+                            >
+                        </h3>
+                        <div class="space-y-4 text-right">
+                            <div>
+                                <label
+                                    class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight"
+                                    >{i18n(I18nKey.adminPostPassword)}</label
+                                >
+                                <input
+                                    id="password"
+                                    type="password"
+                                    placeholder={i18n(I18nKey.adminPostPasswordPlaceholder)}
+                                    class="admin-input"
+                                />
+                            </div>
+                            <!-- 置顶开关 -->
+                            <div
+                                class="flex items-center justify-end gap-3 cursor-pointer group"
+                                id="pinnedToggle"
+                            >
+                                <span
+                                    class="text-sm font-medium text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 transition-colors"
+                                    >{i18n(I18nKey.pinned)}</span
+                                >
+                                <div
+                                    class="w-10 h-6 bg-zinc-200 dark:bg-zinc-800 rounded-full relative transition-colors duration-300"
+                                    id="pinnedToggleTrack"
+                                >
+                                    <div
+                                        class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 shadow-sm"
+                                        id="pinnedToggleHandle"
+                                    >
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- 置顶排序 -->
+                            <div id="pinOrderContainer" class="hidden">
+                                <label
+                                    class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight"
+                                    >{i18n(I18nKey.adminPostPinOrder)}</label
+                                >
+                                <input
+                                    id="pinOrder"
+                                    type="number"
+                                    min="0"
+                                    value="0"
+                                    placeholder={i18n(I18nKey.adminPostPinOrderPlaceholder)}
+                                    class="admin-input"
+                                />
+                            </div>
+                            <!-- 草稿开关 -->
+                            <div
+                                class="flex items-center justify-end gap-3 cursor-pointer group"
+                                id="draftToggle"
+                            >
+                                <span
+                                    class="text-sm font-medium text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 transition-colors"
+                                    >{i18n(I18nKey.adminPostDraftToggle)}</span
+                                >
+                                <div
+                                    class="w-10 h-6 bg-zinc-200 dark:bg-zinc-800 rounded-full relative transition-colors duration-300"
+                                    id="toggleTrack"
+                                >
+                                    <div
+                                        class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 shadow-sm"
+                                        id="toggleHandle"
+                                    >
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="mb-4">
+                        <label
+                            class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight text-right"
+                            >{i18n(I18nKey.adminPostDescription)}</label
+                        >
+                        <textarea
+                            id="description"
+                            rows="3"
+                            placeholder={i18n(I18nKey.adminPostDescriptionPlaceholder)}
+                            class="admin-input resize-none"></textarea>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script is:inline define:vars={{ editI18n }}>
+        window.editI18n = editI18n;
+    </script>
+
+    <script
+        is:inline
+        src="/assets/vendor/vditor/index.min.js"
+    ></script>
+
+    <script is:inline>
+    (function() {
+        // 使用页面特定的标识符来检测重复初始化
+        var pageId = document.getElementById("editorContainer")?.dataset.postId;
+        var initKey = '_editPage_' + pageId + '_initialized';
+
+        // Prevent duplicate initialization for the same post
+        if (window[initKey]) {
+            console.log("Edit page already initialized for post " + pageId + ", skipping...");
+            return;
+        }
+        window[initKey] = true;
+
+        // Get i18n translations
+        const t = window.editI18n || {};
+        const API_URL = 'http://localhost:8000';
+
+        let vditor = null;
+        let isDraft = false;
+        let isPinned = false;
+        let initTimer = null;
+        let selectedTagIds = []; // 存储选中的标签ID
+        let allTags = []; // 存储所有标签数据
+        let currentPostCategory = ''; // 存储当前文章的分类
+        let currentPostTags = []; // 存储当前文章的标签
+
+        // 加载分类列表
+        async function loadCategories(selectedCategory) {
+            const categorySelect = document.getElementById('category');
+            if (!categorySelect) return;
+
+            try {
+                const response = await fetch(API_URL + '/categories');
+                if (response.ok) {
+                    const categories = await response.json();
+                    // 保留第一个占位选项
+                    const placeholder = categorySelect.querySelector('option');
+                    categorySelect.innerHTML = '';
+                    if (placeholder) categorySelect.appendChild(placeholder);
+
+                    categories.forEach(function(cat) {
+                        if (cat.enabled) {
+                            const option = document.createElement('option');
+                            option.value = cat.name;
+                            option.textContent = cat.name;
+                            if (cat.color) {
+                                option.style.color = cat.color;
+                            }
+                            // 如果是当前文章的分类，设置为选中
+                            if (selectedCategory && cat.name === selectedCategory) {
+                                option.selected = true;
+                            }
+                            categorySelect.appendChild(option);
+                        }
+                    });
+                }
+            } catch (err) {
+                console.error('加载分类失败:', err);
+            }
+        }
+
+        // 加载标签列表
+        async function loadTags(selectedTagNames) {
+            const tagsContainer = document.getElementById('tagsContainer');
+            if (!tagsContainer) return;
+
+            try {
+                const response = await fetch(API_URL + '/tags');
+                if (response.ok) {
+                    allTags = await response.json();
+                    // 根据标签名称找到对应的ID
+                    if (selectedTagNames && selectedTagNames.length > 0) {
+                        selectedTagIds = allTags
+                            .filter(function(tag) {
+                                return selectedTagNames.indexOf(tag.name) !== -1;
+                            })
+                            .map(function(tag) {
+                                return tag.id;
+                            });
+                    }
+                    renderTags();
+                } else {
+                    tagsContainer.innerHTML = '<span class="text-sm text-red-500">加载标签失败</span>';
+                }
+            } catch (err) {
+                console.error('加载标签失败:', err);
+                tagsContainer.innerHTML = '<span class="text-sm text-red-500">加载标签失败</span>';
+            }
+        }
+
+        // 渲染标签选择器
+        function renderTags() {
+            const tagsContainer = document.getElementById('tagsContainer');
+            if (!tagsContainer || !allTags.length) {
+                if (tagsContainer) {
+                    tagsContainer.innerHTML = '<span class="text-sm text-zinc-400">暂无可用标签</span>';
+                }
+                return;
+            }
+
+            tagsContainer.innerHTML = allTags.filter(function(tag) {
+                return tag.enabled;
+            }).map(function(tag) {
+                const isSelected = selectedTagIds.indexOf(tag.id) !== -1;
+                const bgColor = isSelected ? (tag.color || '#6366f1') : 'transparent';
+                const textColor = isSelected ? '#fff' : (tag.color || '#71717a');
+                const borderColor = tag.color || '#d4d4d8';
+
+                return '<button type="button" ' +
+                    'class="tag-btn px-3 py-1.5 text-xs font-medium rounded-full border transition-all hover:opacity-80" ' +
+                    'data-tag-id="' + tag.id + '" ' +
+                    'data-tag-name="' + tag.name + '" ' +
+                    'data-tag-color="' + (tag.color || '#6366f1') + '" ' +
+                    'style="background-color: ' + bgColor + '; color: ' + textColor + '; border-color: ' + borderColor + ';">' +
+                    tag.name +
+                '</button>';
+            }).join('');
+
+            // 绑定点击事件
+            tagsContainer.querySelectorAll('.tag-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    const tagId = this.getAttribute('data-tag-id');
+                    const tagColor = this.getAttribute('data-tag-color');
+                    const idx = selectedTagIds.indexOf(tagId);
+
+                    if (idx === -1) {
+                        // 选中
+                        selectedTagIds.push(tagId);
+                        this.style.backgroundColor = tagColor;
+                        this.style.color = '#fff';
+                    } else {
+                        // 取消选中
+                        selectedTagIds.splice(idx, 1);
+                        this.style.backgroundColor = 'transparent';
+                        this.style.color = tagColor;
+                    }
+
+                    // 更新隐藏字段
+                    updateSelectedTagsInput();
+                });
+            });
+
+            // 初始化时也更新隐藏字段
+            updateSelectedTagsInput();
+        }
+
+        // 更新隐藏的标签输入字段
+        function updateSelectedTagsInput() {
+            const input = document.getElementById('selectedTags');
+            if (input) {
+                // 获取选中标签的名称
+                const selectedNames = selectedTagIds.map(function(id) {
+                    const tag = allTags.find(function(t) { return t.id === id; });
+                    return tag ? tag.name : '';
+                }).filter(function(name) { return name; });
+                input.value = selectedNames.join(',');
+            }
+        }
+
+        // Initialize function
+        function init() {
+            // Clear previous timer
+            if (initTimer) {
+                clearTimeout(initTimer);
+                initTimer = null;
+            }
+
+            // Check if Vditor is available
+            if (typeof Vditor === "undefined") {
+                console.log("Vditor is not loaded, retrying in 300ms...");
+                initTimer = setTimeout(init, 300);
+                return;
+            }
+
+            // Skip if already initialized
+            if (vditor) {
+                console.log("Vditor already initialized, skipping...");
+                return;
+            }
+
+            const container = document.getElementById("editorContainer");
+            const postId = container?.dataset.postId;
+
+            if (!postId) {
+                console.error("No post ID found!");
+                return;
+            }
+
+            console.log("Initializing Vditor for post:", postId);
+
+            // Initialize Vditor
+            vditor = new Vditor("vditor", {
+                height: "100%",
+                mode: "ir",
+                placeholder: "Loading content...",
+                cache: { enable: false },
+                cdn: "/assets/vendor/vditor",
+                theme: document.documentElement.classList.contains("dark")
+                    ? "dark"
+                    : "classic",
+                preview: {
+                    theme: {
+                        current: document.documentElement.classList.contains("dark")
+                            ? "dark"
+                            : "light",
+                    },
+                },
+                toolbarConfig: { pin: true },
+                after: function () {
+                    console.log("Vditor ready, loading post data...");
+                    loadPostData(postId);
+                },
+            });
+
+            // 保存到全局以便清理
+            window._editPageVditor = vditor;
+        }
+
+        function loadPostData(postId) {
+            fetch("http://localhost:8000/posts/" + postId)
+                .then(function(res) {
+                    if (!res.ok) throw new Error("HTTP " + res.status);
+                    return res.json();
+                })
+                .then(function(data) {
+                    // Fill form fields
+                    var titleEl = document.getElementById("title");
+                    var slugEl = document.getElementById("slug");
+                    var descriptionEl = document.getElementById("description");
+                    var imageEl = document.getElementById("image");
+                    var passwordEl = document.getElementById("password");
+
+                    if (titleEl) titleEl.value = data.title || "";
+                    if (slugEl) slugEl.value = data.slug || "";
+                    if (descriptionEl) descriptionEl.value = data.description || "";
+                    if (imageEl) imageEl.value = data.image || "";
+                    if (passwordEl) passwordEl.value = data.password || "";
+
+                    // 加载分类列表并选中当前分类
+                    loadCategories(data.category || "");
+
+                    // 加载标签列表并选中当前标签
+                    loadTags(data.tags || []);
+
+                    // Set content
+                    if (vditor && data.content) {
+                        vditor.setValue(data.content);
+                    }
+
+                    // Handle draft status
+                    if (data.is_draft) {
+                        isDraft = true;
+                        updateDraftUI();
+                    }
+
+                    // Handle pinned status
+                    if (data.pinned) {
+                        isPinned = true;
+                        updatePinnedUI();
+                    }
+
+                    // Handle pin_order
+                    var pinOrderEl = document.getElementById("pinOrder");
+                    if (pinOrderEl && data.pin_order !== undefined) {
+                        pinOrderEl.value = data.pin_order || 0;
+                    }
+
+                    // Handle image preview
+                    if (data.image) {
+                        var preview = document.getElementById("imagePreview");
+                        var img = preview ? preview.querySelector("img") : null;
+                        if (preview && img) {
+                            img.src = data.image;
+                            preview.classList.remove("hidden");
+                        }
+                    }
+
+                    console.log("Data loaded successfully");
+                })
+                .catch(function(err) {
+                    console.error("Error loading data:", err);
+                    alert((t.loadFailed || 'Load failed') + ": " + err.message);
+                });
+        }
+
+        function updateDraftUI() {
+            var track = document.getElementById("toggleTrack");
+            var handle = document.getElementById("toggleHandle");
+            if (isDraft) {
+                if (track) {
+                    track.classList.add("bg-green-500");
+                    track.classList.remove("bg-zinc-200", "dark:bg-zinc-800");
+                }
+                if (handle) handle.classList.add("translate-x-4");
+            } else {
+                if (track) {
+                    track.classList.remove("bg-green-500");
+                    track.classList.add("bg-zinc-200", "dark:bg-zinc-800");
+                }
+                if (handle) handle.classList.remove("translate-x-4");
+            }
+        }
+
+        function updatePinnedUI() {
+            var track = document.getElementById("pinnedToggleTrack");
+            var handle = document.getElementById("pinnedToggleHandle");
+            var pinOrderContainer = document.getElementById("pinOrderContainer");
+            if (isPinned) {
+                if (track) {
+                    track.classList.add("bg-indigo-500");
+                    track.classList.remove("bg-zinc-200", "dark:bg-zinc-800");
+                }
+                if (handle) handle.classList.add("translate-x-4");
+                if (pinOrderContainer) pinOrderContainer.classList.remove("hidden");
+            } else {
+                if (track) {
+                    track.classList.remove("bg-indigo-500");
+                    track.classList.add("bg-zinc-200", "dark:bg-zinc-800");
+                }
+                if (handle) handle.classList.remove("translate-x-4");
+                if (pinOrderContainer) pinOrderContainer.classList.add("hidden");
+            }
+        }
+
+        // Event listeners
+        var titleInput = document.getElementById("title");
+        if (titleInput) {
+            titleInput.addEventListener("input", function(e) {
+                var title = e.target.value;
+                var slugInput = document.getElementById("slug");
+                if (slugInput && !slugInput.dataset.manual) {
+                    slugInput.value = title
+                        .toLowerCase()
+                        .replace(/[^a-z0-9]+/g, "-")
+                        .replace(/(^-|-$)/g, "");
+                }
+            });
+        }
+
+        var slugInput = document.getElementById("slug");
+        if (slugInput) {
+            slugInput.addEventListener("input", function(e) {
+                e.target.dataset.manual = "true";
+            });
+        }
+
+        var imageInput = document.getElementById("image");
+        if (imageInput) {
+            imageInput.addEventListener("input", function(e) {
+                var url = e.target.value;
+                var preview = document.getElementById("imagePreview");
+                var img = preview ? preview.querySelector("img") : null;
+                if (url && preview && img) {
+                    img.src = url;
+                    preview.classList.remove("hidden");
+                } else if (preview) {
+                    preview.classList.add("hidden");
+                }
+            });
+        }
+
+        var draftToggle = document.getElementById("draftToggle");
+        if (draftToggle) {
+            draftToggle.addEventListener("click", function() {
+                isDraft = !isDraft;
+                updateDraftUI();
+            });
+        }
+
+        var pinnedToggle = document.getElementById("pinnedToggle");
+        if (pinnedToggle) {
+            pinnedToggle.addEventListener("click", function() {
+                isPinned = !isPinned;
+                updatePinnedUI();
+            });
+        }
+
+        var saveBtn = document.getElementById("saveBtn");
+        if (saveBtn) {
+            saveBtn.addEventListener("click", async function() {
+                var container = document.getElementById("editorContainer");
+                var postId = container ? container.dataset.postId : null;
+
+                var titleEl = document.getElementById("title");
+                var slugEl = document.getElementById("slug");
+                var title = titleEl ? titleEl.value : '';
+                var slug = slugEl ? slugEl.value : '';
+
+                if (!title || !slug) {
+                    alert(t.requiredFields || "Title and slug are required");
+                    return;
+                }
+
+                if (!vditor) {
+                    alert("Editor not initialized");
+                    return;
+                }
+
+                var content = vditor.getValue();
+                if (!content) {
+                    alert(t.contentEmpty || "Content cannot be empty");
+                    return;
+                }
+
+                var categoryEl = document.getElementById("category");
+                var selectedTagsEl = document.getElementById("selectedTags");
+                var descriptionEl = document.getElementById("description");
+                var imageEl = document.getElementById("image");
+                var passwordEl = document.getElementById("password");
+                var pinOrderEl = document.getElementById("pinOrder");
+
+                // 获取选中的标签名称
+                var tagsValue = selectedTagsEl ? selectedTagsEl.value : '';
+                var tagsArray = tagsValue ? tagsValue.split(',').map(function(t) { return t.trim(); }).filter(function(t) { return t; }) : [];
+
+                var postData = {
+                    title: title,
+                    slug: slug,
+                    category_name: categoryEl ? categoryEl.value || "General" : "General",
+                    tags: tagsArray,
+                    description: descriptionEl ? descriptionEl.value : "",
+                    content: content,
+                    image: imageEl ? imageEl.value || "" : "",
+                    password: passwordEl ? passwordEl.value || "" : "",
+                    is_draft: isDraft,
+                    pinned: isPinned,
+                    pin_order: pinOrderEl ? parseInt(pinOrderEl.value) || 0 : 0,
+                };
+
+                var token = localStorage.getItem("adminToken");
+                if (!token) {
+                    window.location.href = "/admin/login/";
+                    return;
+                }
+
+                try {
+                    saveBtn.disabled = true;
+                    saveBtn.innerHTML =
+                        '<span class="animate-spin inline-block mr-2">◌</span> ' + (saveBtn.dataset.updatingText || 'Updating...');
+
+                    var response = await fetch(
+                        "http://localhost:8000/posts/" + postId,
+                        {
+                            method: "PUT",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: "Bearer " + token,
+                            },
+                            body: JSON.stringify(postData),
+                        }
+                    );
+
+                    if (response.ok) {
+                        // Clear initialization flag for next visit
+                        window._editPageInitialized = false;
+                        window.location.href = "/admin/";
+                    } else {
+                        var errData = await response.json();
+                        // Handle different error formats
+                        var errorMsg = "Unknown error";
+                        if (typeof errData.detail === "string") {
+                            errorMsg = errData.detail;
+                        } else if (Array.isArray(errData.detail)) {
+                            // FastAPI validation error format
+                            errorMsg = errData.detail.map(function(e) {
+                                var field = e.loc ? e.loc.join('.') : '';
+                                return field ? field + ": " + e.msg : e.msg;
+                            }).join('\n');
+                        } else if (errData.message) {
+                            errorMsg = errData.message;
+                        }
+                        alert((t.saveFailed || 'Update failed') + ": " + errorMsg);
+                        saveBtn.disabled = false;
+                        saveBtn.innerHTML = saveBtn.dataset.updateText || "Update Post";
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert(t.saveFailed || "An error occurred while updating");
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = saveBtn.dataset.updateText || "Update Post";
+                }
+            });
+        }
+
+        // Clear initialization flag when leaving page
+        window.addEventListener("beforeunload", function() {
+            window._editPageInitialized = false;
+            // 销毁 Vditor，防止报错
+            if (window._editPageVditor) {
+                try {
+                    window._editPageVditor.destroy();
+                } catch (e) {
+                    console.log("Vditor destroy error:", e);
+                }
+                window._editPageVditor = null;
+            }
+        });
+
+        // Start initialization
+        setTimeout(init, 100);
+    })();
+    </script>
+
+    <style is:global>
+        .admin-input {
+            @apply w-full px-4 py-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] outline-none transition-all placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-right;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .admin-input:hover {
+            border-color: var(--primary);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        /* 下拉选择框样式 */
+        select.admin-input {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.75rem center;
+            background-repeat: no-repeat;
+            background-size: 1.25em 1.25em;
+            padding-right: 2.5rem;
+            cursor: pointer;
+        }
+
+        select.admin-input option {
+            @apply py-2 px-4 bg-white dark:bg-zinc-900;
+        }
+
+        /* 标签选择器容器样式 */
+        .tags-selector {
+            @apply flex flex-wrap gap-2 p-4 bg-gradient-to-br from-zinc-50 to-white dark:from-zinc-900 dark:to-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl min-h-[60px] transition-all;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .tags-selector:hover {
+            border-color: var(--primary);
+        }
+
+        /* 标签按钮样式 */
+        .tag-btn {
+            @apply px-3 py-1.5 text-xs font-medium rounded-full border-2 transition-all cursor-pointer select-none;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .tag-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .tag-btn:active {
+            transform: translateY(0);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            @apply bg-transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            @apply bg-zinc-200 dark:bg-zinc-800 rounded-full;
+        }
+
+        .vditor {
+            border: none !important;
+        }
+        .vditor-toolbar {
+            @apply transition-colors !important;
+            background-color: transparent !important;
+            border-bottom: 1px solid theme("colors.zinc.100") !important;
+        }
+        .dark .vditor-toolbar {
+            border-bottom: 1px solid theme("colors.zinc.800") !important;
+        }
+        .vditor-content {
+            background-color: transparent !important;
+        }
+        .dark .vditor-reset {
+            color: theme("colors.zinc.100") !important;
+        }
+    </style>
+</AdminLayout>
