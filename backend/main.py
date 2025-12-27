@@ -16,7 +16,7 @@ import os
 import auth
 import models
 from database import engine, Base, get_db, SessionLocal, settings as db_settings
-from routes import posts, categories, tags, friends, social, settings, dashboard, logs, search, upload, backup
+from routes import posts, categories, tags, friends, social, settings, dashboard, logs, search, upload, backup, auth as auth_routes
 from exception_handlers import register_exception_handlers
 from exceptions import RateLimitError
 
@@ -192,6 +192,7 @@ async def log_requests(request: Request, call_next):
 
 
 # 注册路由
+app.include_router(auth_routes.router)
 app.include_router(posts.router)
 app.include_router(categories.router)
 app.include_router(tags.router)

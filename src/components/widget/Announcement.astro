@@ -1,11 +1,31 @@
 ---
 import { Icon } from "astro-icon/components";
-import { announcementConfig } from "@/config/announcementConfig";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
 import WidgetLayout from "./WidgetLayout.astro";
 
-const config = announcementConfig;
+// 从后端API获取公告配置
+const API_URL = import.meta.env.PUBLIC_API_URL || "http://localhost:8000";
+let config = {
+  title: "公告",
+  content: "欢迎来到我的博客！",
+  closable: true,
+  link: {
+    enable: false,
+    text: "了解更多",
+    url: "/about",
+    external: false
+  }
+};
+
+try {
+  const response = await fetch(`${API_URL}/settings/announcement`);
+  if (response.ok) {
+    config = await response.json();
+  }
+} catch (error) {
+  console.error("Failed to load announcement config:", error);
+}
 
 interface Props {
 	class?: string;

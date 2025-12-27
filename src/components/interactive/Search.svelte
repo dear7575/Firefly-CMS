@@ -20,7 +20,7 @@ let result: SearchResult[] = [];
 let isSearching = false;
 let initialized = false;
 let meiliClient: MeiliSearch | null = null;
-let debounceTimer: NodeJS.Timeout;
+let debounceTimer: number;
 
 // --- Mocks for Dev Mode ---
 const fakeResult: SearchResult[] = [
@@ -187,10 +187,10 @@ onMount(() => {
 });
 
 // --- Reactive Statements ---
-$: if (initialized && (keywordDesktop || keywordDesktop === "")) {
+$: if (initialized && keywordDesktop) {
 	search(keywordDesktop, true);
 }
-$: if (initialized && (keywordMobile || keywordMobile === "")) {
+$: if (initialized && keywordMobile) {
 	search(keywordMobile, false);
 }
 </script>
@@ -248,7 +248,7 @@ top-20 left-4 md:left-[unset] right-4 shadow-2xl rounded-2xl p-2">
                     <Icon icon="fa6-solid:chevron-right"
                           class="transition text-[0.75rem] translate-x-1 my-auto text-[var(--primary)]"></Icon>
                 </div>
-                {#if item.excerpt.includes('<mark>')}
+                {#if item.excerpt && item.excerpt.includes('<mark>')}
                     <div class="transition text-sm text-50" style="display: flex; align-items: flex-start; margin-top: 0.1rem">
                         <span style="display: inline-block; background-color: var(--btn-plain-bg-hover); color: var(--primary); padding: 0.1em 0.4em; border-radius: 5px; font-size: 0.75em; font-weight: 600; margin-right: 0.5em; flex-shrink: 0;">
                             {i18n(I18nKey.searchSummary)}
@@ -272,8 +272,8 @@ top-20 left-4 md:left-[unset] right-4 shadow-2xl rounded-2xl p-2">
             </a>
         {/each}
         {#if result.length > 5}
-            <a href="/search/?q={encodeURIComponent(keywordDesktop || keywordMobile)}"
-               on:click={(e) => handleResultClick(e, `/search/?q=${encodeURIComponent(keywordDesktop || keywordMobile)}`)}
+            <a href="/search?q={encodeURIComponent(keywordDesktop || keywordMobile)}"
+               on:click={(e) => handleResultClick(e, `/search?q=${encodeURIComponent(keywordDesktop || keywordMobile)}`)}
                class="transition first-of-type:mt-2 lg:first-of-type:mt-0 group block rounded-xl text-lg px-3 py-2 hover:bg-[var(--btn-plain-bg-hover)] active:bg-[var(--btn-plain-bg-active)] text-[var(--primary)] font-bold text-center">
                 <span class="inline-flex items-center">
                     {i18n(I18nKey.searchViewMore).replace('{count}', (result.length - 5).toString())}
@@ -281,13 +281,9 @@ top-20 left-4 md:left-[unset] right-4 shadow-2xl rounded-2xl p-2">
                 </span>
             </a>
         {/if}
-    {:else if result.length === 0}
+    {:else if (keywordDesktop || keywordMobile) && !isSearching}
         <div class="transition first-of-type:mt-2 lg:first-of-type:mt-0 block rounded-xl text-lg px-3 py-2 text-50">
             {i18n(I18nKey.searchNoResults)}
-        </div>
-    {:else if keywordDesktop || keywordMobile}
-        <div class="transition first-of-type:mt-2 lg:first-of-type:mt-0 block rounded-xl text-lg px-3 py-2 text-50">
-            {i18n(I18nKey.searchTypeSomething)}
         </div>
     {/if}
 </div>

@@ -37,6 +37,7 @@
 - **分类管理** - 分类的增删改查、颜色标识、启用/禁用
 - **标签管理** - 标签的增删改查、颜色标识、卡片式布局
 - **友链管理** - 友情链接管理、排序权重、头像/描述
+- **公告管理** - 公告的增删改查、显示/隐藏、类型选择（info/warning/success）
 - **系统设置** - 站点信息、个人资料、主题配置等动态管理
 - **社交链接** - 社交媒体链接管理
 - **访问日志** - 登录记录、API 访问统计、日志清理
@@ -54,6 +55,8 @@
 - **横幅设置** - 首页横幅文字
 - **主题设置** - 主题色、默认模式
 - **页脚设置** - ICP 备案、版权信息
+- **公告配置** - 公告内容动态管理，支持多种类型
+- **关于页面** - 关于我页面内容动态管理
 
 ---
 
@@ -97,6 +100,38 @@
 
 ## 🚀 快速开始
 
+### 部署方式
+
+#### 🐳 推荐：Docker 部署（适合生产环境）
+
+最简单的方式，只需几个命令即可启动整个系统：
+
+```bash
+# Linux/Mac 用户
+chmod +x docker-start.sh
+./docker-start.sh
+
+# Windows 用户
+docker-start.bat
+```
+
+或手动启动：
+
+```bash
+docker-compose up -d
+```
+
+访问地址：
+- 🌐 网站首页：`http://localhost`
+- 📊 后台管理：`http://localhost/admin`
+- 📚 API 文档：`http://localhost/api/docs`
+
+详细说明请查看 [Docker 部署指南](./docs/DOCKER_DEPLOYMENT.md)
+
+---
+
+#### 💻 开发环境：手动部署
+
 ### 环境要求
 
 **前端：**
@@ -106,6 +141,10 @@
 **后端：**
 - Python >= 3.10
 - MySQL >= 5.7
+
+**Docker 部署：**
+- Docker >= 20.10
+- Docker Compose >= 2.0
 
 ### 1. 克隆仓库
 
@@ -232,6 +271,11 @@ PUBLIC_API_URL=http://localhost:8000
 ```
 
 ### 生产环境部署
+
+**推荐使用 Docker 部署：**
+- 📖 详见 [Docker 部署指南](./docs/DOCKER_DEPLOYMENT.md)
+
+**手动部署：**
 
 1. **后端**：使用 Gunicorn + Uvicorn 部署
    ```bash

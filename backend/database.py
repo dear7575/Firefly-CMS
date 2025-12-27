@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     # 数据库连接字符串
     # 格式: mysql+pymysql://用户名:密码@主机:端口/数据库名
     # 重要：生产环境请使用 .env 文件配置
-    DATABASE_URL: str = "mysql+pymysql://root:123456@192.168.0.66:3306/firefly_blog"
+    DATABASE_URL: str = "mysql+pymysql://root:123456@127.0.0.1:3306/firefly_cms"
 
     # JWT 密钥
     # 重要：生产环境请更换为随机生成的密钥
@@ -44,7 +44,8 @@ class Settings(BaseSettings):
     MAX_UPLOAD_SIZE: int = 10
 
     # API 频率限制（每分钟请求数）
-    RATE_LIMIT_PER_MINUTE: int = 60
+    # 开发环境建议设置较大值，生产环境可根据实际情况调整
+    RATE_LIMIT_PER_MINUTE: int = 500
 
     class Config:
         # 从 .env 文件加载配置

@@ -323,6 +323,7 @@ enum I18nKey {
 	adminFriendManagement = "adminFriendManagement",
 	adminSystemManagement = "adminSystemManagement",
 	adminLogManagement = "adminLogManagement",
+	adminAnnouncementManagement = "adminAnnouncementManagement",
 
 	// 访问日志
 	adminManageAccessLogs = "adminManageAccessLogs",

@@ -5,6 +5,8 @@ import Icon from "@iconify/svelte";
 import { onMount } from "svelte";
 import type { SearchResult } from "@/global";
 import { url as formatUrl } from "@/utils/url-utils";
+import { navBarSearchConfig } from "@/config";
+import { NavBarSearchMethod } from "@/types/config";
 
 // --- Props ---
 export let title = i18n(I18nKey.search);
@@ -15,6 +17,9 @@ let keyword = "";
 let results: SearchResult[] = [];
 let isSearching = false;
 let initialized = false;
+
+// 获取搜索方法配置
+const searchMethod = navBarSearchConfig.method || NavBarSearchMethod.PageFind;
 
 // 在客户端获取 URL 参数
 const getInitialKeyword = (): string => {
@@ -48,7 +53,17 @@ const search = async () => {
 	isSearching = true;
 
 	try {
-		if (import.meta.env.PROD && window.pagefind) {
+		if (searchMethod === NavBarSearchMethod.BackendAPI) {
+			// 使用后端 API 进行搜索
+			const apiUrl = import.meta.env.PUBLIC_API_URL || "http://localhost:8000";
+			const response = await fetch(
+				`${apiUrl}/search/?q=${encodeURIComponent(keyword)}&limit=50`
+			);
+			if (!response.ok) {
+				throw new Error(`搜索请求失败: ${response.status}`);
+			}
+			results = await response.json();
+		} else if (import.meta.env.PROD && window.pagefind) {
 			const response = await window.pagefind.search(keyword);
 			const rawResults = await Promise.all(
 				response.results.map((item) => item.data()),
@@ -87,11 +102,11 @@ onMount(() => {
 		}
 	};
 
-	// 开发环境直接初始化
-	if (import.meta.env.DEV) {
+	// 使用后端 API 或开发环境直接初始化
+	if (searchMethod === NavBarSearchMethod.BackendAPI || import.meta.env.DEV) {
 		initialize();
 	} else {
-		// 生产环境等待 Pagefind 加载
+		// 生产环境使用 Pagefind 时等待其加载
 		if (window.pagefind) {
 			initialize();
 		} else {
@@ -100,9 +115,27 @@ onMount(() => {
 			});
 		}
 	}
+
+	// 监听 Swup 页面内容替换事件，重新初始化
+	const handleContentReplaced = () => {
+		const newKeyword = getInitialKeyword();
+		if (newKeyword && newKeyword !== keyword) {
+			keyword = newKeyword;
+			if (initialized) {
+				search();
+			}
+		}
+	};
+
+	// Swup 页面切换后重新获取 URL 参数
+	document.addEventListener('swup:content:replace', handleContentReplaced);
+
+	return () => {
+		document.removeEventListener('swup:content:replace', handleContentReplaced);
+	};
 });
 
-let debounceTimer: NodeJS.Timeout;
+let debounceTimer: number;
 const handleInput = () => {
 	clearTimeout(debounceTimer);
 	debounceTimer = setTimeout(() => {

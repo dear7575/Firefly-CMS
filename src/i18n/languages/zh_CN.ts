@@ -6,6 +6,12 @@ export const zh_CN: Translation = {
     [Key.about]: "关于我",
     [Key.archive]: "归档",
     [Key.search]: "搜索",
+    [Key.searchNoResults]: "没有找到相关结果",
+    [Key.searchTypeSomething]: "输入关键词开始搜索...",
+    [Key.searchLoading]: "搜索中...",
+    [Key.searchSummary]: "摘要",
+    [Key.searchContent]: "内容",
+    [Key.searchViewMore]: "查看更多 {count} 条结果",
     [Key.other]: "其他",
 
     [Key.tags]: "标签",
@@ -323,6 +329,7 @@ export const zh_CN: Translation = {
     [Key.adminFriendManagement]: "友链管理",
     [Key.adminSystemManagement]: "系统管理",
     [Key.adminLogManagement]: "日志管理",
+    [Key.adminAnnouncementManagement]: "公告管理",
 
     // 访问日志
     [Key.adminManageAccessLogs]: "查看和管理访问日志",
