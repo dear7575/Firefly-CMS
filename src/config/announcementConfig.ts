@@ -11,13 +11,9 @@ export const announcementConfig: AnnouncementConfig = {
 	closable: true,
 
 	link: {
-		// 启用链接
-		enable: true,
-		// 链接文本
-		text: "了解更多",
-		// 链接 URL
-		url: "/about/",
-		// 内部链接
-		external: false,
+		enable: true, // 启用链接
+		text: "了解更多", // 链接文本
+		url: "/about", // 链接 URL
+		external: false, // 内部链接
 	},
 };

@@ -223,6 +223,43 @@ def get_post(post_id: str, db: Session = Depends(get_db)):
     }
 
 
+@router.get("/slug/{slug}", response_model=dict, summary="通过 Slug 获取文章")
+def get_post_by_slug(slug: str, db: Session = Depends(get_db)):
+    """
+    根据 Slug 获取单篇文章详情
+
+    公开接口，无需认证。
+
+    Args:
+        slug: 文章 URL 别名
+
+    Returns:
+        dict: 文章详情
+
+    Raises:
+        HTTPException: 文章不存在时返回 404
+    """
+    p = db.query(models.Post).filter(models.Post.slug == slug).first()
+    if not p:
+        raise HTTPException(status_code=404, detail="文章不存在")
+
+    return {
+        "id": p.id,
+        "title": p.title,
+        "slug": p.slug,
+        "description": p.description,
+        "content": p.content,
+        "image": p.image,
+        "published_at": p.published_at,
+        "category": p.category.name if p.category else None,
+        "tags": [t.name for t in p.tags],
+        "is_draft": p.is_draft == 1,
+        "pinned": p.pinned or False,
+        "pin_order": p.pin_order or 0,
+        "password": p.password
+    }
+
+
 @router.post("", status_code=status.HTTP_201_CREATED, summary="创建文章")
 def create_post(
         post: PostBase,

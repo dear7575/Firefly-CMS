@@ -10,32 +10,32 @@ export const LinkPresets: { [key in LinkPreset]: NavBarLink } = {
 	},
 	[LinkPreset.About]: {
 		name: i18n(I18nKey.about),
-		url: "/about/",
+		url: "/about",
 		icon: "material-symbols:person",
 	},
 	[LinkPreset.Archive]: {
 		name: i18n(I18nKey.archive),
-		url: "/archive/",
+		url: "/archive",
 		icon: "material-symbols:archive",
 	},
 	[LinkPreset.Friends]: {
 		name: i18n(I18nKey.friends),
-		url: "/friends/",
+		url: "/friends",
 		icon: "material-symbols:group",
 	},
 	[LinkPreset.Sponsor]: {
 		name: i18n(I18nKey.sponsor),
-		url: "/sponsor/",
+		url: "/sponsor",
 		icon: "material-symbols:favorite",
 	},
 	[LinkPreset.Guestbook]: {
 		name: i18n(I18nKey.guestbook),
-		url: "/guestbook/",
+		url: "/guestbook",
 		icon: "material-symbols:chat",
 	},
 	[LinkPreset.Bangumi]: {
 		name: i18n(I18nKey.bangumi),
-		url: "/bangumi/",
+		url: "/bangumi",
 		icon: "material-symbols:movie",
 	},
 };

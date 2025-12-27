@@ -206,6 +206,125 @@ def get_setting_groups(db: Session = Depends(get_db)):
     return [g[0] for g in groups]
 
 
+# ============== 公告管理 API 接口（放在通用路由之前避免路由冲突） ==============
+
+class AnnouncementConfig(BaseModel):
+    """公告配置模型"""
+    title: str = Field(default="公告", description="公告标题")
+    content: str = Field(..., description="公告内容")
+    closable: bool = Field(default=True, description="是否可关闭")
+    link_enable: bool = Field(default=False, description="是否启用链接")
+    link_text: str = Field(default="了解更多", description="链接文本")
+    link_url: str = Field(default="/about", description="链接URL")
+    link_external: bool = Field(default=False, description="是否为外部链接")
+
+
+@router.get("/announcement", summary="获取公告配置")
+def get_announcement_config(db: Session = Depends(get_db)):
+    """获取当前公告配置（公开接口）"""
+    # 从数据库读取公告配置
+    settings_map = {}
+    announcement_keys = [
+        "announcement_title",
+        "announcement_content",
+        "announcement_closable",
+        "announcement_link_enable",
+        "announcement_link_text",
+        "announcement_link_url",
+        "announcement_link_external"
+    ]
+    
+    settings = db.query(models.SiteSetting).filter(
+        models.SiteSetting.key.in_(announcement_keys)
+    ).all()
+    
+    for setting in settings:
+        key = setting.key.replace("announcement_", "")
+        value = setting.value
+        
+        # 类型转换
+        if setting.type == "boolean":
+            value = value.lower() == "true" if value else False
+        
+        settings_map[key] = value
+    
+    # 如果没有配置，返回默认值
+    if not settings_map:
+        return {
+            "title": "公告",
+            "content": "欢迎来到我的博客！这是一则示例公告。",
+            "closable": True,
+            "link": {
+                "enable": False,
+                "text": "了解更多",
+                "url": "/about",
+                "external": False
+            }
+        }
+    
+    # 构建响应，使用嵌套的 link 对象
+    return {
+        "title": settings_map.get("title", "公告"),
+        "content": settings_map.get("content", ""),
+        "closable": settings_map.get("closable", True),
+        "link": {
+            "enable": settings_map.get("link_enable", False),
+            "text": settings_map.get("link_text", "了解更多"),
+            "url": settings_map.get("link_url", "/about"),
+            "external": settings_map.get("link_external", False)
+        }
+    }
+
+
+@router.put("/announcement", summary="更新公告配置")
+def update_announcement_config(
+    config: AnnouncementConfig,
+    db: Session = Depends(get_db),
+    current_user: models.Admin = Depends(get_current_user)
+):
+    """更新公告配置（需要认证）"""
+    # 定义要更新的配置项
+    settings_to_update = {
+        "announcement_title": (config.title, "string", "announcement"),
+        "announcement_content": (config.content, "string", "announcement"),
+        "announcement_closable": (str(config.closable), "boolean", "announcement"),
+        "announcement_link_enable": (str(config.link_enable), "boolean", "announcement"),
+        "announcement_link_text": (config.link_text, "string", "announcement"),
+        "announcement_link_url": (config.link_url, "string", "announcement"),
+        "announcement_link_external": (str(config.link_external), "boolean", "announcement"),
+    }
+    
+    updated = 0
+    created = 0
+    
+    for key, (value, type_str, group) in settings_to_update.items():
+        setting = db.query(models.SiteSetting).filter(
+            models.SiteSetting.key == key
+        ).first()
+        
+        if setting:
+            setting.value = value
+            updated += 1
+        else:
+            new_setting = models.SiteSetting(
+                key=key,
+                value=value,
+                type=type_str,
+                group=group,
+                label=key.replace("announcement_", "").replace("_", " ").title()
+            )
+            db.add(new_setting)
+            created += 1
+    
+    db.commit()
+    
+    return {
+        "message": "公告配置更新成功",
+        "updated": updated,
+        "created": created
+    }
+
+
 @router.get("/by-key/{key}", response_model=SettingResponse, summary="根据键名获取设置")
 def get_setting_by_key(key: str, db: Session = Depends(get_db)):
     """根据键名获取单个设置"""
@@ -406,3 +525,120 @@ def init_default_settings(
 
     db.commit()
     return {"message": f"初始化完成，创建了 {created_count} 个设置项"}
+
+
+# ============== 公告管理 API 接口 ==============
+
+class AnnouncementConfig(BaseModel):
+    """公告配置模型"""
+    title: str = Field(default="公告", description="公告标题")
+    content: str = Field(..., description="公告内容")
+    closable: bool = Field(default=True, description="是否可关闭")
+    link_enable: bool = Field(default=False, description="是否启用链接")
+    link_text: str = Field(default="了解更多", description="链接文本")
+    link_url: str = Field(default="/about", description="链接URL")
+    link_external: bool = Field(default=False, description="是否为外部链接")
+
+
+@router.get("/announcement", summary="获取公告配置")
+def get_announcement_config(db: Session = Depends(get_db)):
+    """获取当前公告配置（公开接口）"""
+    # 从数据库读取公告配置
+    settings_map = {}
+    announcement_keys = [
+        "announcement_title",
+        "announcement_content",
+        "announcement_closable",
+        "announcement_link_enable",
+        "announcement_link_text",
+        "announcement_link_url",
+        "announcement_link_external"
+    ]
+    
+    settings = db.query(models.SiteSetting).filter(
+        models.SiteSetting.key.in_(announcement_keys)
+    ).all()
+    
+    for setting in settings:
+        key = setting.key.replace("announcement_", "")
+        value = setting.value
+        
+        # 类型转换
+        if setting.type == "boolean":
+            value = value.lower() == "true" if value else False
+        
+        settings_map[key] = value
+    
+    # 如果没有配置，返回默认值
+    if not settings_map:
+        return {
+            "title": "公告",
+            "content": "欢迎来到我的博客！这是一则示例公告。",
+            "closable": True,
+            "link_enable": True,
+            "link_text": "了解更多",
+            "link_url": "/about",
+            "link_external": False
+        }
+    
+    # 构建响应，使用下划线命名以匹配前端配置
+    return {
+        "title": settings_map.get("title", "公告"),
+        "content": settings_map.get("content", ""),
+        "closable": settings_map.get("closable", True),
+        "link": {
+            "enable": settings_map.get("link_enable", False),
+            "text": settings_map.get("link_text", "了解更多"),
+            "url": settings_map.get("link_url", "/about"),
+            "external": settings_map.get("link_external", False)
+        }
+    }
+
+
+@router.put("/announcement", summary="更新公告配置")
+def update_announcement_config(
+    config: AnnouncementConfig,
+    db: Session = Depends(get_db),
+    current_user: models.Admin = Depends(get_current_user)
+):
+    """更新公告配置（需要认证）"""
+    # 定义要更新的配置项
+    settings_to_update = {
+        "announcement_title": (config.title, "string", "announcement"),
+        "announcement_content": (config.content, "string", "announcement"),
+        "announcement_closable": (str(config.closable), "boolean", "announcement"),
+        "announcement_link_enable": (str(config.link_enable), "boolean", "announcement"),
+        "announcement_link_text": (config.link_text, "string", "announcement"),
+        "announcement_link_url": (config.link_url, "string", "announcement"),
+        "announcement_link_external": (str(config.link_external), "boolean", "announcement"),
+    }
+    
+    updated = 0
+    created = 0
+    
+    for key, (value, type_str, group) in settings_to_update.items():
+        setting = db.query(models.SiteSetting).filter(
+            models.SiteSetting.key == key
+        ).first()
+        
+        if setting:
+            setting.value = value
+            updated += 1
+        else:
+            new_setting = models.SiteSetting(
+                key=key,
+                value=value,
+                type=type_str,
+                group=group,
+                label=key.replace("announcement_", "").replace("_", " ").title()
+            )
+            db.add(new_setting)
+            created += 1
+    
+    db.commit()
+    
+    return {
+        "message": "公告配置更新成功",
+        "updated": updated,
+        "created": created
+    }

@@ -39,6 +39,7 @@
 - **Category Management** - CRUD operations, color tags, enable/disable
 - **Tag Management** - CRUD operations, color tags, enable/disable
 - **Friend Links** - Link management, sorting weight, avatar/description
+- **Announcement Management** - CRUD operations, show/hide, type selection (info/warning/success)
 - **System Settings** - Dynamic management of site info, profile, theme config
 - **Social Links** - Social media link management
 - **Access Logs** - Login records, API access statistics, log cleanup
@@ -50,6 +51,8 @@
 - **Banner Settings** - Homepage banner text
 - **Theme Settings** - Theme color, default mode
 - **Footer Settings** - ICP filing, copyright info
+- **Announcement Config** - Dynamic announcement content with multiple types
+- **About Page** - Dynamic about page content management
 
 ---
 
@@ -92,6 +95,38 @@
 ---
 
 ## 🚀 Quick Start
+
+### Deployment Options
+
+#### 🐳 Recommended: Docker Deployment (Production Ready)
+
+The easiest way to get started with just a few commands:
+
+```bash
+# Linux/Mac users
+chmod +x docker-start.sh
+./docker-start.sh
+
+# Windows users
+docker-start.bat
+```
+
+Or manually:
+
+```bash
+docker-compose up -d
+```
+
+Access URLs:
+- 🌐 Homepage: `http://localhost`
+- 📊 Admin Panel: `http://localhost/admin`
+- 📚 API Docs: `http://localhost/api/docs`
+
+See [Docker Deployment Guide](./docs/DOCKER_DEPLOYMENT.md) for details.
+
+---
+
+#### 💻 Development: Manual Deployment
 
 ### Requirements
 

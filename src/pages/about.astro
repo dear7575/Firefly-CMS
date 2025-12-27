@@ -1,24 +1,66 @@
 ---
-
-import { getEntry, render } from "astro:content";
 import Markdown from "@components/misc/Markdown.astro";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import { marked, Renderer } from "marked";
 
-const aboutPost = await getEntry("spec", "about");
+export const prerender = false;
 
-if (!aboutPost) {
-	throw new Error("About page content not found");
+const API_URL = import.meta.env.PUBLIC_API_URL || "http://localhost:8000";
+
+// 从 API 获取 slug 为 about 的文章
+let aboutContent = "# 关于我\n\n暂无内容，请在后台管理中编辑 slug 为 'about' 的文章。";
+let renderedContent = "";
+
+try {
+    const response = await fetch(`${API_URL}/posts/slug/about`);
+    if (response.ok) {
+        const post = await response.json();
+        aboutContent = post.content;
+    }
+} catch (error) {
+    console.error("Failed to load about page:", error);
 }
 
-const { Content } = await render(aboutPost);
+// 配置 marked 为标题添加 id 属性（与文章页面一致）
+const slugCount: Record<string, number> = {};
+
+function generateSlug(text: string): string {
+    let slug = text
+        .toLowerCase()
+        .replace(/[^\w\u4e00-\u9fa5\s-]/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-");
+
+    if (slugCount[slug]) {
+        slugCount[slug]++;
+        slug = `${slug}-${slugCount[slug] - 1}`;
+    } else {
+        slugCount[slug] = 1;
+    }
+
+    return slug;
+}
+
+const renderer = new Renderer();
+renderer.heading = function ({ tokens, depth }) {
+    const text = this.parser.parseInline(tokens);
+    const plainText = text.replace(/<[^>]*>/g, "");
+    const slug = generateSlug(plainText);
+    return `<h${depth} id="${slug}">${text}</h${depth}>\n`;
+};
+
+marked.use({ renderer });
+
+// 渲染 Markdown 为 HTML
+renderedContent = await marked.parse(aboutContent);
 ---
 <MainGridLayout title={i18n(I18nKey.about)} description={i18n(I18nKey.about)}>
     <div class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative min-h-32">
         <div class="card-base z-10 px-9 py-6 relative w-full ">
-            <Markdown class="mt-2">
-                <Content />
+            <Markdown class="mt-2 markdown-content">
+                <div set:html={renderedContent} />
             </Markdown>
         </div>
     </div>
