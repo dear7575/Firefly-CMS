@@ -12,11 +12,11 @@
 ![Python](https://img.shields.io/badge/Python-3.10+-blue)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-green)
 >
-> [![Stars](https://img.shields.io/github/stars/dear7575/Firefly?style=social)](https://github.com/dear7575/Firefly/stargazers)
-[![Forks](https://img.shields.io/github/forks/dear7575/Firefly?style=social)](https://github.com/dear7575/Firefly/network/members)
-[![Issues](https://img.shields.io/github/issues/dear7575/Firefly)](https://github.com/dear7575/Firefly/issues)
+> [![Stars](https://img.shields.io/github/stars/dear7575/Firefly-CMS?style=social)](https://github.com/dear7575/Firefly-CMS/stargazers)
+[![Forks](https://img.shields.io/github/forks/dear7575/Firefly-CMS?style=social)](https://github.com/dear7575/Firefly-CMS/network/members)
+[![Issues](https://img.shields.io/github/issues/dear7575/Firefly-CMS)](https://github.com/dear7575/Firefly-CMS/issues)
 >
-> ![GitHub License](https://img.shields.io/github/license/dear7575/Firefly)
+> ![GitHub License](https://img.shields.io/github/license/dear7575/Firefly-CMS)
 >
 </div>
 
@@ -110,8 +110,8 @@
 ### 1. 克隆仓库
 
 ```bash
-git clone https://github.com/dear7575/Firefly.git
-cd Firefly
+git clone https://github.com/dear7575/Firefly-CMS.git
+cd Firefly-CMS
 ```
 
 ### 2. 后端部署
@@ -184,7 +184,7 @@ pnpm dev
 ## 📁 项目结构
 
 ```
-Firefly/
+Firefly-CMS/
 ├── backend/                 # 后端服务
 │   ├── main.py             # FastAPI 入口
 │   ├── setup.py            # 数据库初始化脚本
@@ -275,5 +275,5 @@ PUBLIC_API_URL=http://localhost:8000
 
 ## 🤝 贡献
 
-欢迎提交 [Issue](https://github.com/dear7575/Firefly/issues) 或 [Pull Request](https://github.com/dear7575/Firefly/pulls)！
+欢迎提交 [Issue](https://github.com/dear7575/Firefly-CMS/issues) 或 [Pull Request](https://github.com/dear7575/Firefly-CMS/pulls)！
 

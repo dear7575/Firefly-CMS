@@ -96,7 +96,7 @@ DEMO_CATEGORIES = [
     {
         "name": "博客指南",
         "slug": "blog-guide",
-        "description": "Firefly 博客使用指南和教程",
+        "description": "Firefly CMS 博客使用指南和教程",
         "color": "#10b981",
         "enabled": True,
     },
@@ -154,7 +154,7 @@ DEMO_POSTS = [
 
 ## 📖 更多信息
 
-- [GitHub 仓库](https://github.com/dear7575/Firefly)
+- [GitHub 仓库](https://github.com/dear7575/Firefly-CMS)
 - [原始 Firefly 主题](https://github.com/CuteLeaf/Firefly)
 """,
         "category": "博客指南",
