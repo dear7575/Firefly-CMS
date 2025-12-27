@@ -1,5 +1,5 @@
 /**
- * Firefly Blog API 服务模块
+ * Firefly CMS API 服务模块
  * 提供与后端 API 交互的函数
  */
 

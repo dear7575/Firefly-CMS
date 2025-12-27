@@ -1,5 +1,5 @@
 """
-Firefly Blog API 主入口
+Firefly CMS API 主入口
 FastAPI 应用程序配置和启动
 """
 from fastapi import FastAPI, Depends, HTTPException, status, Request
@@ -28,8 +28,8 @@ os.makedirs(db_settings.UPLOAD_DIR, exist_ok=True)
 
 # 创建 FastAPI 应用实例
 app = FastAPI(
-    title="Firefly Blog API",
-    description="Firefly 博客后台管理 API",
+    title="Firefly CMS API",
+    description="Firefly CMS 博客后台管理 API",
     version="2.0.0"
 )
 
@@ -259,7 +259,7 @@ async def root():
     """
     API 根路径，返回欢迎信息
     """
-    return {"message": "欢迎使用 Firefly 博客 API", "version": "1.0.0"}
+    return {"message": "欢迎使用 Firefly CMS API", "version": "1.0.0"}
 
 
 # 直接运行此文件时启动服务器

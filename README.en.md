@@ -12,11 +12,11 @@
 ![Python](https://img.shields.io/badge/Python-3.10+-blue)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-green)
 >
-> [![Stars](https://img.shields.io/github/stars/dear7575/Firefly?style=social)](https://github.com/dear7575/Firefly/stargazers)
-[![Forks](https://img.shields.io/github/forks/dear7575/Firefly?style=social)](https://github.com/dear7575/Firefly/network/members)
-[![Issues](https://img.shields.io/github/issues/dear7575/Firefly)](https://github.com/dear7575/Firefly/issues)
+> [![Stars](https://img.shields.io/github/stars/dear7575/Firefly-CMS?style=social)](https://github.com/dear7575/Firefly-CMS/stargazers)
+[![Forks](https://img.shields.io/github/forks/dear7575/Firefly-CMS?style=social)](https://github.com/dear7575/Firefly-CMS/network/members)
+[![Issues](https://img.shields.io/github/issues/dear7575/Firefly-CMS)](https://github.com/dear7575/Firefly-CMS/issues)
 >
-> ![GitHub License](https://img.shields.io/github/license/dear7575/Firefly)
+> ![GitHub License](https://img.shields.io/github/license/dear7575/Firefly-CMS)
 >
 </div>
 
@@ -106,8 +106,8 @@
 ### 1. Clone Repository
 
 ```bash
-git clone https://github.com/dear7575/Firefly.git
-cd Firefly
+git clone https://github.com/dear7575/Firefly-CMS.git
+cd Firefly-CMS
 ```
 
 ### 2. Backend Deployment
@@ -180,7 +180,7 @@ The backend automatically creates a default admin on first start:
 ## 📁 Project Structure
 
 ```
-Firefly/
+Firefly-CMS/
 ├── backend/                 # Backend service
 │   ├── main.py             # FastAPI entry
 │   ├── setup.py            # Database initialization script
@@ -271,5 +271,5 @@ Under the MIT License, you are free to use, modify, and distribute this project,
 
 ## 🤝 Contributing
 
-Welcome to submit [Issues](https://github.com/dear7575/Firefly/issues) or [Pull Requests](https://github.com/dear7575/Firefly/pulls)!
+Welcome to submit [Issues](https://github.com/dear7575/Firefly-CMS/issues) or [Pull Requests](https://github.com/dear7575/Firefly-CMS/pulls)!
 
