@@ -3,8 +3,8 @@
  * 提供与后端 API 交互的函数
  */
 
-/** API 基础地址，可通过环境变量配置 */
-const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8000';
+/** API 基础地址，从环境变量配置 */
+const API_URL = import.meta.env.PUBLIC_API_URL;
 
 /**
  * 文章数据接口

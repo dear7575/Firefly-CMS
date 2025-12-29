@@ -12,7 +12,7 @@ async function getRawSortedPosts() {
 	// Fetch dynamic posts from backend API if available
 	let dynamicPosts: any[] = [];
 	try {
-		const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8000';
+		const API_URL = import.meta.env.PUBLIC_API_URL;
 		const res = await fetch(`${API_URL}/posts/?all=true`);
 		if (res.ok) {
 			const data = await res.json();

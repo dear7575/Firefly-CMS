@@ -28,6 +28,7 @@ import { formatDateToYYYYMMDD } from "@/utils/date-utils";
 import { processCoverImageSync } from "@/utils/image-utils";
 import { url } from "@/utils/url-utils";
 import { fetchSiteSettings } from "@/services/siteSettings";
+const API_URL = import.meta.env.PUBLIC_API_URL;
 
 import { marked, Renderer } from "marked";
 
@@ -588,7 +589,7 @@ const jsonLd = {
       silent: boolean,
     ) {
       try {
-        const response = await fetch(`http://localhost:8000/posts/${postId}`);
+        const response = await fetch(`${API_URL}/posts/${postId}`);
         if (!response.ok) {
           if (!silent) showError("Failed to verify password");
           return;

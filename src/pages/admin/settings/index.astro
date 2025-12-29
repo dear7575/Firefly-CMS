@@ -4,6 +4,7 @@ import AdminLayout from "../../../layouts/AdminLayout.astro";
 import { siteConfig } from "@/config";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
+const API_URL = import.meta.env.PUBLIC_API_URL;
 
 // 分组名称映射
 const groupLabels: Record<string, string> = {
@@ -150,7 +151,6 @@ const groupIcons: Record<string, string> = {
 
 <script is:inline define:vars={{ groupLabels, groupIcons }}>
 (function() {
-    var API_URL = 'http://localhost:8000';
     var settings = [];
     var currentGroup = 'all';
 
@@ -166,7 +166,7 @@ const groupIcons: Record<string, string> = {
         if (!container) return;
 
         try {
-            var response = await fetch(API_URL + '/settings');
+            var response = await fetch(`${API_URL}/settings`);
             if (!response.ok) throw new Error('Failed to load');
             settings = await response.json();
 

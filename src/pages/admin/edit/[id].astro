@@ -17,6 +17,7 @@ const editI18n = {
     update: i18n(I18nKey.adminPostUpdate),
     loadFailed: i18n(I18nKey.adminPostLoadFailed),
 };
+const API_URL = import.meta.env.PUBLIC_API_URL;
 ---
 
 <AdminLayout title={`${i18n(I18nKey.adminEditPost)} - ${siteConfig.title}`}>
@@ -296,7 +297,7 @@ const editI18n = {
 
         // Get i18n translations
         const t = window.editI18n || {};
-        const API_URL = 'http://localhost:8000';
+        const API_URL = window.API_URL;
 
         let vditor = null;
         let isDraft = false;
@@ -499,7 +500,7 @@ const editI18n = {
         }
 
         function loadPostData(postId) {
-            fetch("http://localhost:8000/posts/" + postId)
+            fetch(`${API_URL}/posts/` + postId)
                 .then(function(res) {
                     if (!res.ok) throw new Error("HTTP " + res.status);
                     return res.json();
@@ -721,7 +722,7 @@ const editI18n = {
                         '<span class="animate-spin inline-block mr-2">◌</span> ' + (saveBtn.dataset.updatingText || 'Updating...');
 
                     var response = await fetch(
-                        "http://localhost:8000/posts/" + postId,
+                        `${API_URL}/posts/` + postId,
                         {
                             method: "PUT",
                             headers: {
