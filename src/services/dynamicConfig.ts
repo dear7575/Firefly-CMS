@@ -4,8 +4,8 @@
  * 支持缓存和默认值回退
  */
 
-// API 基础地址
-const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8000';
+// API 基础地址（从环境变量读取）
+const API_URL = import.meta.env.PUBLIC_API_URL;
 
 // 缓存配置
 let configCache: Record<string, any> | null = null;

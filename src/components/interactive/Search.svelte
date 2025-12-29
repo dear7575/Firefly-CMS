@@ -120,7 +120,7 @@ const search = async (keyword: string, isDesktop: boolean): Promise<void> => {
 				}
 			} else if (searchMethod === NavBarSearchMethod.BackendAPI) {
 				// 使用后端 API 进行搜索
-				const apiUrl = import.meta.env.PUBLIC_API_URL || "http://localhost:8000";
+				const apiUrl = import.meta.env.PUBLIC_API_URL;
 				const response = await fetch(
 					`${apiUrl}/search/?q=${encodeURIComponent(keyword)}&limit=10`
 				);

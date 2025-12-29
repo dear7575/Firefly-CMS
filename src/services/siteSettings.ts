@@ -3,8 +3,8 @@
  * 从后端 API 获取站点配置，支持智能缓存和默认值
  */
 
-// API 基础地址（可以从环境变量或配置文件获取）
-const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8000';
+// API 基础地址（从环境变量读取）
+const API_URL = import.meta.env.PUBLIC_API_URL;
 
 // 缓存配置
 interface CacheEntry<T> {
@@ -81,7 +81,7 @@ const DEFAULT_SETTINGS: Record<string, any> = {
     post_show_updated: true,
 
     // API设置
-    api_url: 'http://localhost:8000',
+    // api_url: 'http://localhost:8001',
 
     // Banner 设置
     banner_enable: true,

@@ -4,6 +4,7 @@ import AdminLayout from "../../layouts/AdminLayout.astro";
 import { siteConfig } from "../../config";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
+const API_URL = import.meta.env.PUBLIC_API_URL;
 ---
 
 <AdminLayout title={`${i18n(I18nKey.adminDashboard)} - ${siteConfig.title}`} activeMenu="dashboard">
@@ -159,7 +160,7 @@ import { i18n } from "@/i18n/translation";
 
 <script is:inline>
 (function() {
-    const API_URL = 'http://localhost:8000';
+    const API_URL = window.API_URL;
     var t = window.adminI18n || {};
 
     async function loadDashboardStats() {
@@ -426,8 +427,7 @@ import { i18n } from "@/i18n/translation";
 
     // Update charts when theme changes
     var themeObserver = new MutationObserver(function() {
-        var API_URL = 'http://localhost:8000';
-        fetch(API_URL + '/dashboard/stats')
+        fetch(`${API_URL}/dashboard/stats`)
             .then(function(res) { return res.json(); })
             .then(function(data) {
                 if (data.charts) {

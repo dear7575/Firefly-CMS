@@ -200,8 +200,12 @@ cd ..
 # 安装依赖
 pnpm install
 
-# 配置 API 地址（可选，默认 http://localhost:8000）
-# 编辑 .env 文件：PUBLIC_API_URL=http://your-api-url
+# ⚠️ 必须配置 API 地址
+# 复制示例配置文件:
+cp .env .env
+# 编辑 .env 文件，设置 PUBLIC_API_URL
+# 开发环境示例: PUBLIC_API_URL=http://localhost:8000
+# 生产环境示例: PUBLIC_API_URL=https://api.yourdomain.com
 
 # 启动开发服务器
 pnpm dev

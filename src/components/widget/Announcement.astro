@@ -5,7 +5,7 @@ import { i18n } from "@/i18n/translation";
 import WidgetLayout from "./WidgetLayout.astro";
 
 // 从后端API获取公告配置
-const API_URL = import.meta.env.PUBLIC_API_URL || "http://localhost:8000";
+const API_URL = import.meta.env.PUBLIC_API_URL;
 let config = {
   title: "公告",
   content: "欢迎来到我的博客！",

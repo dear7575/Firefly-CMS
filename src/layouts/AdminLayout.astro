@@ -32,6 +32,9 @@ const pageTitle = title.replace(siteConfig.title, adminSiteTitle).replace('Firef
 
 const configHue = dynamicSettings.theme_hue ?? siteConfig.themeColor.hue;
 
+// API 地址配置（从环境变量读取）
+const API_URL = import.meta.env.PUBLIC_API_URL;
+
 // 获取背景图片配置（用于登录页面）
 const backgroundImages = getBackgroundImages();
 
@@ -798,9 +801,11 @@ const menuItems = [
     </div>
 </div>
 
-<script is:inline define:vars={{adminI18n}}>
+<script is:inline define:vars={{adminI18n, API_URL}}>
     // Make i18n translations available globally
     window.adminI18n = adminI18n;
+    // Make API URL available globally
+    window.API_URL = API_URL;
 </script>
 
 <script is:inline>
@@ -967,8 +972,8 @@ const menuItems = [
         window._newPageVditor = null;
         window._editPageVditor = null;
 
-        // API base URL
-        const API_URL = 'http://localhost:8000';
+        // API base URL（从全局变量获取）
+        const API_URL = window.API_URL;
 
         // Get i18n translations
         const t = window.adminI18n || {};

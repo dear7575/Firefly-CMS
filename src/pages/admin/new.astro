@@ -4,6 +4,7 @@ import AdminLayout from "../../layouts/AdminLayout.astro";
 import {siteConfig} from "../../config";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
+const API_URL = import.meta.env.PUBLIC_API_URL;
 
 const isEdit = false;
 
@@ -305,7 +306,7 @@ const editorI18n = {
 
     // Get i18n translations
     const t = window.editorI18n || {};
-    const API_URL = 'http://localhost:8000';
+    const API_URL = window.API_URL;
 
     let vditor = null;
     let isDraft = false;
@@ -710,7 +711,7 @@ const editorI18n = {
                     '<span class="animate-spin inline-block mr-2">◌</span> ' + (saveBtn.dataset.publishingText || 'Publishing...');
             }
 
-            const response = await fetch("http://localhost:8000/posts", {
+            const response = await fetch(`${API_URL}/posts`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

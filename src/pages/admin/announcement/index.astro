@@ -4,6 +4,7 @@ import AdminLayout from "../../../layouts/AdminLayout.astro";
 import { siteConfig } from "@/config";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
+const API_URL = import.meta.env.PUBLIC_API_URL;
 ---
 
 <AdminLayout title={`公告管理 - ${siteConfig.title}`} activeMenu="announcement">
@@ -149,12 +150,10 @@ import { i18n } from "@/i18n/translation";
 
 <script is:inline>
 (function() {
-    var API_URL = 'http://localhost:8000';
-
     // 加载当前公告配置
     async function loadAnnouncementConfig() {
         try {
-            var response = await fetch(API_URL + '/settings/announcement');
+            var response = await fetch(`${API_URL}/settings/announcement`);
             if (!response.ok) throw new Error('Failed to load');
             
             var config = await response.json();
