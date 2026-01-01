@@ -14,6 +14,9 @@ COPY package.json pnpm-lock.yaml ./
 # 安装依赖
 RUN pnpm install --frozen-lockfile
 
+# 设置构建时的内存限制，防止 OOM (Exit code 137)
+ENV NODE_OPTIONS="--max-old-space-size=2048"
+
 # 复制源文件
 COPY . .
 

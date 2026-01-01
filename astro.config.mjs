@@ -36,6 +36,7 @@ import rehypeFigure from "./src/plugins/rehype-figure.mjs";
 // https://astro.build/config
 export default defineConfig({
 	site: siteConfig.site_url,
+	output: "server",
 	adapter: node({
 		mode: "standalone",
 	}),
