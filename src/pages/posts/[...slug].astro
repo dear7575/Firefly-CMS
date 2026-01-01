@@ -28,9 +28,9 @@ import { formatDateToYYYYMMDD } from "@/utils/date-utils";
 import { processCoverImageSync } from "@/utils/image-utils";
 import { url } from "@/utils/url-utils";
 import { fetchSiteSettings } from "@/services/siteSettings";
-const API_URL = import.meta.env.PUBLIC_API_URL;
-
 import { marked, Renderer } from "marked";
+
+const API_URL = import.meta.env.PUBLIC_API_URL;
 
 export const prerender = false;
 
