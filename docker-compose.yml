@@ -1,0 +1,64 @@
+services:
+  # MySQL 数据库
+  mysql:
+    image: mysql:8
+    container_name: MySQL
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: firefly
+      MYSQL_DATABASE: firefly
+      MYSQL_USER: firefly
+      MYSQL_PASSWORD: firefly
+    volumes:
+      - ./mysql/data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    # ▼▼▼ 核心瘦身参数 ▼▼▼
+    command: >
+      --performance-schema=0 --innodb-buffer-pool-size=128M --table-open-cache=256 --table-definition-cache=400 --max-connections=60
+    networks:
+      network:
+        ipv4_address: 172.10.0.2
+
+  # Firefly CMS 后端 (FastAPI)
+  firefly-backend:
+    build:
+      context: .
+      dockerfile: backend.Dockerfile
+    container_name: FireflyBackend
+    restart: always
+    env_file:
+      - .env.firefly
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - mysql
+    networks:
+      network:
+        ipv4_address: 172.10.0.3
+
+  # Firefly CMS 前端 (Astro SSR)
+  firefly-frontend:
+    build:
+      context: .
+      dockerfile: frontend.Dockerfile
+    container_name: FireflyFrontend
+    restart: always
+    volumes:
+      - ./dist:/app/dist
+    env_file:
+      - .env.firefly
+    depends_on:
+      - firefly-backend
+    networks:
+      network:
+        ipv4_address: 172.10.0.4
+
+# 网络配置
+networks:
+  network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.10.0.0/24
+          gateway: 172.10.0.1
