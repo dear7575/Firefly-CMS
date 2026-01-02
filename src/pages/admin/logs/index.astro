@@ -200,6 +200,7 @@ const API_URL = getApiUrl();
 </AdminLayout>
 
 <script is:inline>
+    document.addEventListener('astro:page-load', () => {
     (function () {
         var currentPage = 1;
         var pageSize = 20;
@@ -246,20 +247,23 @@ const API_URL = getApiUrl();
                             "Bearer " + localStorage.getItem("adminToken"),
                     },
                 });
-                if (response.ok) {
-                    var stats = await response.json();
-                    document.getElementById("statTotal").textContent =
-                        stats.total_logs;
-                    document.getElementById("statToday").textContent =
-                        stats.today_logs;
-                    document.getElementById("statLoginSuccess").textContent =
-                        stats.login_success_count;
-                    document.getElementById("statLoginFailed").textContent =
-                        stats.login_failed_count;
-                    totalLogs = stats.total_logs;
-                }
+                // 401 由全局拦截器处理，这里直接返回
+                if (!response.ok) return;
+
+                var stats = await response.json();
+                var statTotal = document.getElementById("statTotal");
+                var statToday = document.getElementById("statToday");
+                var statLoginSuccess = document.getElementById("statLoginSuccess");
+                var statLoginFailed = document.getElementById("statLoginFailed");
+
+                // 检查元素是否存在（页面可能已跳转）
+                if (statTotal) statTotal.textContent = stats.total_logs;
+                if (statToday) statToday.textContent = stats.today_logs;
+                if (statLoginSuccess) statLoginSuccess.textContent = stats.login_success_count;
+                if (statLoginFailed) statLoginFailed.textContent = stats.login_failed_count;
+                totalLogs = stats.total_logs;
             } catch (err) {
-                console.error("加载统计失败:", err);
+                // 忽略网络错误（可能是页面跳转导致）
             }
         }
 
@@ -288,12 +292,11 @@ const API_URL = getApiUrl();
                 });
 
                 if (!response.ok) {
-                    if (response.status === 401) {
-                        alert(t.loginExpired || "登录已过期，请重新登录");
-                        window.location.href = "/admin/login";
-                        return;
+                    if (response.status !== 401) {
+                        // 401 由全局拦截器处理
+                        throw new Error("Failed to load");
                     }
-                    throw new Error("Failed to load");
+                    return;
                 }
 
                 var logs = await response.json();
@@ -592,4 +595,5 @@ const API_URL = getApiUrl();
         loadStats();
         loadLogs();
     })();
+    });
 </script>

@@ -150,11 +150,77 @@ const menuItems = [
 <!doctype html>
 <html
         lang="en"
-        class="bg-zinc-100 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100"
-        style={`--configHue: ${configHue}; --hue: ${configHue}; --primary: oklch(0.70 0.14 ${configHue}); --primary-light: oklch(0.75 0.14 ${configHue}); --primary-dark: oklch(0.65 0.14 ${configHue}); --primary-rgb: 79, 70, 229;`}
+        class="text-zinc-900 dark:text-zinc-100"
+        style={`--configHue: ${configHue}; --hue: ${configHue}; --primary: oklch(0.70 0.14 ${configHue}); --primary-light: oklch(0.75 0.14 ${configHue}); --primary-dark: oklch(0.65 0.14 ${configHue}); --page-bg: oklch(0.95 0.01 ${configHue}); --page-bg-dark: oklch(0.16 0.014 ${configHue}); --card-bg: white; --card-bg-dark: oklch(0.23 0.015 ${configHue}); --btn-bg: oklch(0.95 0.025 ${configHue}); --btn-bg-hover: oklch(0.9 0.05 ${configHue}); --btn-bg-dark: oklch(0.33 0.035 ${configHue}); --btn-bg-hover-dark: oklch(0.38 0.04 ${configHue}); --sidebar-bg: oklch(0.98 0.008 ${configHue}); --sidebar-bg-dark: oklch(0.18 0.012 ${configHue}); --primary-rgb: 79, 70, 229;`}
 >
 <head>
     <ClientRouter />
+    <!-- 顶部加载进度条 -->
+    <style is:inline>
+        #page-progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background: var(--primary, #6366f1);
+            z-index: 99999;
+            transition: width 0.2s ease;
+        }
+        #page-progress-bar.loading {
+            animation: progress-loading 1.5s ease-in-out infinite;
+        }
+        @keyframes progress-loading {
+            0% { width: 0; }
+            50% { width: 70%; }
+            100% { width: 85%; }
+        }
+        #page-progress-bar.done {
+            width: 100%;
+            opacity: 0;
+            transition: width 0.2s ease, opacity 0.3s ease 0.2s;
+        }
+    </style>
+    <script is:inline>
+        // 创建进度条元素
+        (function() {
+            if (!document.getElementById('page-progress-bar')) {
+                var bar = document.createElement('div');
+                bar.id = 'page-progress-bar';
+                document.documentElement.appendChild(bar);
+            }
+        })();
+
+        // 监听 Astro 导航事件
+        document.addEventListener('astro:before-preparation', function() {
+            var bar = document.getElementById('page-progress-bar');
+            if (bar) {
+                bar.classList.remove('done');
+                bar.classList.add('loading');
+                bar.style.width = '0';
+                bar.style.opacity = '1';
+            }
+        });
+
+        document.addEventListener('astro:page-load', function() {
+            var bar = document.getElementById('page-progress-bar');
+            if (bar) {
+                bar.classList.remove('loading');
+                bar.classList.add('done');
+                // 重置状态 - 等待透明度过渡完成后再重置
+                setTimeout(function() {
+                    bar.classList.remove('done');
+                    // 临时禁用过渡，避免看到进度条缩回
+                    bar.style.transition = 'none';
+                    bar.style.width = '0';
+                    bar.style.opacity = '1';
+                    // 强制重绘后恢复过渡
+                    bar.offsetHeight;
+                    bar.style.transition = '';
+                }, 600);
+            }
+        });
+    </script>
     <script>
         import { initThemeManager } from "../scripts/theme-manager";
         // Initial run
@@ -203,7 +269,23 @@ const menuItems = [
     <FontManager />
     <!-- 核心样式变量已移至 html 标签 style 属性中，确保全局生效 -->
     <style is:global>
-        /* 移除 :root 定义，改由上面的 is:inline 注入 */
+        /* 全局隐藏文本光标 */
+        * {
+            caret-color: transparent;
+        }
+
+        /* 只有输入框才显示光标 */
+        input, textarea, [contenteditable="true"], select {
+            caret-color: auto;
+        }
+
+        /* 基础背景色 */
+        html {
+            background-color: var(--page-bg);
+        }
+        html.dark {
+            background-color: var(--page-bg-dark);
+        }
 
         /* ============== 全局美化样式 ============== */
 
@@ -215,27 +297,31 @@ const menuItems = [
         }
 
         .dark .glass-effect {
-            background: rgba(24, 24, 27, 0.85);
+            background: var(--card-bg-dark);
         }
 
         /* 侧边栏美化 */
         #sidebar {
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(250, 250, 250, 0.98) 100%);
+            background: var(--sidebar-bg);
             backdrop-filter: blur(20px) saturate(180%);
             -webkit-backdrop-filter: blur(20px) saturate(180%);
-            border-right: 1px solid rgba(0, 0, 0, 0.05);
+            border-right: 1px solid oklch(0.9 0.02 var(--hue));
             box-shadow: 4px 0 24px rgba(0, 0, 0, 0.03);
         }
 
         .dark #sidebar {
-            background: linear-gradient(180deg, rgba(24, 24, 27, 0.95) 0%, rgba(18, 18, 20, 0.98) 100%);
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            background: var(--sidebar-bg-dark);
+            border-right: 1px solid oklch(0.25 0.02 var(--hue));
             box-shadow: 4px 0 24px rgba(0, 0, 0, 0.2);
         }
 
         /* 侧边栏 Logo 区域 */
         #sidebar > div:first-child {
-            background: linear-gradient(135deg, rgba(var(--primary-rgb, 99, 102, 241), 0.05) 0%, transparent 100%);
+            background: linear-gradient(135deg, oklch(0.95 0.03 var(--hue)) 0%, transparent 100%);
+        }
+
+        .dark #sidebar > div:first-child {
+            background: linear-gradient(135deg, oklch(0.22 0.025 var(--hue)) 0%, transparent 100%);
         }
 
         /* 菜单项美化 */
@@ -248,7 +334,7 @@ const menuItems = [
             content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient(135deg, transparent 0%, rgba(var(--primary-rgb, 99, 102, 241), 0.05) 100%);
+            background: linear-gradient(135deg, transparent 0%, oklch(0.9 0.05 var(--hue)) 100%);
             opacity: 0;
             transition: opacity 0.3s ease;
         }
@@ -257,45 +343,47 @@ const menuItems = [
             opacity: 1;
         }
 
+        .dark .menu-item::before {
+            background: linear-gradient(135deg, transparent 0%, oklch(0.3 0.04 var(--hue)) 100%);
+        }
+
         /* 激活菜单项渐变背景 */
         .menu-item.current-active-menu {
-            /* 1. 基础背景色 (使用注入变量) */
             background-color: var(--primary) !important;
-            /* 2. 渐变增强 */
             background-image: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%) !important;
-            box-shadow: 0 4px 15px rgba(var(--primary-rgb, 99, 102, 241), 0.4);
+            box-shadow: 0 4px 15px oklch(0.5 0.15 var(--hue) / 0.4);
         }
 
         /* 顶部导航栏美化 */
         header.h-16 {
-            background: rgba(255, 255, 255, 0.8);
+            background: oklch(0.99 0.005 var(--hue) / 0.9);
             backdrop-filter: blur(20px) saturate(180%);
             -webkit-backdrop-filter: blur(20px) saturate(180%);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            border-bottom: 1px solid oklch(0.9 0.02 var(--hue));
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
         }
 
         .dark header.h-16 {
-            background: rgba(24, 24, 27, 0.85);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            background: oklch(0.2 0.015 var(--hue) / 0.9);
+            border-bottom: 1px solid oklch(0.25 0.02 var(--hue));
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }
 
         /* 主内容区域美化 */
         main.flex-1 {
-            background: linear-gradient(180deg, #f4f4f5 0%, #fafafa 100%);
+            background: var(--page-bg);
         }
 
         .dark main.flex-1 {
-            background: linear-gradient(180deg, #09090b 0%, #18181b 100%);
+            background: var(--page-bg-dark);
         }
 
         /* 卡片美化 */
         .admin-card {
-            background: rgba(255, 255, 255, 0.95);
+            background: var(--card-bg);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(228, 228, 231, 0.8);
+            border: 1px solid oklch(0.9 0.02 var(--hue));
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.05);
             transition: all 0.3s ease;
         }
@@ -306,8 +394,8 @@ const menuItems = [
         }
 
         .dark .admin-card {
-            background: rgba(24, 24, 27, 0.95);
-            border: 1px solid rgba(63, 63, 70, 0.5);
+            background: var(--card-bg-dark);
+            border: 1px solid oklch(0.28 0.02 var(--hue));
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }
 
@@ -322,11 +410,11 @@ const menuItems = [
         }
 
         thead {
-            background: linear-gradient(180deg, rgba(250, 250, 250, 1) 0%, rgba(244, 244, 245, 1) 100%);
+            background: oklch(0.97 0.01 var(--hue));
         }
 
         .dark thead {
-            background: linear-gradient(180deg, rgba(39, 39, 42, 0.8) 0%, rgba(24, 24, 27, 0.8) 100%);
+            background: oklch(0.25 0.02 var(--hue));
         }
 
         tbody tr {
@@ -334,19 +422,40 @@ const menuItems = [
         }
 
         tbody tr:hover {
-            background: linear-gradient(90deg, rgba(var(--primary-rgb, 99, 102, 241), 0.03) 0%, transparent 100%);
+            background: oklch(0.95 0.03 var(--hue));
+        }
+
+        .dark tbody tr:hover {
+            background: oklch(0.28 0.025 var(--hue));
+        }
+
+        /* 置顶行样式 - 使用主题色 */
+        tbody tr.pinned-row {
+            background: oklch(0.95 0.05 var(--hue));
+        }
+
+        .dark tbody tr.pinned-row {
+            background: oklch(0.25 0.04 var(--hue));
+        }
+
+        tbody tr.pinned-row:hover {
+            background: oklch(0.92 0.07 var(--hue));
+        }
+
+        .dark tbody tr.pinned-row:hover {
+            background: oklch(0.30 0.05 var(--hue));
         }
 
         /* 按钮美化 */
         .admin-btn-primary {
             background: var(--primary);
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+            box-shadow: 0 4px 15px oklch(0.5 0.15 var(--hue) / 0.3);
             transition: all 0.3s ease;
         }
 
         .admin-btn-primary:hover {
             filter: brightness(1.1);
-            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 6px 20px oklch(0.5 0.15 var(--hue) / 0.4);
             transform: translateY(-2px);
         }
 
@@ -356,25 +465,25 @@ const menuItems = [
 
         /* 输入框美化 */
         .admin-input-enhanced {
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid rgba(0, 0, 0, 0.1);
+            background: oklch(0.99 0.005 var(--hue));
+            border: 1px solid oklch(0.9 0.02 var(--hue));
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
             transition: all 0.3s ease;
         }
 
         .admin-input-enhanced:focus {
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(var(--primary-rgb, 99, 102, 241), 0.1), 0 2px 8px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 0 0 3px oklch(0.7 0.14 var(--hue) / 0.15), 0 2px 8px rgba(0, 0, 0, 0.05);
         }
 
         .dark .admin-input-enhanced {
-            background: rgba(24, 24, 27, 0.9);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: oklch(0.22 0.015 var(--hue));
+            border: 1px solid oklch(0.3 0.02 var(--hue));
         }
 
         /* 统计卡片美化 */
         .stat-card {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(250, 250, 250, 0.9) 100%);
+            background: linear-gradient(135deg, oklch(0.99 0.008 var(--hue)) 0%, oklch(0.97 0.01 var(--hue)) 100%);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(0, 0, 0, 0.05);
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
@@ -387,20 +496,20 @@ const menuItems = [
         }
 
         .dark .stat-card {
-            background: linear-gradient(135deg, rgba(39, 39, 42, 0.9) 0%, rgba(24, 24, 27, 0.95) 100%);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: linear-gradient(135deg, oklch(0.26 0.02 var(--hue)) 0%, oklch(0.22 0.015 var(--hue)) 100%);
+            border: 1px solid oklch(0.3 0.02 var(--hue));
         }
 
         /* 弹框美化 */
         #adminModalContent {
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(250, 250, 250, 1) 100%);
+            background: linear-gradient(180deg, oklch(0.99 0.005 var(--hue)) 0%, oklch(0.97 0.008 var(--hue)) 100%);
             backdrop-filter: blur(20px);
-            border: 1px solid rgba(0, 0, 0, 0.05);
+            border: 1px solid oklch(0.9 0.02 var(--hue));
         }
 
         .dark #adminModalContent {
-            background: linear-gradient(180deg, rgba(39, 39, 42, 0.98) 0%, rgba(24, 24, 27, 1) 100%);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: linear-gradient(180deg, oklch(0.24 0.018 var(--hue)) 0%, oklch(0.2 0.015 var(--hue)) 100%);
+            border: 1px solid oklch(0.3 0.02 var(--hue));
         }
 
         /* 滚动条美化 */
@@ -414,20 +523,20 @@ const menuItems = [
         }
 
         ::-webkit-scrollbar-thumb {
-            background: rgba(0, 0, 0, 0.15);
+            background: oklch(0.7 0.05 var(--hue) / 0.3);
             border-radius: 4px;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: rgba(0, 0, 0, 0.25);
+            background: oklch(0.6 0.08 var(--hue) / 0.5);
         }
 
         .dark ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.15);
+            background: oklch(0.5 0.04 var(--hue) / 0.4);
         }
 
         .dark ::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.25);
+            background: oklch(0.55 0.05 var(--hue) / 0.5);
         }
 
         /* 侧边栏折叠样式 */
@@ -1493,6 +1602,81 @@ const menuItems = [
             window.location.href = "/admin/login";
         }
 
+        // ============== 全局 fetch 拦截器 - 统一处理 401 ==============
+        (function() {
+            const originalFetch = window.fetch;
+            window.fetch = async function(...args) {
+                const response = await originalFetch.apply(this, args);
+
+                // 检查是否是 API 请求且返回 401
+                if (response.status === 401) {
+                    const url = typeof args[0] === 'string' ? args[0] : args[0]?.url || '';
+                    // 只处理后台 API 请求的 401
+                    if (url.includes('/api/') || url.includes(API_URL)) {
+                        // 避免重复跳转
+                        if (!window._isRedirectingToLogin) {
+                            window._isRedirectingToLogin = true;
+                            localStorage.removeItem("adminToken");
+                            localStorage.removeItem("admin_username");
+                            localStorage.removeItem("admin_avatar");
+
+                            // 使用美化弹框提示
+                            if (window.adminAlert) {
+                                await window.adminAlert(t.loginExpired || '登录已过期，请重新登录', 'warning', '登录过期');
+                            }
+                            window.location.href = "/admin/login";
+                        }
+                    }
+                }
+                return response;
+            };
+        })();
+
+        // ============== Token 过期时间检查 ==============
+        function checkTokenExpiry() {
+            const token = localStorage.getItem("adminToken");
+            if (!token || window.location.pathname.includes("/admin/login")) return;
+
+            try {
+                // 解析 JWT payload
+                const payload = token.split('.')[1];
+                if (payload) {
+                    const decoded = JSON.parse(atob(payload));
+                    const exp = decoded.exp;
+                    if (exp) {
+                        const now = Math.floor(Date.now() / 1000);
+                        // 如果 token 已过期或将在 5 分钟内过期
+                        if (exp < now) {
+                            localStorage.removeItem("adminToken");
+                            localStorage.removeItem("admin_username");
+                            localStorage.removeItem("admin_avatar");
+                            if (window.adminAlert) {
+                                window.adminAlert(t.loginExpired || '登录已过期，请重新登录', 'warning', '登录过期').then(() => {
+                                    window.location.href = "/admin/login";
+                                });
+                            } else {
+                                // 等待 adminAlert 初始化后再提示
+                                setTimeout(() => {
+                                    if (window.adminAlert) {
+                                        window.adminAlert(t.loginExpired || '登录已过期，请重新登录', 'warning', '登录过期').then(() => {
+                                            window.location.href = "/admin/login";
+                                        });
+                                    } else {
+                                        window.location.href = "/admin/login";
+                                    }
+                                }, 100);
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("Token 解析失败:", e);
+            }
+        }
+
+        // 页面加载时检查 token 过期
+        checkTokenExpiry();
+
         // ============== 加载用户信息 ==============
         function loadUserInfo() {
             const token = localStorage.getItem("adminToken");
@@ -1645,7 +1829,7 @@ const menuItems = [
                                 : '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg>';
 
                             return `
-                                        <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors ${post.pinned ? 'bg-indigo-50/30 dark:bg-indigo-900/10' : ''}">
+                                        <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors ${post.pinned ? 'pinned-row' : ''}">
                                             <td class="px-6 py-4">
                                                 <div class="font-medium text-zinc-900 dark:text-zinc-100">${post.title}</div>
                                                 <div class="text-xs text-zinc-400 font-mono mt-1">${post.slug}</div>
@@ -1663,10 +1847,10 @@ const menuItems = [
                                             </td>
                                             <td class="px-6 py-4 text-center">
                                                 <div class="flex items-center gap-1 justify-center">
-                                                    <button onclick="togglePin('${post.id}')" class="p-2 ${post.pinned ? 'text-indigo-500' : 'text-zinc-400'} hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors" title="${post.pinned ? '取消置顶' : '置顶'}">
+                                                    <button onclick="togglePin('${post.id}')" class="p-2 ${post.pinned ? 'text-[var(--primary)]' : 'text-zinc-400'} hover:bg-[var(--primary)]/10 rounded-lg transition-colors" title="${post.pinned ? '取消置顶' : '置顶'}">
                                                         ${pinIcon}
                                                     </button>
-                                                    <a href="/admin/edit/${post.id}" class="p-2 text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors" title="编辑">
+                                                    <a href="/admin/edit/${post.id}" class="p-2 text-[var(--primary)] hover:bg-[var(--primary)]/10 rounded-lg transition-colors" title="编辑">
                                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                                         </svg>
@@ -1796,11 +1980,8 @@ const menuItems = [
                 if (response.ok) {
                     isLoading = false;
                     loadPosts(currentPage);  // 保持当前页码
-                } else if (response.status === 401) {
-                    alert(t.loginExpired);
-                    localStorage.removeItem("adminToken");
-                    window.location.href = "/admin/login";
-                } else {
+                } else if (response.status !== 401) {
+                    // 401 由全局拦截器处理
                     alert(t.deleteFailed);
                 }
             } catch (err) {
@@ -1820,13 +2001,10 @@ const menuItems = [
                 });
 
                 if (!getResponse.ok) {
-                    if (getResponse.status === 401) {
-                        alert(t.loginExpired);
-                        localStorage.removeItem("adminToken");
-                        window.location.href = "/admin/login";
-                        return;
+                    if (getResponse.status !== 401) {
+                        // 401 由全局拦截器处理
+                        alert('获取文章信息失败');
                     }
-                    alert('获取文章信息失败');
                     return;
                 }
 
@@ -1856,11 +2034,8 @@ const menuItems = [
                 if (response.ok) {
                     isLoading = false;
                     loadPosts(currentPage);  // 保持当前页码
-                } else if (response.status === 401) {
-                    alert(t.loginExpired);
-                    localStorage.removeItem("adminToken");
-                    window.location.href = "/admin/login";
-                } else {
+                } else if (response.status !== 401) {
+                    // 401 由全局拦截器处理
                     alert('操作失败');
                 }
             } catch (err) {
