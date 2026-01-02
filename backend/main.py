@@ -2,7 +2,7 @@
 Firefly CMS API 主入口
 FastAPI 应用程序配置和启动
 """
-from fastapi import FastAPI, Depends, HTTPException, status, Request
+from fastapi import FastAPI, Depends, HTTPException, status, Request, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
@@ -191,22 +191,25 @@ async def log_requests(request: Request, call_next):
     return response
 
 
-# 注册路由
-app.include_router(auth_routes.router)
-app.include_router(posts.router)
-app.include_router(categories.router)
-app.include_router(tags.router)
-app.include_router(friends.router)
-app.include_router(social.router)
-app.include_router(settings.router)
-app.include_router(dashboard.router)
-app.include_router(logs.router)
-app.include_router(search.router)
-app.include_router(upload.router)
-app.include_router(backup.router)
+# 创建 API 路由主入口
+api_router = APIRouter(prefix="/api")
+
+# 注册子路由到 API 路由
+api_router.include_router(auth_routes.router)
+api_router.include_router(posts.router)
+api_router.include_router(categories.router)
+api_router.include_router(tags.router)
+api_router.include_router(friends.router)
+api_router.include_router(social.router)
+api_router.include_router(settings.router)
+api_router.include_router(dashboard.router)
+api_router.include_router(logs.router)
+api_router.include_router(search.router)
+api_router.include_router(upload.router)
+api_router.include_router(backup.router)
 
 
-@app.post("/token", summary="用户登录", tags=["认证"])
+@api_router.post("/token", summary="用户登录", tags=["认证"])
 async def login(
     request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(),
@@ -255,12 +258,16 @@ async def login(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@app.get("/", summary="API 根路径", tags=["系统"])
+@api_router.get("/", summary="API 根路径", tags=["系统"])
 async def root():
     """
     API 根路径，返回欢迎信息
     """
     return {"message": "欢迎使用 Firefly CMS API", "version": "1.0.0"}
+
+
+# 将 API 路由注册到 app
+app.include_router(api_router)
 
 
 # 直接运行此文件时启动服务器

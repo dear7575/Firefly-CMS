@@ -11,12 +11,7 @@ WORKDIR /app
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 复制后端代码
-COPY backend/ .
-
-# 设置环境变量
-ENV DATABASE_URL="mysql+pymysql://umami:umami@mysql:3306/firefly_cms"
-ENV UPLOAD_DIR="uploads"
+# 后端代码通过 docker-compose 卷挂载
 
 # 暴露端口
 EXPOSE 8000
