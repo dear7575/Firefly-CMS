@@ -164,6 +164,10 @@ const API_URL = getApiUrl();
     const API_URL = window.API_URL;
     var t = window.adminI18n || {};
 
+    // Chart instances
+    var dailyChartInstance = null;
+    var loginChartInstance = null;
+
     async function loadDashboardStats() {
         // 检查是否在 dashboard 页面
         var totalPostsEl = document.getElementById('totalPosts');
@@ -244,10 +248,6 @@ const API_URL = getApiUrl();
         }
     }
 
-    // Chart instances
-    var dailyChartInstance = null;
-    var loginChartInstance = null;
-
     function renderCharts(chartsData) {
         if (!chartsData) return;
 
@@ -266,6 +266,7 @@ const API_URL = getApiUrl();
         if (dailyCtx && chartsData.daily) {
             if (dailyChartInstance) {
                 dailyChartInstance.destroy();
+                dailyChartInstance = null;
             }
 
             var labels = chartsData.daily.map(function(d) {
@@ -348,6 +349,7 @@ const API_URL = getApiUrl();
         if (loginCtx && chartsData.login) {
             if (loginChartInstance) {
                 loginChartInstance.destroy();
+                loginChartInstance = null;
             }
 
             var loginLabels = chartsData.login.map(function(d) {
@@ -426,29 +428,25 @@ const API_URL = getApiUrl();
         }
     }
 
-    // Update charts when theme changes
-    var themeObserver = new MutationObserver(function() {
-        fetch(`${API_URL}/dashboard/stats`)
-            .then(function(res) { return res.json(); })
-            .then(function(data) {
-                if (data.charts) {
-                    renderCharts(data.charts);
-                }
-            })
-            .catch(function(err) { console.error('Failed to refresh charts:', err); });
-    });
-
-    // Start observing theme changes
-    setTimeout(function() {
-        var html = document.documentElement;
-        if (html) {
-            themeObserver.observe(html, {
-                attributes: true,
-                attributeFilter: ['class']
-            });
+    // 初始化函数
+    function initDashboard() {
+        // 销毁旧的图表实例
+        if (dailyChartInstance) {
+            dailyChartInstance.destroy();
+            dailyChartInstance = null;
         }
-    }, 1000);
+        if (loginChartInstance) {
+            loginChartInstance.destroy();
+            loginChartInstance = null;
+        }
+        // 加载数据
+        loadDashboardStats();
+    }
 
-    loadDashboardStats();
+    // 监听页面加载事件（SPA 导航）
+    document.addEventListener('astro:page-load', initDashboard);
+
+    // 首次加载
+    initDashboard();
 })();
 </script>

@@ -471,7 +471,17 @@ const API_URL = getApiUrl();
             });
         }
 
-        loadFriends();
+        function initFriendsPage() {
+            // 检查是否在友链管理页面
+            if (!document.getElementById('friendsGrid')) return;
+            loadFriends();
+        }
+
+        // 监听 SPA 导航
+        document.addEventListener('astro:page-load', initFriendsPage);
+
+        // 首次加载
+        initFriendsPage();
     })();
 </script>
 

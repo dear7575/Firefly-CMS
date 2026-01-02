@@ -415,7 +415,16 @@ const API_URL = getApiUrl();
             });
         }
 
-        // 页面加载时初始化
-        loadAnnouncementConfig();
+        function initAnnouncementPage() {
+            // 检查是否在公告管理页面
+            if (!document.getElementById('announcementContent')) return;
+            loadAnnouncementConfig();
+        }
+
+        // 监听 SPA 导航
+        document.addEventListener('astro:page-load', initAnnouncementPage);
+
+        // 首次加载
+        initAnnouncementPage();
     })();
 </script>

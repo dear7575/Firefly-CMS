@@ -381,7 +381,17 @@ const API_URL = getApiUrl();
             });
         }
 
-        loadTags();
+        function initTagsPage() {
+            // 检查是否在标签管理页面
+            if (!document.getElementById('tagsContainer')) return;
+            loadTags();
+        }
+
+        // 监听 SPA 导航
+        document.addEventListener('astro:page-load', initTagsPage);
+
+        // 首次加载
+        initTagsPage();
     })();
 </script>
 

@@ -2,11 +2,78 @@
 数据库配置模块
 提供数据库连接和会话管理
 """
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from pydantic_settings import BaseSettings
 import secrets
+
+# 默认不安全的密钥标识
+DEFAULT_INSECURE_KEY = "your-secret-key-for-jwt-please-change-in-production"
+
+
+def get_or_create_secret_key() -> str:
+    """
+    获取或创建安全的 SECRET_KEY
+
+    优先级：
+    1. 环境变量 SECRET_KEY
+    2. .env 文件中的 SECRET_KEY
+    3. 自动生成并保存到 .env 文件
+
+    Returns:
+        str: 安全的 SECRET_KEY
+    """
+    # 检查环境变量
+    env_key = os.environ.get("SECRET_KEY")
+    if env_key and env_key != DEFAULT_INSECURE_KEY:
+        return env_key
+
+    # 检查 .env 文件
+    env_file = ".env"
+    existing_key = None
+    env_lines = []
+
+    if os.path.exists(env_file):
+        with open(env_file, "r", encoding="utf-8") as f:
+            env_lines = f.readlines()
+            for line in env_lines:
+                if line.strip().startswith("SECRET_KEY="):
+                    existing_key = line.split("=", 1)[1].strip().strip('"').strip("'")
+                    break
+
+    # 如果已有安全的密钥，直接返回
+    if existing_key and existing_key != DEFAULT_INSECURE_KEY:
+        return existing_key
+
+    # 生成新的安全密钥
+    new_key = secrets.token_hex(32)
+
+    # 更新或添加到 .env 文件
+    key_found = False
+    new_lines = []
+    for line in env_lines:
+        if line.strip().startswith("SECRET_KEY="):
+            new_lines.append(f'SECRET_KEY="{new_key}"\n')
+            key_found = True
+        else:
+            new_lines.append(line)
+
+    if not key_found:
+        # 添加注释和新密钥
+        if new_lines and not new_lines[-1].endswith("\n"):
+            new_lines.append("\n")
+        new_lines.append("\n# JWT 安全密钥 (自动生成，请勿泄露)\n")
+        new_lines.append(f'SECRET_KEY="{new_key}"\n')
+
+    # 写入文件
+    with open(env_file, "w", encoding="utf-8") as f:
+        f.writelines(new_lines)
+
+    print(f"[安全] 已自动生成 JWT SECRET_KEY 并保存到 {env_file}")
+
+    return new_key
 
 
 class Settings(BaseSettings):
@@ -20,10 +87,8 @@ class Settings(BaseSettings):
     # 重要：生产环境请使用 .env 文件配置
     DATABASE_URL: str = "mysql+pymysql://root:123456@127.0.0.1:3306/firefly_cms"
 
-    # JWT 密钥
-    # 重要：生产环境请更换为随机生成的密钥
-    # 可使用命令生成: python -c "import secrets; print(secrets.token_hex(32))"
-    SECRET_KEY: str = "your-secret-key-for-jwt-please-change-in-production"
+    # JWT 密钥 - 将在初始化后被安全密钥替换
+    SECRET_KEY: str = DEFAULT_INSECURE_KEY
 
     # JWT 加密算法
     ALGORITHM: str = "HS256"
@@ -54,6 +119,11 @@ class Settings(BaseSettings):
 
 # 创建全局配置实例
 settings = Settings()
+
+# 确保使用安全的 SECRET_KEY
+if settings.SECRET_KEY == DEFAULT_INSECURE_KEY:
+    settings.SECRET_KEY = get_or_create_secret_key()
+    print("[安全] JWT SECRET_KEY 已更新为安全密钥")
 
 # 创建数据库引擎
 engine = create_engine(settings.DATABASE_URL)

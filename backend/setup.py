@@ -76,9 +76,6 @@ DEFAULT_SITE_SETTINGS = [
     {"key": "post_default_layout", "value": "list", "type": "string", "group": "post", "label": "默认布局", "description": "文章列表默认布局: list/grid", "sort_order": 99},
     {"key": "post_show_toc", "value": "true", "type": "boolean", "group": "post", "label": "显示目录", "description": "是否在文章页显示目录", "sort_order": 98},
     {"key": "post_show_updated", "value": "true", "type": "boolean", "group": "post", "label": "显示更新时间", "description": "是否显示文章更新时间", "sort_order": 97},
-
-    # API设置
-    {"key": "api_url", "value": "http://localhost:8000", "type": "string", "group": "api", "label": "API地址", "description": "后端API服务器地址", "sort_order": 100},
 ]
 
 
