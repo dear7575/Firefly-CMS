@@ -71,15 +71,7 @@ export default defineConfig({
 				return event.state && event.state.url && event.state.url.includes("#");
 			},
 		}),
-		icon({
-			include: {
-				"preprocess: vitePreprocess(),": ["*"],
-				"fa6-brands": ["*"],
-				"fa6-regular": ["*"],
-				"fa6-solid": ["*"],
-				mdi: ["*"],
-			},
-		}),
+		icon(),
 		expressiveCode({
 			themes: [expressiveCodeConfig.darkTheme, expressiveCodeConfig.lightTheme],
 			useDarkModeMediaQuery: false,

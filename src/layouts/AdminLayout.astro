@@ -1,12 +1,14 @@
 ---
 import {siteConfig} from "@/config";
 import "@/styles/layout-styles.css";
+import { ClientRouter } from 'astro:transitions';
 import "@/styles/waves.css";
 import I18nKey from "@/i18n/i18nKey";
 import {i18n} from "@/i18n/translation";
 import {getBackgroundImages} from "@/utils/layout-utils";
 import ImageWrapper from "@/components/misc/ImageWrapper.astro";
 import {fetchSiteSettings} from "@/services/siteSettings";
+import FontManager from "@components/interactive/FontManager.astro";
 
 interface Props {
     title: string;
@@ -15,6 +17,7 @@ interface Props {
 }
 
 const {title, activeMenu = "dashboard", hideNav = false} = Astro.props;
+console.log(`[AdminLayout] Rendering with activeMenu: '${activeMenu}'`);
 
 // 尝试从 API 获取动态配置
 let dynamicSettings: Record<string, any> = {};
@@ -148,15 +151,26 @@ const menuItems = [
 <html
         lang="en"
         class="bg-zinc-100 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100"
+        style={`--configHue: ${configHue}; --primary: oklch(0.65 0.25 ${configHue}); --primary-light: oklch(0.75 0.2 ${configHue}); --primary-dark: oklch(0.55 0.25 ${configHue}); --primary-rgb: 79, 70, 229;`}
 >
 <head>
+    <ClientRouter />
+    <script>
+        import { initThemeManager } from "../scripts/theme-manager";
+        // Initial run
+        initThemeManager();
+        // Run on every SPA navigation
+        document.addEventListener('astro:page-load', initThemeManager);
+    </script>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>{pageTitle}</title>
     <link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon"/>
-    <script is:inline define:vars={{ PUBLIC_API_URL }}>
-        // Make API URL available globally for admin scripts
+<script is:inline define:vars={{ PUBLIC_API_URL, adminI18n }}>
         window.API_URL = PUBLIC_API_URL;
+        window.adminI18n = adminI18n;
+
+
 
         // 全局错误处理器，忽略 Vditor 和浏览器扩展相关的错误（尽早注册）
         window.addEventListener('unhandledrejection', function (event) {
@@ -186,12 +200,10 @@ const menuItems = [
             return false;
         };
     </script>
-    <style define:vars={{configHue}}>
-        :root {
-            --primary: oklch(0.65 0.25 var(--configHue));
-            --primary-light: oklch(0.75 0.2 var(--configHue));
-            --primary-dark: oklch(0.55 0.25 var(--configHue));
-        }
+    <FontManager />
+    <!-- 核心样式变量已移至 html 标签 style 属性中，确保全局生效 -->
+    <style is:global>
+        /* 移除 :root 定义，改由上面的 is:inline 注入 */
 
         /* ============== 全局美化样式 ============== */
 
@@ -246,8 +258,11 @@ const menuItems = [
         }
 
         /* 激活菜单项渐变背景 */
-        .menu-item.bg-\[var\(--primary\)\] {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%) !important;
+        .menu-item.current-active-menu {
+            /* 1. 基础背景色 (使用注入变量) */
+            background-color: var(--primary) !important;
+            /* 2. 渐变增强 */
+            background-image: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%) !important;
             box-shadow: 0 4px 15px rgba(var(--primary-rgb, 99, 102, 241), 0.4);
         }
 
@@ -600,9 +615,10 @@ const menuItems = [
                                             class:list={[
                                                 "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all menu-item",
                                                 activeMenu === item.id
-                                                    ? "bg-[var(--primary)] text-white shadow-lg"
+                                                    ? "current-active-menu text-white shadow-lg"
                                                     : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100"
                                             ]}
+                                            style={activeMenu === item.id ? `background: linear-gradient(135deg, oklch(0.65 0.25 ${configHue}) 0%, oklch(0.55 0.25 ${configHue}) 100%); background-color: oklch(0.65 0.25 ${configHue}); --primary: oklch(0.65 0.25 ${configHue});` : ''}
                                     >
                                         <svg
                                                 xmlns="http://www.w3.org/2000/svg"
@@ -680,7 +696,46 @@ const menuItems = [
 
                     <!-- Right Actions -->
                     <div class="flex items-center gap-3">
-                        <!-- Theme Toggle -->
+                        <!-- Theme Color Picker -->
+                        <div class="relative">
+                            <button
+                                    id="themeColorBtn"
+                                    class="p-2 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+                                    title="主题色"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                                </svg>
+                            </button>
+                            <!-- Theme Picker Dropdown -->
+                            <div id="themePickerDropdown" class="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-700 p-4 hidden z-50 transform transition-all origin-top-right">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="flex items-center gap-2 relative pl-3 before:absolute before:left-0 before:top-1 before:bottom-1 before:w-1 before:bg-[var(--primary)] before:rounded-full">
+                                        <span class="font-bold text-zinc-900 dark:text-zinc-100">主题色</span>
+                                        <button id="resetThemeBtn" class="p-1 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors" title="重置">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    <span id="currentHueDisplay" class="bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 px-2 py-1 rounded text-xs font-mono font-bold">165</span>
+                                </div>
+                                <div class="relative h-6 rounded-lg overflow-hidden w-full cursor-pointer group">
+                                    <div class="absolute inset-0" style="background: linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%);"></div>
+                                    <input 
+                                        type="range" 
+                                        id="headerHueSlider" 
+                                        min="0" 
+                                        max="360" 
+                                        step="5"
+                                        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                    />
+                                    <div id="sliderThumb" class="absolute top-0 bottom-0 w-2 bg-white shadow-md pointer-events-none transform -translate-x-1/2 transition-transform duration-75 border border-zinc-200" style="left: 0%;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Theme Toggle (Dark Mode) -->
                         <button
                                 id="themeToggle"
                                 class="p-2 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
@@ -732,6 +787,13 @@ const menuItems = [
                                     </svg>
                                     {i18n(I18nKey.home)}
                                 </a>
+                                <button id="changePasswordBtn"
+                                        class="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                    </svg>
+                                    修改密码
+                                </button>
                                 <button id="logoutBtn"
                                         class="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -808,14 +870,278 @@ const menuItems = [
     </div>
 </div>
 
-<script is:inline define:vars={{adminI18n, API_URL: PUBLIC_API_URL}}>
-    // Make i18n translations available globally
-    window.adminI18n = adminI18n;
-    // Make API URL available globally
-    window.API_URL = API_URL;
+<!-- 修改密码弹框 -->
+<div id="changePwModal" class="fixed inset-0 bg-black/50 z-[100] hidden items-center justify-center p-4 backdrop-blur-sm">
+    <div class="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-md shadow-2xl transform transition-all scale-95 opacity-0"
+         id="changePwModalContent">
+        <div class="p-6 border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center">
+            <h3 class="text-lg font-bold text-zinc-900 dark:text-zinc-100">修改密码</h3>
+            <button id="closeChangePwBtn" class="text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <div class="p-6">
+            <form id="globalChangePasswordForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">当前密码 *</label>
+                    <input type="password" id="globalCurrentPassword" required class="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-[var(--primary)] outline-none" placeholder="请输入当前密码" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">新密码 *</label>
+                    <input type="password" id="globalNewPassword" required class="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-[var(--primary)] outline-none" placeholder="请输入新密码（至少6位）" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">确认新密码 *</label>
+                    <input type="password" id="globalConfirmPassword" required class="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-[var(--primary)] outline-none" placeholder="请再次输入新密码" />
+                </div>
+                <div class="flex justify-end pt-2">
+                    <button type="button" id="cancelChangePwBtn" class="mr-3 px-4 py-2 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors">取消</button>
+                    <button type="submit" class="px-6 py-2 bg-[var(--primary)] text-white rounded-lg hover:opacity-90 transition-opacity shadow-lg">
+                        保存修改
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- I will inject the script AFTER the define:vars block instead to be safe. -->
+
+
+
+<script is:inline>
+    document.addEventListener('astro:page-load', () => {
+    // Head/Theme Picker & Password Change Logic
+    (function() {
+        // Wait for DOM to be ready just in case, though is:inline at bottom is usually fine.
+        // But window.API_URL is set in previous script, so it should be available.
+        var API_URL = window.API_URL;
+
+        // --- Theme Picker ---
+        var btn = document.getElementById('themeColorBtn');
+        var dropdown = document.getElementById('themePickerDropdown');
+        var slider = document.getElementById('headerHueSlider');
+        var thumb = document.getElementById('sliderThumb');
+        var display = document.getElementById('currentHueDisplay');
+        var resetBtn = document.getElementById('resetThemeBtn');
+        var toggleBtn = document.getElementById('themeToggle');
+
+        // Sync with local storage on load (SPA persistence)
+        var stored = localStorage.getItem('hue');
+        if(stored) {
+            updateTheme(stored);
+        }
+
+        if(btn && dropdown) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                dropdown.classList.toggle('hidden');
+                
+                // Init value
+                var style = getComputedStyle(document.documentElement);
+                var hue = style.getPropertyValue('--hue').trim() || '200';
+                if(slider) {
+                    slider.value = hue;
+                    updateThumb(hue);
+                }
+            });
+
+            // Close on outside click
+            document.addEventListener('click', function(e) {
+                if(!dropdown.contains(e.target) && !btn.contains(e.target)) {
+                    dropdown.classList.add('hidden');
+                }
+            });
+
+            dropdown.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        }
+
+        function updateThumb(val) {
+            if(thumb) thumb.style.left = (val / 360 * 100) + '%';
+            if(display) display.textContent = val;
+        }
+
+        function updateTheme(val) {
+            document.documentElement.style.setProperty('--hue', val);
+            document.documentElement.style.setProperty('--configHue', val);
+            document.documentElement.style.setProperty('--primary', `oklch(0.65 0.25 ${val})`);
+            document.documentElement.style.setProperty('--primary-light', `oklch(0.75 0.2 ${val})`);
+            document.documentElement.style.setProperty('--primary-dark', `oklch(0.55 0.25 ${val})`);
+        }
+
+        var timeout;
+        function saveTheme(val) {
+            localStorage.setItem('hue', val);
+            if(timeout) clearTimeout(timeout);
+            timeout = setTimeout(async function() {
+                try {
+                    var token = localStorage.getItem('adminToken');
+                    if(!token) return;
+                    
+                    await fetch(API_URL + '/settings', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + token
+                        },
+                        body: JSON.stringify({
+                            key: 'theme_hue',
+                            value: val,
+                            group: 'theme',
+                            type: 'number'
+                        })
+                    });
+                } catch(e) {
+                    console.error("Failed to save theme hue", e);
+                }
+            }, 500);
+        }
+
+        if(slider) {
+            slider.addEventListener('input', function(e) {
+                var val = e.target.value;
+                updateThumb(val);
+                updateTheme(val);
+                saveTheme(val);
+            });
+        }
+
+        if(resetBtn) {
+            resetBtn.addEventListener('click', function() {
+                var val = 200;
+                if(slider) {
+                    slider.value = val;
+                    updateThumb(val);
+                }
+                updateTheme(val);
+                saveTheme(val);
+            });
+        }
+
+        // --- Dark/Light Mode Toggle ---
+        if(toggleBtn) {
+            toggleBtn.addEventListener('click', function() {
+                var isDark = document.documentElement.classList.contains('dark');
+                var newMode = isDark ? 'LIGHT_MODE' : 'DARK_MODE';
+                localStorage.setItem('theme', newMode);
+                
+                if(isDark) {
+                    document.documentElement.classList.remove('dark');
+                    document.documentElement.setAttribute('data-theme', 'github-light');
+                } else {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.setAttribute('data-theme', 'github-dark');
+                }
+            });
+        }
+
+        // --- Change Password ---
+        var cpBtn = document.getElementById('changePasswordBtn');
+        var cpModal = document.getElementById('changePwModal');
+        var cpContent = document.getElementById('changePwModalContent');
+        var closeCpBtn = document.getElementById('closeChangePwBtn');
+        var cancelCpBtn = document.getElementById('cancelChangePwBtn');
+        var cpForm = document.getElementById('globalChangePasswordForm');
+
+        function openCpModal() {
+            // Close dropdown if open
+            var userMenu = document.getElementById('userDropdownMenu');
+            if(userMenu) userMenu.classList.add('hidden');
+            
+            if(cpModal && cpContent) {
+                cpModal.classList.remove('hidden');
+                cpModal.classList.add('flex');
+                setTimeout(() => {
+                    cpContent.classList.remove('scale-95', 'opacity-0');
+                    cpContent.classList.add('scale-100', 'opacity-100');
+                }, 10);
+            }
+        }
+
+        function closeCpModal() {
+            if(cpModal && cpContent) {
+                cpContent.classList.remove('scale-100', 'opacity-100');
+                cpContent.classList.add('scale-95', 'opacity-0');
+                setTimeout(() => {
+                    cpModal.classList.add('hidden');
+                    cpModal.classList.remove('flex');
+                    if(cpForm) cpForm.reset();
+                }, 200);
+            }
+        }
+
+        if(cpBtn) cpBtn.addEventListener('click', openCpModal);
+        if(closeCpBtn) closeCpBtn.addEventListener('click', closeCpModal);
+        if(cancelCpBtn) cancelCpBtn.addEventListener('click', closeCpModal);
+        if(cpModal) {
+            cpModal.addEventListener('click', function(e) {
+                if(e.target === cpModal) closeCpModal();
+            });
+        }
+
+        if(cpForm) {
+            cpForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                var current = document.getElementById('globalCurrentPassword').value;
+                var newPw = document.getElementById('globalNewPassword').value;
+                var confirmPw = document.getElementById('globalConfirmPassword').value;
+
+                if(newPw.length < 6) {
+                    if(window.adminAlert) window.adminAlert('新密码长度至少6位', 'warning');
+                    else alert('新密码长度至少6位');
+                    return;
+                }
+                if(newPw !== confirmPw) {
+                    if(window.adminAlert) window.adminAlert('两次输入密码不一致', 'warning');
+                    else alert('两次输入密码不一致');
+                    return;
+                }
+
+                try {
+                    var token = localStorage.getItem('adminToken');
+                    var res = await fetch(API_URL + '/auth/change-password', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + token
+                        },
+                        body: JSON.stringify({
+                            old_password: current,
+                            new_password: newPw,
+                            new_password_confirm: confirmPw
+                        })
+                    });
+
+                    if(res.ok) {
+                        if(window.adminAlert) await window.adminAlert('密码修改成功，请重新登录', 'success');
+                        else alert('密码修改成功，请重新登录');
+                        
+                        localStorage.removeItem('adminToken');
+                        window.location.href = '/admin/login';
+                    } else {
+                        var err = await res.json();
+                        var msg = err.detail || '修改失败';
+                        if(window.adminAlert) window.adminAlert(msg, 'error');
+                        else alert(msg);
+                    }
+                } catch(e) {
+                    console.error(e);
+                    if(window.adminAlert) window.adminAlert('网络错误', 'error');
+                    else alert('网络错误');
+                }
+            });
+        }
+    })();
+    });
 </script>
 
 <script is:inline>
+    document.addEventListener('astro:page-load', () => {
     // ============== 全局美化弹框函数 ==============
     (function () {
         var modal = document.getElementById('adminModal');
@@ -936,9 +1262,11 @@ const menuItems = [
             });
         };
     })();
+    });
 </script>
 
 <script is:inline>
+    document.addEventListener('astro:page-load', () => {
     /**
      * Admin panel core script
      */
@@ -1116,6 +1444,29 @@ const menuItems = [
             const avatarContainer = document.getElementById("userAvatarContainer");
             const defaultIcon = document.getElementById("defaultAvatarIcon");
 
+            // Anti-flash: Restore from local storage immediately
+            const cachedName = localStorage.getItem('admin_username');
+            const cachedAvatar = localStorage.getItem('admin_avatar');
+            
+            if(cachedName) {
+                if(usernameDisplay) usernameDisplay.textContent = cachedName;
+                if(dropdownUsername) dropdownUsername.textContent = cachedName;
+            }
+            // Use a flag to avoid flickering if we already have an avatar
+            let hasCachedAvatar = false;
+            if(cachedAvatar && avatarContainer && defaultIcon) {
+                 // Prevent duplicate images if function runs multiple times (though page-load usually resets DOM)
+                 // But strictly speaking, ClientRouter might keep some DOM if persistent? No, it's Astro.
+                 if(avatarContainer.getElementsByTagName('img').length === 0) {
+                     const img = document.createElement('img');
+                     img.src = cachedAvatar;
+                     img.className = "w-full h-full object-cover";
+                     defaultIcon.style.display = 'none';
+                     avatarContainer.appendChild(img);
+                     hasCachedAvatar = true;
+                 }
+            }
+
             if (!token) return;
 
             try {
@@ -1126,11 +1477,16 @@ const menuItems = [
                     const username = decoded.sub || "管理员";
                     if (usernameDisplay) usernameDisplay.textContent = username;
                     if (dropdownUsername) dropdownUsername.textContent = username;
+                    localStorage.setItem('admin_username', username);
                 }
             } catch (e) {
                 console.error("解析 token 失败:", e);
-                if (usernameDisplay) usernameDisplay.textContent = "管理员";
-                if (dropdownUsername) dropdownUsername.textContent = "管理员";
+                // Only reset if we don't have a cache or if we want to enforce error state?
+                // Better to leave cache or set default.
+                if(!cachedName) {
+                     if (usernameDisplay) usernameDisplay.textContent = "管理员";
+                     if (dropdownUsername) dropdownUsername.textContent = "管理员";
+                }
             }
 
             // 尝试加载个人资料头像
@@ -1142,6 +1498,9 @@ const menuItems = [
                         s.key === 'profile_avatar' || s.key === 'avatar' || s.key === 'site_avatar'
                     );
                     if (avatarSetting && avatarSetting.value && avatarContainer && defaultIcon) {
+                        // If same as cached, do nothing?
+                        if(hasCachedAvatar && cachedAvatar === avatarSetting.value) return;
+
                         const img = document.createElement('img');
                         img.src = avatarSetting.value;
                         img.alt = "用户头像";
@@ -1151,7 +1510,12 @@ const menuItems = [
                         };
                         img.onload = function () {
                             defaultIcon.style.display = 'none';
+                            // Remove old img if any
+                             const oldImg = avatarContainer.querySelector('img');
+                             if(oldImg) oldImg.remove();
+                             
                             avatarContainer.appendChild(img);
+                            localStorage.setItem('admin_avatar', avatarSetting.value);
                         };
                     }
                 })
@@ -1468,6 +1832,7 @@ const menuItems = [
 
         initPostsPage();
     })();
+    });
 </script>
 </body>
 </html>

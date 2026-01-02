@@ -74,10 +74,10 @@ let links: NavBarLink[] = navBarConfig.links.map(
         navbarWidthFull ? "" : "justify-between max-w-[var(--page-width)]"
     ]}>
         <a href={url('/')} class="btn-plain scale-animation rounded-lg h-[3.25rem] px-5 font-bold active:scale-95">
-            <div class="flex flex-row dark:text-white text-black items-center text-md">
-                                {navbarLogoType === "icon" ? (
+                            <div class="flex flex-row dark:text-white text-black items-center text-md">
+                                {navbarLogoType === "icon" && !navbarLogoValue.startsWith("/") && !navbarLogoValue.startsWith("http") ? (
                                     <Icon name={navbarLogoValue || "material-symbols:home-pin-outline"} class="text-[1.75rem] mb-1 mr-2" />
-                                ) : navbarLogoType === "image" && navbarLogoValue ? (
+                                ) : (navbarLogoType === "image" || navbarLogoValue.startsWith("/") || navbarLogoValue.startsWith("http")) && navbarLogoValue ? (
                                     <img src={url(navbarLogoValue)} alt={navbarTitle} class="h-[1.75rem] w-[1.75rem] mb-1 mr-2 object-contain" loading="lazy" />
                                 ) : (
                                     <Icon name="material-symbols:home-pin-outline" class="text-[1.75rem] mb-1 mr-2" />
