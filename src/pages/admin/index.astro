@@ -4,7 +4,8 @@ import AdminLayout from "../../layouts/AdminLayout.astro";
 import { siteConfig } from "../../config";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
-const API_URL = import.meta.env.PUBLIC_API_URL;
+import { getApiUrl } from "@/utils/api-utils";
+const API_URL = getApiUrl();
 ---
 
 <AdminLayout title={`${i18n(I18nKey.adminDashboard)} - ${siteConfig.title}`} activeMenu="dashboard">

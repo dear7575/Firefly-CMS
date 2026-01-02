@@ -2,6 +2,7 @@ import { type CollectionEntry, getCollection } from "astro:content";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import { getCategoryUrl } from "@utils/url-utils";
+import { getApiUrl } from "@utils/api-utils";
 
 // Retrieve posts and sort them by publication date
 async function getRawSortedPosts() {
@@ -12,7 +13,7 @@ async function getRawSortedPosts() {
 	// Fetch dynamic posts from backend API if available
 	let dynamicPosts: any[] = [];
 	try {
-		const API_URL = import.meta.env.PUBLIC_API_URL;
+		const API_URL = getApiUrl();
 		const res = await fetch(`${API_URL}/posts/?all=true`);
 		if (res.ok) {
 			const data = await res.json();

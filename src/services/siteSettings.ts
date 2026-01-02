@@ -3,8 +3,10 @@
  * 从后端 API 获取站点配置，支持智能缓存和默认值
  */
 
+import { getApiUrl } from "@/utils/api-utils";
+
 // API 基础地址（从环境变量读取）
-const API_URL = import.meta.env.PUBLIC_API_URL;
+const API_URL = getApiUrl();
 
 // 缓存配置
 interface CacheEntry<T> {

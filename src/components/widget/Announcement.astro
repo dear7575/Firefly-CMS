@@ -3,9 +3,10 @@ import { Icon } from "astro-icon/components";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
 import WidgetLayout from "./WidgetLayout.astro";
+import { getApiUrl } from "@/utils/api-utils";
 
 // 从后端API获取公告配置
-const API_URL = import.meta.env.PUBLIC_API_URL;
+const API_URL = getApiUrl();
 let config = {
   title: "公告",
   content: "欢迎来到我的博客！",

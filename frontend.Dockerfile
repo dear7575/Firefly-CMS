@@ -23,7 +23,9 @@ COPY . .
 # 执行构建（SSR 模式需要构建后运行服务器）
 # 确保在构建前环境变量已经正确设置，或者在构建时通过 ARG 传入
 ARG PUBLIC_API_URL=http://firefly-backend:8000
+ARG INTERNAL_API_URL=http://firefly-backend:8000
 ENV PUBLIC_API_URL=$PUBLIC_API_URL
+ENV INTERNAL_API_URL=$INTERNAL_API_URL
 
 RUN pnpm build
 

@@ -32,8 +32,10 @@ const pageTitle = title.replace(siteConfig.title, adminSiteTitle).replace('Firef
 
 const configHue = dynamicSettings.theme_hue ?? siteConfig.themeColor.hue;
 
+import { getApiUrl } from "@/utils/api-utils";
+
 // API 地址配置（从环境变量读取）
-const API_URL = import.meta.env.PUBLIC_API_URL;
+const API_URL = getApiUrl();
 
 // 获取背景图片配置（用于登录页面）
 const backgroundImages = getBackgroundImages();

@@ -29,8 +29,9 @@ import { processCoverImageSync } from "@/utils/image-utils";
 import { url } from "@/utils/url-utils";
 import { fetchSiteSettings } from "@/services/siteSettings";
 import { marked, Renderer } from "marked";
+import { getApiUrl } from "@/utils/api-utils";
 
-const API_URL = import.meta.env.PUBLIC_API_URL;
+const API_URL = getApiUrl();
 
 export const prerender = false;
 

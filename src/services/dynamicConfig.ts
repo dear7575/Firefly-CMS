@@ -1,11 +1,7 @@
-/**
- * 动态配置加载器
- * 在构建时从后端 API 获取站点配置，与静态配置合并
- * 支持缓存和默认值回退
- */
+import { getApiUrl } from "@/utils/api-utils";
 
 // API 基础地址（从环境变量读取）
-const API_URL = import.meta.env.PUBLIC_API_URL;
+const API_URL = getApiUrl();
 
 // 缓存配置
 let configCache: Record<string, any> | null = null;
