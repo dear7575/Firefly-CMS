@@ -11,103 +11,162 @@ const API_URL = getApiUrl();
 <AdminLayout title={`公告管理 - ${siteConfig.title}`} activeMenu="announcement">
     <div class="p-6 lg:p-8">
         <!-- 页面标题 -->
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <div
+            class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6"
+        >
             <div>
-                <h1 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">公告管理</h1>
-                <p class="text-sm text-zinc-500 mt-1">配置站点公告内容和显示样式</p>
+                <h1 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                    公告管理
+                </h1>
+                <p class="text-sm text-zinc-500 mt-1">
+                    配置站点公告内容和显示样式
+                </p>
             </div>
         </div>
 
         <!-- 公告配置表单 -->
-        <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
-            <div class="p-4 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+        <div
+            class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden"
+        >
+            <div
+                class="p-4 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 flex items-center gap-3"
+            >
+                <div
+                    class="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-4 w-4 text-indigo-600 dark:text-indigo-400"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"
+                        ></path>
                     </svg>
                 </div>
                 <div>
-                    <h2 class="font-bold text-zinc-900 dark:text-zinc-100">公告设置</h2>
-                    <p class="text-xs text-zinc-500">配置公告内容、链接和显示选项</p>
+                    <h2 class="font-bold text-zinc-900 dark:text-zinc-100">
+                        公告设置
+                    </h2>
+                    <p class="text-xs text-zinc-500">
+                        配置公告内容、链接和显示选项
+                    </p>
                 </div>
             </div>
             <div class="p-6">
                 <form id="announcementForm" class="space-y-6">
                     <div>
-                        <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">公告标题</label>
-                        <input 
-                            type="text" 
-                            id="announcementTitle" 
-                            class="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-[var(--primary)] outline-none" 
-                            placeholder="例如: 公告" 
+                        <label
+                            class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2"
+                            >公告标题</label
+                        >
+                        <input
+                            type="text"
+                            id="announcementTitle"
+                            class="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-[var(--primary)] outline-none"
+                            placeholder="例如: 公告"
                         />
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">公告内容 *</label>
-                        <textarea 
-                            id="announcementContent" 
+                        <label
+                            class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2"
+                            >公告内容 *</label
+                        >
+                        <textarea
+                            id="announcementContent"
                             required
-                            rows="4" 
+                            rows="4"
                             class="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-[var(--primary)] outline-none resize-none"
-                            placeholder="输入公告内容..."
-                        ></textarea>
+                            placeholder="输入公告内容..."></textarea>
                     </div>
 
-                    <div class="flex items-center gap-3 p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl">
-                        <input 
-                            type="checkbox" 
-                            id="announcementClosable" 
+                    <div
+                        class="flex items-center gap-3 p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl"
+                    >
+                        <input
+                            type="checkbox"
+                            id="announcementClosable"
                             class="w-4 h-4 text-[var(--primary)] rounded focus:ring-2 focus:ring-[var(--primary)]"
                         />
-                        <label for="announcementClosable" class="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                        <label
+                            for="announcementClosable"
+                            class="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+                        >
                             允许用户关闭公告
                         </label>
                     </div>
 
-                    <div class="border-t border-zinc-200 dark:border-zinc-800 pt-6">
-                        <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">链接设置</h3>
-                        
+                    <div
+                        class="border-t border-zinc-200 dark:border-zinc-800 pt-6"
+                    >
+                        <h3
+                            class="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4"
+                        >
+                            链接设置
+                        </h3>
+
                         <div class="space-y-4">
-                            <div class="flex items-center gap-3 p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl">
-                                <input 
-                                    type="checkbox" 
-                                    id="linkEnable" 
+                            <div
+                                class="flex items-center gap-3 p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl"
+                            >
+                                <input
+                                    type="checkbox"
+                                    id="linkEnable"
                                     class="w-4 h-4 text-[var(--primary)] rounded focus:ring-2 focus:ring-[var(--primary)]"
                                 />
-                                <label for="linkEnable" class="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                                <label
+                                    for="linkEnable"
+                                    class="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+                                >
                                     启用公告链接按钮
                                 </label>
                             </div>
 
                             <div id="linkSettings" class="space-y-4 pl-4">
                                 <div>
-                                    <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">链接文本</label>
-                                    <input 
-                                        type="text" 
-                                        id="linkText" 
-                                        class="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-[var(--primary)] outline-none" 
-                                        placeholder="例如: 了解更多" 
+                                    <label
+                                        class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2"
+                                        >链接文本</label
+                                    >
+                                    <input
+                                        type="text"
+                                        id="linkText"
+                                        class="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-[var(--primary)] outline-none"
+                                        placeholder="例如: 了解更多"
                                     />
                                 </div>
 
                                 <div>
-                                    <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">链接地址</label>
-                                    <input 
-                                        type="text" 
-                                        id="linkUrl" 
-                                        class="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-[var(--primary)] outline-none" 
-                                        placeholder="例如: /about" 
+                                    <label
+                                        class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2"
+                                        >链接地址</label
+                                    >
+                                    <input
+                                        type="text"
+                                        id="linkUrl"
+                                        class="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-[var(--primary)] outline-none"
+                                        placeholder="例如: /about"
                                     />
                                 </div>
 
-                                <div class="flex items-center gap-3 p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl">
-                                    <input 
-                                        type="checkbox" 
-                                        id="linkExternal" 
+                                <div
+                                    class="flex items-center gap-3 p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        id="linkExternal"
                                         class="w-4 h-4 text-[var(--primary)] rounded focus:ring-2 focus:ring-[var(--primary)]"
                                     />
-                                    <label for="linkExternal" class="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                                    <label
+                                        for="linkExternal"
+                                        class="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+                                    >
                                         在新窗口打开链接
                                     </label>
                                 </div>
@@ -115,16 +174,18 @@ const API_URL = getApiUrl();
                         </div>
                     </div>
 
-                    <div class="flex justify-end gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
-                        <button 
-                            type="button" 
+                    <div
+                        class="flex justify-end gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-800"
+                    >
+                        <button
+                            type="button"
                             onclick="window.location.href='/admin/settings'"
                             class="px-6 py-2.5 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition-colors font-medium"
                         >
                             取消
                         </button>
-                        <button 
-                            type="submit" 
+                        <button
+                            type="submit"
                             class="px-6 py-2.5 bg-[var(--primary)] dark:bg-zinc-800 text-white dark:text-zinc-100 rounded-xl hover:opacity-90 dark:hover:bg-zinc-700 transition-all font-medium shadow-lg hover:shadow-xl active:scale-95 dark:border dark:border-indigo-500/50 dark:shadow-[0_0_15px_rgba(99,102,241,0.3)]"
                         >
                             保存配置
@@ -135,14 +196,27 @@ const API_URL = getApiUrl();
         </div>
 
         <!-- 预览区域 -->
-        <div class="mt-6 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
-            <div class="p-4 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50">
-                <h2 class="font-bold text-zinc-900 dark:text-zinc-100">实时预览</h2>
-                <p class="text-xs text-zinc-500 mt-1">查看公告在前端的显示效果</p>
+        <div
+            class="mt-6 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden"
+        >
+            <div
+                class="p-4 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50"
+            >
+                <h2 class="font-bold text-zinc-900 dark:text-zinc-100">
+                    实时预览
+                </h2>
+                <p class="text-xs text-zinc-500 mt-1">
+                    查看公告在前端的显示效果
+                </p>
             </div>
             <div class="p-6">
-                <div id="announcementPreview" class="border border-zinc-200 dark:border-zinc-700 rounded-xl p-4 bg-zinc-50 dark:bg-zinc-800/30">
-                    <div class="text-zinc-500 text-center py-4">配置公告后将在此显示预览</div>
+                <div
+                    id="announcementPreview"
+                    class="border border-zinc-200 dark:border-zinc-700 rounded-xl p-4 bg-zinc-50 dark:bg-zinc-800/30"
+                >
+                    <div class="text-zinc-500 text-center py-4">
+                        配置公告后将在此显示预览
+                    </div>
                 </div>
             </div>
         </div>
@@ -150,140 +224,198 @@ const API_URL = getApiUrl();
 </AdminLayout>
 
 <script is:inline>
-(function() {
-    // 加载当前公告配置
-    async function loadAnnouncementConfig() {
-        try {
-            var response = await fetch(`${API_URL}/settings/announcement`);
-            if (!response.ok) throw new Error('Failed to load');
-            
-            var config = await response.json();
-            
-            // 填充表单
-            document.getElementById('announcementTitle').value = config.title || '公告';
-            document.getElementById('announcementContent').value = config.content || '';
-            document.getElementById('announcementClosable').checked = config.closable !== false;
-            document.getElementById('linkEnable').checked = config.link && config.link.enable;
-            document.getElementById('linkText').value = (config.link && config.link.text) || '了解更多';
-            document.getElementById('linkUrl').value = (config.link && config.link.url) || '/about';
-            document.getElementById('linkExternal').checked = config.link && config.link.external;
-            
-            updatePreview();
-            toggleLinkSettings();
-        } catch (err) {
-            console.error('加载公告配置失败:', err);
-        }
-    }
-
-    // 切换链接设置显示
-    function toggleLinkSettings() {
-        var linkEnable = document.getElementById('linkEnable');
-        var linkSettings = document.getElementById('linkSettings');
-        if (linkSettings) {
-            linkSettings.style.opacity = linkEnable.checked ? '1' : '0.5';
-            linkSettings.style.pointerEvents = linkEnable.checked ? 'auto' : 'none';
-        }
-    }
-
-    // 更新预览
-    function updatePreview() {
-        var title = document.getElementById('announcementTitle').value || '公告';
-        var content = document.getElementById('announcementContent').value || '';
-        var closable = document.getElementById('announcementClosable').checked;
-        var linkEnable = document.getElementById('linkEnable').checked;
-        var linkText = document.getElementById('linkText').value || '了解更多';
-        
-        var preview = document.getElementById('announcementPreview');
-        if (!preview || !content) {
-            if (preview) preview.innerHTML = '<div class="text-zinc-500 text-center py-4">配置公告后将在此显示预览</div>';
-            return;
-        }
-
-        var html = '<div class="space-y-3">' +
-            '<div class="text-sm font-medium text-zinc-600 dark:text-zinc-400">' + title + '</div>' +
-            '<div class="text-zinc-700 dark:text-zinc-300 leading-relaxed">' + content + '</div>' +
-            '<div class="flex items-center justify-between gap-3 pt-2">' +
-            '<div>' +
-            (linkEnable ? '<button class="bg-[var(--primary)] text-white text-sm px-4 py-2 rounded-lg">' + linkText + '</button>' : '') +
-            '</div>' +
-            (closable ? '<button class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-500"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>' : '') +
-            '</div>' +
-            '</div>';
-
-        preview.innerHTML = html;
-    }
-
-    // 表单提交
-    var form = document.getElementById('announcementForm');
-    if (form) {
-        form.addEventListener('submit', async function(e) {
-            e.preventDefault();
-
-            var data = {
-                title: document.getElementById('announcementTitle').value || '公告',
-                content: document.getElementById('announcementContent').value,
-                closable: document.getElementById('announcementClosable').checked,
-                link_enable: document.getElementById('linkEnable').checked,
-                link_text: document.getElementById('linkText').value || '了解更多',
-                link_url: document.getElementById('linkUrl').value || '/about',
-                link_external: document.getElementById('linkExternal').checked
-            };
-
+    (function () {
+        var API_URL = window.API_URL;
+        // 加载当前公告配置
+        async function loadAnnouncementConfig() {
             try {
-                var response = await fetch(API_URL + '/settings/announcement', {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: 'Bearer ' + localStorage.getItem('adminToken')
-                    },
-                    body: JSON.stringify(data)
-                });
+                var response = await fetch(`${API_URL}/settings/announcement`);
+                if (!response.ok) throw new Error("Failed to load");
 
-                if (response.ok) {
-                    var result = await response.json();
-                    if (window.adminAlert) {
-                        await window.adminAlert('公告配置已保存成功！', 'success', '保存成功');
-                    } else {
-                        alert('公告配置已保存成功！');
-                    }
-                } else {
-                    var err = await response.json();
-                    if (window.adminAlert) {
-                        await window.adminAlert(err.detail || '保存失败，请重试', 'error', '保存失败');
-                    } else {
-                        alert(err.detail || '保存失败');
-                    }
-                }
+                var config = await response.json();
+
+                // 填充表单
+                document.getElementById("announcementTitle").value =
+                    config.title || "公告";
+                document.getElementById("announcementContent").value =
+                    config.content || "";
+                document.getElementById("announcementClosable").checked =
+                    config.closable !== false;
+                document.getElementById("linkEnable").checked =
+                    config.link && config.link.enable;
+                document.getElementById("linkText").value =
+                    (config.link && config.link.text) || "了解更多";
+                document.getElementById("linkUrl").value =
+                    (config.link && config.link.url) || "/about";
+                document.getElementById("linkExternal").checked =
+                    config.link && config.link.external;
+
+                updatePreview();
+                toggleLinkSettings();
             } catch (err) {
-                console.error(err);
-                if (window.adminAlert) {
-                    await window.adminAlert('网络错误，请稍后重试', 'error', '保存失败');
-                } else {
-                    alert('保存失败');
+                console.error("加载公告配置失败:", err);
+            }
+        }
+
+        // 切换链接设置显示
+        function toggleLinkSettings() {
+            var linkEnable = document.getElementById("linkEnable");
+            var linkSettings = document.getElementById("linkSettings");
+            if (linkSettings) {
+                linkSettings.style.opacity = linkEnable.checked ? "1" : "0.5";
+                linkSettings.style.pointerEvents = linkEnable.checked
+                    ? "auto"
+                    : "none";
+            }
+        }
+
+        // 更新预览
+        function updatePreview() {
+            var title =
+                document.getElementById("announcementTitle").value || "公告";
+            var content =
+                document.getElementById("announcementContent").value || "";
+            var closable = document.getElementById(
+                "announcementClosable",
+            ).checked;
+            var linkEnable = document.getElementById("linkEnable").checked;
+            var linkText =
+                document.getElementById("linkText").value || "了解更多";
+
+            var preview = document.getElementById("announcementPreview");
+            if (!preview || !content) {
+                if (preview)
+                    preview.innerHTML =
+                        '<div class="text-zinc-500 text-center py-4">配置公告后将在此显示预览</div>';
+                return;
+            }
+
+            var html =
+                '<div class="space-y-3">' +
+                '<div class="text-sm font-medium text-zinc-600 dark:text-zinc-400">' +
+                title +
+                "</div>" +
+                '<div class="text-zinc-700 dark:text-zinc-300 leading-relaxed">' +
+                content +
+                "</div>" +
+                '<div class="flex items-center justify-between gap-3 pt-2">' +
+                "<div>" +
+                (linkEnable
+                    ? '<button class="bg-[var(--primary)] text-white text-sm px-4 py-2 rounded-lg">' +
+                      linkText +
+                      "</button>"
+                    : "") +
+                "</div>" +
+                (closable
+                    ? '<button class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-500"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>'
+                    : "") +
+                "</div>" +
+                "</div>";
+
+            preview.innerHTML = html;
+        }
+
+        // 表单提交
+        var form = document.getElementById("announcementForm");
+        if (form) {
+            form.addEventListener("submit", async function (e) {
+                e.preventDefault();
+
+                var data = {
+                    title:
+                        document.getElementById("announcementTitle").value ||
+                        "公告",
+                    content: document.getElementById("announcementContent")
+                        .value,
+                    closable: document.getElementById("announcementClosable")
+                        .checked,
+                    link_enable: document.getElementById("linkEnable").checked,
+                    link_text:
+                        document.getElementById("linkText").value || "了解更多",
+                    link_url:
+                        document.getElementById("linkUrl").value || "/about",
+                    link_external:
+                        document.getElementById("linkExternal").checked,
+                };
+
+                try {
+                    var response = await fetch(
+                        API_URL + "/settings/announcement",
+                        {
+                            method: "PUT",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization:
+                                    "Bearer " +
+                                    localStorage.getItem("adminToken"),
+                            },
+                            body: JSON.stringify(data),
+                        },
+                    );
+
+                    if (response.ok) {
+                        var result = await response.json();
+                        if (window.adminAlert) {
+                            await window.adminAlert(
+                                "公告配置已保存成功！",
+                                "success",
+                                "保存成功",
+                            );
+                        } else {
+                            alert("公告配置已保存成功！");
+                        }
+                    } else {
+                        var err = await response.json();
+                        if (window.adminAlert) {
+                            await window.adminAlert(
+                                err.detail || "保存失败，请重试",
+                                "error",
+                                "保存失败",
+                            );
+                        } else {
+                            alert(err.detail || "保存失败");
+                        }
+                    }
+                } catch (err) {
+                    console.error(err);
+                    if (window.adminAlert) {
+                        await window.adminAlert(
+                            "网络错误，请稍后重试",
+                            "error",
+                            "保存失败",
+                        );
+                    } else {
+                        alert("保存失败");
+                    }
                 }
+            });
+        }
+
+        // 监听表单变化更新预览
+        [
+            "announcementTitle",
+            "announcementContent",
+            "announcementClosable",
+            "linkEnable",
+            "linkText",
+        ].forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el) {
+                el.addEventListener("input", updatePreview);
+                el.addEventListener("change", updatePreview);
             }
         });
-    }
 
-    // 监听表单变化更新预览
-    ['announcementTitle', 'announcementContent', 'announcementClosable', 'linkEnable', 'linkText'].forEach(function(id) {
-        var el = document.getElementById(id);
-        if (el) {
-            el.addEventListener('input', updatePreview);
-            el.addEventListener('change', updatePreview);
+        // 监听链接启用状态
+        var linkEnableEl = document.getElementById("linkEnable");
+        if (linkEnableEl) {
+            linkEnableEl.addEventListener("change", function () {
+                toggleLinkSettings();
+                updatePreview();
+            });
         }
-    });
 
-    // 监听链接启用状态
-    var linkEnableEl = document.getElementById('linkEnable');
-    if (linkEnableEl) {
-        linkEnableEl.addEventListener('change', function() {
-            toggleLinkSettings();
-            updatePreview();
-        });
-    }
-
-    // 页面加载时初始化
-    loadAnnouncementConfig();
-})();
+        // 页面加载时初始化
+        loadAnnouncementConfig();
+    })();
 </script>

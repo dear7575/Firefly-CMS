@@ -1,7 +1,7 @@
 import { getApiUrl } from "@/utils/api-utils";
 
-/** API 基础地址，从环境变量配置 */
-const API_URL = getApiUrl();
+/** API 基础地址（从工具类动态获取） */
+const getBaseUrl = () => getApiUrl();
 
 /**
  * 文章数据接口
@@ -63,7 +63,7 @@ export interface FriendLink {
  * @throws Error 请求失败时抛出错误
  */
 export async function fetchPosts(): Promise<Post[]> {
-    const response = await fetch(`${API_URL}/posts`);
+    const response = await fetch(`${getBaseUrl()}/posts`);
     if (!response.ok) {
         throw new Error('获取文章列表失败');
     }
@@ -77,7 +77,7 @@ export async function fetchPosts(): Promise<Post[]> {
  */
 export async function fetchEnabledFriends(): Promise<FriendLink[]> {
     try {
-        const response = await fetch(`${API_URL}/friends`);
+        const response = await fetch(`${getBaseUrl()}/friends`);
         if (!response.ok) {
             console.error('获取友链列表失败');
             return [];
@@ -112,7 +112,7 @@ export async function fetchEnabledFriends(): Promise<FriendLink[]> {
  * @throws Error 请求失败时抛出错误
  */
 export async function createPost(postData: any, token: string) {
-    const response = await fetch(`${API_URL}/posts`, {
+    const response = await fetch(`${getBaseUrl()}/posts`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

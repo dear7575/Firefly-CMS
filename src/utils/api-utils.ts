@@ -15,6 +15,12 @@ export function getApiUrl(): string {
     }
 
     // SSR 环境 (Node.js)
-    // 优先使用 INTERNAL_API_URL，如果没有则回退到 PUBLIC_API_URL
-    return import.meta.env.INTERNAL_API_URL || import.meta.env.PUBLIC_API_URL;
+    // 使用 process['env'] 语法防止 Vite 在构建时尝试静态替换这些变量
+    // 即使在本地构建时没有设置这些变量，服务器运行时也可以从 docker-compose 中读取
+    const env = typeof process !== 'undefined' ? process['env'] : {};
+    const internalApiUrl = env.INTERNAL_API_URL;
+
+    // 优先使用内部地址，如果没有定义且在服务器端，则尝试降级
+    // 注意：如果本地构建时 PUBLIC_API_URL 已被硬编码，这里的 || 会使用硬编码的值
+    return internalApiUrl || import.meta.env.PUBLIC_API_URL;
 }

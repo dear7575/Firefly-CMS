@@ -49,8 +49,12 @@ const authorAvatar = dynamicSettings.profile_avatar || profileConfig.avatar;
 const dynamicSiteTitle = dynamicSettings.site_title || siteConfig.title;
 
 // 文章详情页配置（动态配置优先）
-const showLastModified = dynamicSettings.post_show_last_modified ?? siteConfig.showLastModified ?? true;
-const outdatedThreshold = dynamicSettings.post_outdated_threshold ?? siteConfig.outdatedThreshold ?? 30;
+const showLastModified =
+  dynamicSettings.post_show_last_modified ??
+  siteConfig.showLastModified ??
+  true;
+const outdatedThreshold =
+  dynamicSettings.post_outdated_threshold ?? siteConfig.outdatedThreshold ?? 30;
 const showToc = dynamicSettings.post_show_toc ?? true;
 const showUpdated = dynamicSettings.post_show_updated ?? true;
 
@@ -90,14 +94,14 @@ const { slug } = Astro.params;
 const blogEntries = await getSortedPosts();
 // 匹配逻辑：支持静态文章（移除 .md 扩展名）和动态文章（移除 dynamic- 前缀）
 const entry = blogEntries.find((e) => {
-  const cleanId = removeFileExtension(e.id).replace(/^dynamic-/, '');
+  const cleanId = removeFileExtension(e.id).replace(/^dynamic-/, "");
   return cleanId === slug;
 });
 
 if (!entry) {
   return new Response(null, {
     status: 404,
-    statusText: 'Not Found'
+    statusText: "Not Found",
   });
 }
 
@@ -564,7 +568,7 @@ const jsonLd = {
 
     // Check if password is already stored
     const storedPassword = sessionStorage.getItem(storageKey);
-    if (storedPassword) {
+    if (storedPassword && postId) {
       // Validate stored password
       validatePassword(postId, storedPassword, true);
     }
@@ -581,7 +585,9 @@ const jsonLd = {
         return;
       }
 
-      await validatePassword(postId, password, false);
+      if (postId) {
+        await validatePassword(postId, password, false);
+      }
     });
 
     async function validatePassword(
@@ -590,7 +596,9 @@ const jsonLd = {
       silent: boolean,
     ) {
       try {
-        const response = await fetch(`${API_URL}/posts/${postId}`);
+        const response = await fetch(
+          `${(window as any).API_URL}/posts/${postId}`,
+        );
         if (!response.ok) {
           if (!silent) showError("Failed to verify password");
           return;
