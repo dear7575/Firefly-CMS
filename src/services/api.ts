@@ -1,10 +1,7 @@
-/**
- * Firefly CMS API 服务模块
- * 提供与后端 API 交互的函数
- */
+import { getApiUrl } from "@/utils/api-utils";
 
 /** API 基础地址，从环境变量配置 */
-const API_URL = import.meta.env.PUBLIC_API_URL;
+const API_URL = getApiUrl();
 
 /**
  * 文章数据接口

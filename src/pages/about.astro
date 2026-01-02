@@ -5,9 +5,11 @@ import { i18n } from "@/i18n/translation";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
 import { marked, Renderer } from "marked";
 
+import { getApiUrl } from "@/utils/api-utils";
+
 export const prerender = false;
 
-const API_URL = import.meta.env.PUBLIC_API_URL;
+const API_URL = getApiUrl();
 
 // 从 API 获取 slug 为 about 的文章
 let aboutContent = "# 关于我\n\n暂无内容，请在后台管理中编辑 slug 为 'about' 的文章。";

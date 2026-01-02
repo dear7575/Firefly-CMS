@@ -17,7 +17,8 @@ const editI18n = {
     update: i18n(I18nKey.adminPostUpdate),
     loadFailed: i18n(I18nKey.adminPostLoadFailed),
 };
-const API_URL = import.meta.env.PUBLIC_API_URL;
+import { getApiUrl } from "@/utils/api-utils";
+const API_URL = getApiUrl();
 ---
 
 <AdminLayout title={`${i18n(I18nKey.adminEditPost)} - ${siteConfig.title}`}>
