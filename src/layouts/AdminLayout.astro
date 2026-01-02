@@ -34,8 +34,10 @@ const configHue = dynamicSettings.theme_hue ?? siteConfig.themeColor.hue;
 
 import { getApiUrl } from "@/utils/api-utils";
 
-// API 地址配置（从环境变量读取）
+// SSR 使用的 API 地址
 const API_URL = getApiUrl();
+// 客户端使用的 API 地址
+const PUBLIC_API_URL = import.meta.env.PUBLIC_API_URL;
 
 // 获取背景图片配置（用于登录页面）
 const backgroundImages = getBackgroundImages();
@@ -803,7 +805,7 @@ const menuItems = [
     </div>
 </div>
 
-<script is:inline define:vars={{adminI18n, API_URL}}>
+<script is:inline define:vars={{adminI18n, API_URL: PUBLIC_API_URL}}>
     // Make i18n translations available globally
     window.adminI18n = adminI18n;
     // Make API URL available globally
@@ -1174,7 +1176,7 @@ const menuItems = [
             currentPage = page;
 
             try {
-                const response = await fetch(`${API_URL}/posts/?page=${page}&page_size=${pageSize}`);
+                const response = await fetch(`${API_URL}/posts?page=${page}&page_size=${pageSize}`);
                 if (!response.ok) throw new Error('Failed to get post list');
                 const posts = await response.json();
 

@@ -5,8 +5,8 @@
 
 import { getApiUrl } from "@/utils/api-utils";
 
-// API 基础地址（从环境变量读取）
-const API_URL = getApiUrl();
+// API 基础地址（从工具类动态获取）
+const getBaseUrl = () => getApiUrl();
 
 // 缓存配置
 interface CacheEntry<T> {
@@ -116,7 +116,7 @@ async function fetchFromAPI(): Promise<Record<string, any>> {
     const timeoutId = setTimeout(() => controller.abort(), 5000); // 5秒超时
 
     try {
-        const response = await fetch(`${API_URL}/settings/public`, {
+        const response = await fetch(`${getBaseUrl()}/settings/public`, {
             signal: controller.signal,
             headers: {
                 'Accept': 'application/json',
@@ -266,7 +266,7 @@ async function fetchGroupFromAPI(group: string): Promise<Record<string, any>> {
     const timeoutId = setTimeout(() => controller.abort(), 5000);
 
     try {
-        const response = await fetch(`${API_URL}/settings/public/by-group/${group}`, {
+        const response = await fetch(`${getBaseUrl()}/settings/public/by-group/${group}`, {
             signal: controller.signal,
             headers: {
                 'Accept': 'application/json',
