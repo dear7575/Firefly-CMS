@@ -107,9 +107,9 @@ if (!entry) {
 
 // Check if post is password protected
 const hasPassword = entry.data.has_password || false;
-const postId = entry.id.startsWith("dynamic-")
-  ? entry.id.replace("dynamic-", "")
-  : null;
+const postId =
+  (entry.data as any).dbId ||
+  (entry.id.startsWith("dynamic-") ? entry.id.replace("dynamic-", "") : null);
 
 let Content: any;
 let isDynamic = false;
@@ -597,8 +597,14 @@ const jsonLd = {
     ) {
       try {
         const response = await fetch(
-          `${(window as any).API_URL}/posts/${postId}`,
+          `${(window as any).API_URL}/posts/${postId}/verify-password`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ password }),
+          },
         );
+
         if (!response.ok) {
           if (!silent) showError("Failed to verify password");
           return;
@@ -606,7 +612,7 @@ const jsonLd = {
 
         const data = await response.json();
 
-        if (data.password === password) {
+        if (data.valid) {
           // Password correct - store and reveal content
           sessionStorage.setItem(storageKey, password);
           overlay?.classList.add("opacity-0", "pointer-events-none");

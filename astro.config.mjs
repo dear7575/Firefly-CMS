@@ -208,5 +208,8 @@ export default defineConfig({
 				},
 			},
 		},
+		ssr: {
+			noExternal: ["dayjs", "marked", "hastscript", "qrcode", "gray-matter", "reading-time"],
+		},
 	},
 });
