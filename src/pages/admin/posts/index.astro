@@ -26,6 +26,40 @@ import { i18n } from "@/i18n/translation";
             </button>
         </div>
 
+        <!-- 筛选标签 -->
+        <div class="flex flex-wrap gap-2 mb-4">
+            <button id="filterAll" class="filter-tab active" data-filter="all">
+                全部
+                <span id="countAll" class="filter-count">0</span>
+            </button>
+            <button id="filterPublished" class="filter-tab" data-filter="published">
+                已发布
+                <span id="countPublished" class="filter-count">0</span>
+            </button>
+            <button id="filterDraft" class="filter-tab" data-filter="draft">
+                草稿箱
+                <span id="countDraft" class="filter-count">0</span>
+            </button>
+            <button id="filterTrash" class="filter-tab filter-tab-trash" data-filter="trash">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                回收站
+                <span id="countTrash" class="filter-count">0</span>
+            </button>
+        </div>
+
+        <!-- 回收站操作栏 -->
+        <div id="trashActions" class="hidden mb-4 p-3 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-800 flex items-center justify-between">
+            <span class="text-sm text-red-600 dark:text-red-400">回收站中的文章将在30天后自动删除</span>
+            <button id="emptyTrashBtn" class="px-4 py-1.5 bg-red-500 hover:bg-red-600 text-white text-sm rounded-lg transition-colors flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                清空回收站
+            </button>
+        </div>
+
         <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden backdrop-blur-sm">
             <div class="overflow-x-auto">
                 <table class="w-full text-left">
@@ -61,13 +95,197 @@ import { i18n } from "@/i18n/translation";
     </div>
 </AdminLayout>
 
-<script is:inline>
-    document.getElementById("newPostBtn")?.addEventListener("click", () => {
-        window.location.href = "/admin/new";
-    });
-
-    // Load posts when page loads
-    if (typeof window.adminLoadPosts === 'function') {
-        window.adminLoadPosts();
+<style>
+    .filter-tab {
+        @apply px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2;
+        @apply text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800;
+        @apply hover:bg-zinc-200 dark:hover:bg-zinc-700;
     }
+
+    .filter-tab.active {
+        @apply bg-[var(--primary)] text-white;
+        @apply dark:bg-indigo-600 dark:text-white;
+    }
+
+    .filter-count {
+        @apply px-1.5 py-0.5 text-xs rounded-full min-w-[1.25rem] text-center;
+        @apply bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300;
+    }
+
+    .filter-tab.active .filter-count {
+        @apply bg-white/20 text-white;
+    }
+
+    .filter-tab-trash {
+        @apply text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20;
+        @apply hover:bg-red-100 dark:hover:bg-red-900/30;
+    }
+
+    .filter-tab-trash.active {
+        @apply bg-red-500 text-white;
+        @apply dark:bg-red-600 dark:text-white;
+    }
+</style>
+
+<script is:inline>
+    document.addEventListener('astro:page-load', function() {
+        // 检查是否在文章管理页面
+        if (!document.getElementById('postsTableBody')) return;
+
+        document.getElementById("newPostBtn")?.addEventListener("click", () => {
+            window.location.href = "/admin/new";
+        });
+
+        // 筛选功能
+        var currentFilter = 'all';
+        var allPosts = [];
+        var trashPosts = [];
+
+        // 初始化筛选标签点击事件
+        document.querySelectorAll('.filter-tab').forEach(function(tab) {
+            tab.addEventListener('click', function() {
+                var filter = this.dataset.filter;
+                currentFilter = filter;
+
+                // 更新激活状态
+                document.querySelectorAll('.filter-tab').forEach(function(t) {
+                    t.classList.remove('active');
+                });
+                this.classList.add('active');
+
+                // 显示/隐藏回收站操作栏
+                var trashActions = document.getElementById('trashActions');
+                if (trashActions) {
+                    if (filter === 'trash') {
+                        trashActions.classList.remove('hidden');
+                    } else {
+                        trashActions.classList.add('hidden');
+                    }
+                }
+
+                // 重新渲染文章列表
+                if (filter === 'trash') {
+                    if (typeof window.adminRenderTrashPosts === 'function') {
+                        window.adminRenderTrashPosts(trashPosts);
+                    }
+                } else {
+                    if (typeof window.adminRenderPosts === 'function') {
+                        window.adminRenderPosts(filterPosts(allPosts));
+                    }
+                }
+            });
+        });
+
+        // 筛选文章
+        function filterPosts(posts) {
+            if (currentFilter === 'all') {
+                return posts;
+            } else if (currentFilter === 'published') {
+                return posts.filter(function(p) { return !p.is_draft; });
+            } else if (currentFilter === 'draft') {
+                return posts.filter(function(p) { return p.is_draft; });
+            }
+            return posts;
+        }
+
+        // 更新计数
+        function updateCounts(posts, trash) {
+            var countAll = posts.length;
+            var countPublished = posts.filter(function(p) { return !p.is_draft; }).length;
+            var countDraft = posts.filter(function(p) { return p.is_draft; }).length;
+            var countTrash = trash ? trash.length : 0;
+
+            var countAllEl = document.getElementById('countAll');
+            var countPublishedEl = document.getElementById('countPublished');
+            var countDraftEl = document.getElementById('countDraft');
+            var countTrashEl = document.getElementById('countTrash');
+
+            if (countAllEl) countAllEl.textContent = countAll;
+            if (countPublishedEl) countPublishedEl.textContent = countPublished;
+            if (countDraftEl) countDraftEl.textContent = countDraft;
+            if (countTrashEl) countTrashEl.textContent = countTrash;
+        }
+
+        // 加载回收站文章
+        async function loadTrashPosts() {
+            try {
+                var API_URL = window.API_URL;
+                var response = await fetch(API_URL + "/posts/trash/list?all=true", {
+                    headers: {
+                        "Authorization": "Bearer " + localStorage.getItem("adminToken")
+                    }
+                });
+                if (response.ok) {
+                    trashPosts = await response.json();
+                }
+            } catch (err) {
+                console.error("Failed to load trash posts:", err);
+                trashPosts = [];
+            }
+            return trashPosts;
+        }
+
+        // 暴露给全局
+        window.postsFilterUpdate = function(posts) {
+            allPosts = posts;
+            // 同时加载回收站数据
+            loadTrashPosts().then(function(trash) {
+                updateCounts(posts, trash);
+            });
+            return filterPosts(posts);
+        };
+
+        // 清空回收站
+        var emptyTrashBtn = document.getElementById('emptyTrashBtn');
+        if (emptyTrashBtn) {
+            emptyTrashBtn.addEventListener('click', async function() {
+                var confirmed = false;
+                if (window.adminConfirm) {
+                    confirmed = await window.adminConfirm("确定要清空回收站吗？所有文章将被永久删除，此操作不可恢复！");
+                } else {
+                    confirmed = confirm("确定要清空回收站吗？所有文章将被永久删除，此操作不可恢复！");
+                }
+
+                if (!confirmed) return;
+
+                try {
+                    var API_URL = window.API_URL;
+                    var response = await fetch(API_URL + "/posts/trash/empty", {
+                        method: "DELETE",
+                        headers: {
+                            "Authorization": "Bearer " + localStorage.getItem("adminToken")
+                        }
+                    });
+
+                    if (response.ok) {
+                        var result = await response.json();
+                        if (window.adminAlert) {
+                            await window.adminAlert(result.message, "success");
+                        }
+                        // 清空本地回收站数据并重新渲染
+                        trashPosts = [];
+                        updateCounts(allPosts, trashPosts);
+                        if (typeof window.adminRenderTrashPosts === 'function') {
+                            window.adminRenderTrashPosts(trashPosts);
+                        }
+                    } else {
+                        var err = await response.json();
+                        if (window.adminAlert) {
+                            window.adminAlert(err.detail || "清空失败", "error");
+                        }
+                    }
+                } catch (err) {
+                    console.error(err);
+                    if (window.adminAlert) {
+                        window.adminAlert("清空失败", "error");
+                    }
+                }
+            });
+        }
+
+        // Load posts when page loads
+        if (typeof window.adminLoadPosts === 'function') {
+            window.adminLoadPosts();
+        }
+    });
 </script>

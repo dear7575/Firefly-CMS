@@ -178,6 +178,7 @@ CREATE TABLE `posts`  (
   `pin_order` int NULL DEFAULT NULL COMMENT '置顶排序(数字越小越靠前)',
   `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '文章访问密码(明文,可选)',
   `updated_at` datetime NULL DEFAULT NULL COMMENT '最后更新时间',
+  `deleted_at` datetime NULL DEFAULT NULL COMMENT '软删除时间(NULL表示未删除)',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `ix_posts_slug`(`slug` ASC) USING BTREE,
   INDEX `category_id`(`category_id` ASC) USING BTREE,
@@ -185,6 +186,7 @@ CREATE TABLE `posts`  (
   INDEX `ix_posts_id`(`id` ASC) USING BTREE,
   INDEX `ix_posts_pinned`(`pinned` ASC) USING BTREE,
   INDEX `ix_posts_pin_order`(`pin_order` ASC) USING BTREE,
+  INDEX `ix_posts_deleted_at`(`deleted_at` ASC) USING BTREE,
   CONSTRAINT `posts_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '文章表' ROW_FORMAT = Dynamic;
 
