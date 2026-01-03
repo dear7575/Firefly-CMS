@@ -1,0 +1,938 @@
+---
+export const prerender = false;
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { siteConfig } from "@/config";
+---
+
+<AdminLayout title={`文件管理 - ${siteConfig.title}`} activeMenu="media">
+    <div class="p-6 lg:p-8 animate-fade-in-up">
+        <!-- 头部 -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <div>
+                <h1 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">文件管理</h1>
+                <p class="text-sm text-zinc-500 mt-1">管理上传的图片和文件</p>
+            </div>
+            <div class="flex gap-2">
+                <button id="toggleSidebarBtn" class="lg:hidden px-3 py-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all" title="切换侧边栏">
+                    <svg class="w-5 h-5 text-zinc-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+                <button id="createFolderBtn" class="px-4 py-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+                    新建文件夹
+                </button>
+                <button id="toggleViewBtn" class="px-3 py-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all" title="切换视图">
+                    <svg id="gridIcon" class="w-5 h-5 text-zinc-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                    <svg id="listIcon" class="w-5 h-5 text-zinc-600 dark:text-zinc-400 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+                <label class="bg-[var(--primary)] dark:bg-zinc-800 hover:opacity-90 dark:hover:bg-zinc-700 text-white dark:text-zinc-100 px-6 py-2.5 rounded-xl font-medium transition-all shadow-lg hover:shadow-xl active:scale-95 cursor-pointer flex items-center gap-2 dark:border dark:border-[var(--primary)]/50">
+                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
+                    上传文件
+                    <input type="file" id="fileInput" multiple accept="image/*,application/pdf,application/zip,text/plain,text/markdown,.md" class="hidden" />
+                </label>
+            </div>
+        </div>
+
+        <!-- 双栏布局 -->
+        <div class="flex gap-4">
+            <!-- 左侧目录树 -->
+            <aside id="folderSidebar" class="w-80 flex-shrink-0 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden hidden lg:block">
+                <div class="p-4 border-b border-zinc-200 dark:border-zinc-800">
+                    <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+                        文件夹
+                    </h3>
+                </div>
+                <div id="folderTree" class="p-2 overflow-y-auto max-h-[calc(100vh-20rem)]">
+                    <div class="folder-tree-item active" data-path="">
+                        <div class="folder-tree-label">
+                            <svg class="w-4 h-4 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                            <span class="flex-1 truncate">根目录</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- 右侧内容区 -->
+            <div class="flex-1 min-w-0">
+                <!-- 面包屑和搜索栏 -->
+                <div class="flex items-center justify-between gap-4 mb-3">
+                    <!-- 面包屑 -->
+                    <nav id="breadcrumb" class="flex-1 flex items-center gap-1.5 text-sm bg-white dark:bg-zinc-900 px-4 h-[46px] rounded-xl border border-zinc-200 dark:border-zinc-800 min-w-0 overflow-x-auto">
+                        <svg class="w-4 h-4 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                        <a href="#" class="text-zinc-700 dark:text-zinc-300 hover:text-[var(--primary)] transition-colors breadcrumb-link font-medium" data-path="">根目录</a>
+                    </nav>
+                    <!-- 搜索框 -->
+                    <div class="relative w-80 flex-shrink-0">
+                        <input type="text" id="searchInput" placeholder="搜索文件..." class="w-full px-4 h-[46px] pl-10 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent outline-none transition-all" />
+                        <svg class="w-5 h-5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </div>
+                </div>
+
+                <!-- 批量操作栏 -->
+                <div id="batchActions" class="hidden mb-4 p-3 bg-[color-mix(in_srgb,var(--primary)_10%,transparent)] rounded-xl border border-[var(--primary)]/30 flex items-center justify-between">
+                    <span class="text-sm text-[var(--primary)]">
+                        已选择 <span id="selectedCount">0</span> 个文件
+                    </span>
+                    <div class="flex gap-2">
+                        <button id="cancelSelectBtn" class="px-3 py-1.5 text-sm rounded-lg bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 transition-colors">
+                            取消选择
+                        </button>
+                        <button id="batchDeleteBtn" class="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-sm rounded-lg transition-colors flex items-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            删除选中
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 拖拽上传区 -->
+                <div id="dropZone" class="mb-4 hidden border-2 border-dashed border-[var(--primary)] bg-[color-mix(in_srgb,var(--primary)_5%,transparent)] rounded-2xl p-8 text-center transition-all duration-300">
+                    <div class="w-14 h-14 mx-auto mb-3 rounded-xl bg-[var(--primary)] flex items-center justify-center">
+                        <svg class="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                    </div>
+                    <p class="text-[var(--primary)] font-medium">拖放文件到这里上传</p>
+                    <p class="text-zinc-500 text-sm mt-1">支持图片、PDF、ZIP、TXT、MD 格式</p>
+                </div>
+
+                <!-- 文件网格/列表 -->
+                <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
+                    <div id="mediaGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-4 p-4">
+                        <div class="col-span-full flex flex-col items-center justify-center py-16">
+                            <div class="w-12 h-12 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center mb-3 animate-pulse">
+                                <svg class="w-6 h-6 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            </div>
+                            <p class="text-zinc-500 dark:text-zinc-400">加载中...</p>
+                        </div>
+                    </div>
+                    <!-- 统计信息 -->
+                    <div class="px-4 py-3 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between text-sm text-zinc-500">
+                        <span id="fileCount">0 项</span>
+                        <span id="storageInfo"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 预览弹框 -->
+    <div id="previewModal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="relative max-w-5xl max-h-[90vh] w-full animate-fade-in-up">
+            <button id="closePreview" class="absolute -top-12 right-0 w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md text-white hover:bg-white/20 transition-all duration-200 flex items-center justify-center">
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+            <img id="previewImage" src="" alt="预览" class="max-w-full max-h-[85vh] mx-auto rounded-2xl shadow-2xl ring-1 ring-white/10" />
+            <div id="previewInfo" class="mt-4 text-center text-white/80 text-sm font-medium"></div>
+        </div>
+    </div>
+
+    <!-- 创建文件夹弹框 -->
+    <div id="createFolderModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white dark:bg-zinc-900 rounded-2xl p-6 max-w-md w-full shadow-2xl border border-zinc-200 dark:border-zinc-800 animate-fade-in-up">
+            <div class="flex items-center gap-3 mb-5">
+                <span class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/25">
+                    <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+                </span>
+                <h3 class="text-lg font-bold text-zinc-900 dark:text-zinc-100">新建文件夹</h3>
+            </div>
+            <input type="text" id="folderNameInput" placeholder="输入文件夹名称..." class="w-full px-4 py-3 border border-zinc-200 dark:border-zinc-700 rounded-xl mb-5 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all" />
+            <div class="flex gap-3 justify-end">
+                <button id="cancelCreateFolder" class="px-5 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-200 font-medium text-zinc-600 dark:text-zinc-400">取消</button>
+                <button id="confirmCreateFolder" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-violet-500 to-purple-600 text-white font-medium hover:from-violet-600 hover:to-purple-700 transition-all duration-200 shadow-lg shadow-violet-500/25">创建</button>
+            </div>
+        </div>
+    </div>
+</AdminLayout>
+
+<style is:global>
+    /* 筛选标签 */
+    .filter-tab {
+        @apply px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2;
+        @apply text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800;
+        @apply hover:bg-zinc-200 dark:hover:bg-zinc-700;
+    }
+
+    .filter-tab.active {
+        @apply bg-[var(--primary)] text-white;
+    }
+
+    .filter-count {
+        @apply px-1.5 py-0.5 text-xs rounded-full min-w-[1.25rem] text-center;
+        @apply bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300;
+    }
+
+    .filter-tab.active .filter-count {
+        @apply bg-white/20 text-white;
+    }
+
+    /* 目录树样式 */
+    .folder-tree-item {
+        @apply mb-1;
+    }
+
+    .folder-tree-item .folder-tree-label {
+        @apply flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm text-zinc-700 dark:text-zinc-300;
+        @apply hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer;
+    }
+
+    .folder-tree-item .folder-tree-label svg {
+        @apply flex-shrink-0;
+    }
+
+    .folder-tree-item .folder-tree-label span {
+        @apply flex-1 truncate;
+    }
+
+    .folder-tree-item.active .folder-tree-label {
+        @apply bg-[color-mix(in_srgb,var(--primary)_10%,transparent)] text-[var(--primary)] font-medium;
+    }
+
+    .folder-tree-item .folder-tree-children {
+        @apply ml-2 pl-2 border-l border-zinc-200 dark:border-zinc-700 mt-1;
+    }
+
+    .folder-tree-item .folder-tree-toggle {
+        @apply w-4 h-4 flex-shrink-0 transition-transform duration-200 cursor-pointer;
+    }
+
+    .folder-tree-item.expanded .folder-tree-toggle {
+        @apply rotate-90;
+    }
+
+    /* 文件项样式 */
+    .media-item, .folder-item {
+        @apply relative bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 overflow-hidden transition-all duration-200 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-600 cursor-pointer;
+    }
+
+    .media-item.selected, .folder-item.selected {
+        @apply ring-2 ring-[var(--primary)] border-[var(--primary)];
+    }
+
+    .folder-item {
+        @apply bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800/50;
+    }
+
+    .folder-item:hover {
+        @apply border-amber-300 dark:border-amber-700;
+    }
+
+    .media-item .thumbnail {
+        @apply aspect-square bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center overflow-hidden relative;
+    }
+
+    .folder-item .thumbnail {
+        @apply bg-amber-100/50 dark:bg-amber-900/30;
+    }
+
+    .media-item .thumbnail img {
+        @apply w-full h-full object-cover transition-transform duration-300;
+    }
+
+    .media-item:hover .thumbnail img {
+        @apply scale-105;
+    }
+
+    .media-item .info, .folder-item .info {
+        @apply p-3;
+    }
+
+    .media-item .filename, .folder-item .filename {
+        @apply text-sm font-medium text-zinc-800 dark:text-zinc-200 truncate;
+    }
+
+    .media-item .filesize, .folder-item .filesize {
+        @apply text-xs text-zinc-500 dark:text-zinc-400 mt-0.5;
+    }
+
+    .folder-item .filesize {
+        @apply text-amber-600 dark:text-amber-400;
+    }
+
+    .media-item .actions, .folder-item .actions {
+        @apply absolute top-2 right-2 flex gap-1.5 opacity-0 transition-all duration-200 z-10;
+    }
+
+    .media-item:hover .actions, .folder-item:hover .actions {
+        @apply !opacity-100;
+    }
+
+    .media-item .action-btn, .folder-item .action-btn {
+        @apply p-1.5 rounded-lg bg-black/50 backdrop-blur-sm text-white hover:bg-black/70 transition-all cursor-pointer;
+    }
+
+    .media-item .select-checkbox {
+        @apply absolute top-2 left-2 w-5 h-5 rounded border-2 border-white/80 bg-black/30 backdrop-blur-sm cursor-pointer transition-all opacity-0;
+    }
+
+    .media-item:hover .select-checkbox, .media-item.selected .select-checkbox {
+        @apply opacity-100;
+    }
+
+    .media-item.selected .select-checkbox {
+        @apply bg-[var(--primary)] border-[var(--primary)];
+    }
+
+    /* 列表视图 */
+    .list-view {
+        @apply !grid-cols-1;
+    }
+
+    .list-view .media-item, .list-view .folder-item {
+        @apply flex flex-row items-center gap-4 p-3;
+    }
+
+    .list-view .thumbnail {
+        @apply !w-16 !h-16 flex-shrink-0 rounded-lg aspect-square;
+    }
+
+    .list-view .info {
+        @apply flex-1 !p-0;
+    }
+
+    .list-view .filename {
+        @apply !text-base;
+    }
+
+    .list-view .select-checkbox {
+        @apply relative top-auto left-auto opacity-100 bg-zinc-200 dark:bg-zinc-700 border-zinc-300 dark:border-zinc-600;
+    }
+
+    .list-view .media-item.selected .select-checkbox {
+        @apply bg-[var(--primary)] border-[var(--primary)];
+    }
+
+    /* 响应式侧边栏 */
+    @media (max-width: 1023px) {
+        #folderSidebar.mobile-open {
+            @apply fixed inset-y-0 left-0 z-40 block w-80;
+        }
+    }
+</style>
+
+<script is:inline>
+    document.addEventListener('astro:page-load', function() {
+        if (!document.getElementById('mediaGrid')) return;
+
+        var API_URL = window.API_URL;
+        var currentPath = '';
+        var viewMode = 'grid';
+        var folderStructure = {};
+
+        // 加载完整的文件夹结构
+        async function loadFolderStructure() {
+            try {
+                var response = await fetch(API_URL + '/upload/list', {
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('adminToken')
+                    }
+                });
+
+                if (!response.ok) {
+                    console.warn('文件夹结构加载失败，使用空树');
+                    folderStructure = {};
+                    renderFolderTree();
+                    return;
+                }
+
+                var data = await response.json();
+                folderStructure = buildFolderTree(data.folders || []);
+                renderFolderTree();
+            } catch (err) {
+                console.error('加载文件夹结构失败:', err);
+                // 即使失败也渲染基本的根目录
+                folderStructure = {};
+                renderFolderTree();
+            }
+        }
+
+        // 构建文件夹树结构
+        function buildFolderTree(folders) {
+            var tree = {};
+            folders.forEach(function(folder) {
+                var parts = folder.path.split('/');
+                var current = tree;
+                parts.forEach(function(part, index) {
+                    if (!current[part]) {
+                        current[part] = {
+                            name: part,
+                            path: parts.slice(0, index + 1).join('/'),
+                            children: {}
+                        };
+                    }
+                    current = current[part].children;
+                });
+            });
+            return tree;
+        }
+
+        // 渲染文件夹树
+        function renderFolderTree() {
+            var treeContainer = document.getElementById('folderTree');
+            var html = '<div class="folder-tree-item active" data-path="">' +
+                '<div class="folder-tree-label">' +
+                    '<svg class="w-4 h-4 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>' +
+                    '<span class="flex-1 truncate">根目录</span>' +
+                '</div>' +
+            '</div>';
+
+            html += renderFolderTreeItems(folderStructure, 0);
+            treeContainer.innerHTML = html;
+            bindFolderTreeEvents();
+        }
+
+        // 递归渲染文件夹树项
+        function renderFolderTreeItems(tree, level) {
+            var html = '';
+            var keys = Object.keys(tree).sort();
+
+            keys.forEach(function(key) {
+                var folder = tree[key];
+                var hasChildren = Object.keys(folder.children).length > 0;
+
+                html += '<div class="folder-tree-item" data-path="' + folder.path + '" data-level="' + level + '">' +
+                    '<div class="folder-tree-label" style="padding-left: ' + (level * 8 + 8) + 'px">';
+
+                // 展开/折叠图标或占位符
+                if (hasChildren) {
+                    html += '<svg class="folder-tree-toggle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>';
+                } else {
+                    html += '<div class="w-4 h-4 flex-shrink-0"></div>';
+                }
+
+                // 文件夹图标
+                html += '<svg class="w-4 h-4 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>';
+
+                // 文件夹名称
+                html += '<span class="flex-1 truncate">' + folder.name + '</span>';
+
+                html += '</div>';
+
+                if (hasChildren) {
+                    html += '<div class="folder-tree-children hidden">' +
+                        renderFolderTreeItems(folder.children, level + 1) +
+                    '</div>';
+                }
+
+                html += '</div>';
+            });
+
+            return html;
+        }
+
+        // 绑定文件夹树事件
+        function bindFolderTreeEvents() {
+            document.querySelectorAll('.folder-tree-item').forEach(function(item) {
+                var label = item.querySelector('.folder-tree-label');
+                var toggle = item.querySelector('.folder-tree-toggle');
+                var children = item.querySelector('.folder-tree-children');
+
+                // 点击标签切换目录
+                label.addEventListener('click', function(e) {
+                    e.stopPropagation();
+
+                    // 如果点击的是展开/折叠图标
+                    if (e.target.closest('.folder-tree-toggle') && children) {
+                        item.classList.toggle('expanded');
+                        children.classList.toggle('hidden');
+                        return;
+                    }
+
+                    // 切换当前目录
+                    document.querySelectorAll('.folder-tree-item').forEach(function(i) {
+                        i.classList.remove('active');
+                    });
+                    item.classList.add('active');
+                    currentPath = item.dataset.path;
+                    loadFiles();
+                });
+
+                // 右键菜单 - 删除文件夹
+                if (item.dataset.path) { // 不给根目录添加右键菜单
+                    label.addEventListener('contextmenu', function(e) {
+                        e.preventDefault();
+                        var folderPath = item.dataset.path;
+                        var folderName = item.querySelector('span').textContent;
+
+                        if (window.adminConfirm) {
+                            window.adminConfirm('确定要删除文件夹 "' + folderName + '" 吗？（必须为空）').then(function(confirmed) {
+                                if (confirmed) {
+                                    deleteFolder(folderPath);
+                                }
+                            });
+                        } else {
+                            if (confirm('确定要删除文件夹 "' + folderName + '" 吗？（必须为空）')) {
+                                deleteFolder(folderPath);
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+        // 切换侧边栏（移动端）
+        document.getElementById('toggleSidebarBtn')?.addEventListener('click', function() {
+            var sidebar = document.getElementById('folderSidebar');
+            sidebar.classList.toggle('mobile-open');
+        });
+
+        // 格式化文件大小
+        function formatSize(bytes) {
+            if (bytes === 0) return '0 B';
+            var k = 1024;
+            var sizes = ['B', 'KB', 'MB', 'GB'];
+            var i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // 判断是否为图片
+        function isImage(filename) {
+            var ext = filename.toLowerCase().split('.').pop();
+            return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext);
+        }
+
+        // 获取文件图标
+        function getFileIcon(filename) {
+            var ext = filename.toLowerCase().split('.').pop();
+            var icons = {
+                pdf: '<svg class="w-16 h-16 drop-shadow-lg" viewBox="0 0 24 24" fill="none"><rect x="4" y="2" width="16" height="20" rx="2" fill="url(#pdf-gradient)"/><path d="M8 2h8l4 4v14a2 2 0 01-2 2H6a2 2 0 01-2-2V4a2 2 0 012-2z" stroke="#DC2626" stroke-width="1.5"/><text x="12" y="15" font-size="6" font-weight="bold" fill="white" text-anchor="middle">PDF</text><defs><linearGradient id="pdf-gradient" x1="4" y1="2" x2="20" y2="22"><stop stop-color="#EF4444"/><stop offset="1" stop-color="#DC2626"/></linearGradient></defs></svg>',
+                zip: '<svg class="w-16 h-16 drop-shadow-lg" viewBox="0 0 24 24" fill="none"><rect x="4" y="2" width="16" height="20" rx="2" fill="url(#zip-gradient)"/><path d="M8 2h8l4 4v14a2 2 0 01-2 2H6a2 2 0 01-2-2V4a2 2 0 012-2z" stroke="#D97706" stroke-width="1.5"/><path d="M10 6h4M10 8h4M10 10h4M12 12v6" stroke="white" stroke-width="1.5" stroke-linecap="round"/><defs><linearGradient id="zip-gradient" x1="4" y1="2" x2="20" y2="22"><stop stop-color="#FCD34D"/><stop offset="1" stop-color="#F59E0B"/></linearGradient></defs></svg>',
+                txt: '<svg class="w-16 h-16 drop-shadow-lg" viewBox="0 0 24 24" fill="none"><rect x="4" y="2" width="16" height="20" rx="2" fill="url(#txt-gradient)"/><path d="M8 2h8l4 4v14a2 2 0 01-2 2H6a2 2 0 01-2-2V4a2 2 0 012-2z" stroke="#6B7280" stroke-width="1.5"/><line x1="8" y1="10" x2="16" y2="10" stroke="white" stroke-width="1.5" stroke-linecap="round"/><line x1="8" y1="13" x2="16" y2="13" stroke="white" stroke-width="1.5" stroke-linecap="round"/><line x1="8" y1="16" x2="13" y2="16" stroke="white" stroke-width="1.5" stroke-linecap="round"/><defs><linearGradient id="txt-gradient" x1="4" y1="2" x2="20" y2="22"><stop stop-color="#9CA3AF"/><stop offset="1" stop-color="#6B7280"/></linearGradient></defs></svg>',
+                md: '<svg class="w-16 h-16 drop-shadow-lg" viewBox="0 0 24 24" fill="none"><rect x="4" y="2" width="16" height="20" rx="2" fill="url(#md-gradient)"/><path d="M8 2h8l4 4v14a2 2 0 01-2 2H6a2 2 0 01-2-2V4a2 2 0 012-2z" stroke="#3B82F6" stroke-width="1.5"/><text x="12" y="15" font-size="5" font-weight="bold" fill="white" text-anchor="middle">MD</text><defs><linearGradient id="md-gradient" x1="4" y1="2" x2="20" y2="22"><stop stop-color="#60A5FA"/><stop offset="1" stop-color="#3B82F6"/></linearGradient></defs></svg>'
+            };
+            return icons[ext] || '<svg class="w-16 h-16 drop-shadow-lg" viewBox="0 0 24 24" fill="none"><rect x="4" y="2" width="16" height="20" rx="2" fill="url(#file-gradient)"/><path d="M8 2h8l4 4v14a2 2 0 01-2 2H6a2 2 0 01-2-2V4a2 2 0 012-2z" stroke="#9CA3AF" stroke-width="1.5"/><defs><linearGradient id="file-gradient" x1="4" y1="2" x2="20" y2="22"><stop stop-color="#D1D5DB"/><stop offset="1" stop-color="#9CA3AF"/></linearGradient></defs></svg>';
+        }
+
+        // 更新面包屑
+        function updateBreadcrumb() {
+            var breadcrumb = document.getElementById('breadcrumb');
+            var parts = currentPath ? currentPath.split('/') : [];
+
+            // 根目录图标
+            var html = '<svg class="w-4 h-4 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>';
+            html += '<a href="#" class="text-zinc-700 dark:text-zinc-300 hover:text-[var(--primary)] transition-colors breadcrumb-link font-medium" data-path="">根目录</a>';
+            var path = '';
+
+            parts.forEach(function(part, i) {
+                path += (i > 0 ? '/' : '') + part;
+                // 分隔符
+                html += '<svg class="w-4 h-4 text-zinc-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>';
+                // 文件夹图标
+                html += '<svg class="w-4 h-4 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>';
+                html += '<a href="#" class="text-zinc-700 dark:text-zinc-300 hover:text-[var(--primary)] transition-colors breadcrumb-link font-medium" data-path="' + path + '">' + part + '</a>';
+            });
+
+            breadcrumb.innerHTML = html;
+
+            document.querySelectorAll('.breadcrumb-link').forEach(function(link) {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    currentPath = this.dataset.path;
+                    // 更新左侧树的选中状态
+                    document.querySelectorAll('.folder-tree-item').forEach(function(item) {
+                        item.classList.remove('active');
+                        if (item.dataset.path === currentPath) {
+                            item.classList.add('active');
+                        }
+                    });
+                    loadFiles();
+                });
+            });
+        }
+
+        // 加载存储空间信息
+        async function loadStorageInfo() {
+            var storageEl = document.getElementById('storageInfo');
+            if (!storageEl) return;
+
+            try {
+                var response = await fetch(API_URL + '/upload/storage-info', {
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('adminToken')
+                    }
+                });
+
+                if (response.ok) {
+                    var data = await response.json();
+                    var sizeText = formatSize(data.total_size);
+                    storageEl.textContent = sizeText + ' • ' + data.file_count + ' 个文件 • ' + data.folder_count + ' 个文件夹';
+                } else {
+                    // 如果404或其他错误，隐藏存储信息
+                    storageEl.textContent = '';
+                }
+            } catch (err) {
+                console.warn('存储信息加载失败(非关键错误):', err);
+                storageEl.textContent = '';
+            }
+        }
+
+        // 加载文件列表
+        async function loadFiles() {
+            var grid = document.getElementById('mediaGrid');
+            var countEl = document.getElementById('fileCount');
+            var storageEl = document.getElementById('storageInfo');
+
+            // 更新面包屑
+            updateBreadcrumb();
+
+            try {
+                var url = currentPath ? API_URL + '/upload/list/' + currentPath : API_URL + '/upload/list';
+                var response = await fetch(url, {
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('adminToken')
+                    }
+                });
+
+                if (!response.ok) throw new Error('加载失败');
+
+                var data = await response.json();
+                var files = data.files || [];
+
+                countEl.textContent = files.length + ' 个文件';
+
+                // 异步加载存储空间信息(不阻塞)
+                loadStorageInfo().catch(function(err) {
+                    console.warn('存储信息加载失败:', err);
+                });
+
+                if (files.length === 0) {
+                    grid.innerHTML = '<div class="col-span-full text-center py-12 text-zinc-500">暂无文件</div>';
+                    return;
+                }
+
+                // 只渲染文件(文件夹在左侧树中显示)
+                var html = files.map(function(file) {
+                    var isImg = isImage(file.filename);
+                    var thumbnail = isImg
+                        ? '<img src="' + file.url + '" alt="' + file.filename + '" loading="lazy" />'
+                        : getFileIcon(file.filename);
+
+                    return '<div class="media-item" data-url="' + file.url + '" data-filename="' + file.filename + '">' +
+                        '<div class="actions">' +
+                            (isImg ? '<button class="action-btn preview-btn" title="预览"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg></button>' : '') +
+                            '<button class="action-btn copy-btn" title="复制链接"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg></button>' +
+                            '<button class="action-btn delete-btn" title="删除"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>' +
+                        '</div>' +
+                        '<div class="thumbnail">' + thumbnail + '</div>' +
+                        '<div class="info">' +
+                            '<div class="filename" title="' + file.filename + '">' + file.filename + '</div>' +
+                            '<div class="filesize">' + formatSize(file.size) + '</div>' +
+                        '</div>' +
+                    '</div>';
+                }).join('');
+
+                grid.innerHTML = html;
+                bindEvents();
+
+            } catch (err) {
+                console.error(err);
+                grid.innerHTML = '<div class="col-span-full text-center py-12 text-red-500">加载失败</div>';
+            }
+        }
+
+        // 绑定事件
+        function bindEvents() {
+            // 预览
+            document.querySelectorAll('.preview-btn').forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    var item = this.closest('.media-item');
+                    var url = item.dataset.url;
+                    var filename = item.dataset.filename;
+                    showPreview(url, filename);
+                });
+            });
+
+            // 复制链接
+            document.querySelectorAll('.copy-btn').forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    var item = this.closest('.media-item');
+                    var url = item.dataset.url;
+                    copyToClipboard(url);
+                });
+            });
+
+            // 删除
+            document.querySelectorAll('.delete-btn').forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    var item = this.closest('.media-item');
+                    var filename = item.dataset.filename;
+                    deleteFile(filename);
+                });
+            });
+        }
+
+        // 显示预览
+        function showPreview(url, filename) {
+            var modal = document.getElementById('previewModal');
+            var img = document.getElementById('previewImage');
+            var info = document.getElementById('previewInfo');
+
+            img.src = url;
+            info.textContent = filename;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        // 关闭预览
+        document.getElementById('closePreview')?.addEventListener('click', function() {
+            var modal = document.getElementById('previewModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        });
+
+        document.getElementById('previewModal')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.add('hidden');
+                this.classList.remove('flex');
+            }
+        });
+
+        // 复制到剪贴板
+        async function copyToClipboard(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                if (window.adminAlert) {
+                    window.adminAlert('链接已复制', 'success');
+                }
+            } catch (err) {
+                if (window.adminAlert) {
+                    window.adminAlert('复制失败', 'error');
+                }
+            }
+        }
+
+        // 删除文件
+        async function deleteFile(filename) {
+            var confirmed = false;
+            if (window.adminConfirm) {
+                confirmed = await window.adminConfirm('确定要删除 "' + filename + '" 吗？');
+            } else {
+                confirmed = confirm('确定要删除 "' + filename + '" 吗？');
+            }
+
+            if (!confirmed) return;
+
+            try {
+                var url = currentPath ? API_URL + '/upload/' + currentPath + '/' + filename : API_URL + '/upload//' + filename;
+                var response = await fetch(url, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('adminToken')
+                    }
+                });
+
+                if (response.ok) {
+                    if (window.adminAlert) {
+                        await window.adminAlert('删除成功', 'success');
+                    }
+                    loadFiles();
+                } else {
+                    var err = await response.json();
+                    if (window.adminAlert) {
+                        window.adminAlert(err.detail || '删除失败', 'error');
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+                if (window.adminAlert) {
+                    window.adminAlert('删除失败', 'error');
+                }
+            }
+        }
+
+        // 删除文件夹
+        async function deleteFolder(path) {
+            try {
+                var response = await fetch(API_URL + '/upload/folder/' + path, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('adminToken')
+                    }
+                });
+
+                if (response.ok) {
+                    if (window.adminAlert) {
+                        await window.adminAlert('删除成功', 'success');
+                    }
+                    // 重新加载文件夹树和文件列表
+                    loadFolderStructure();
+                    loadFiles();
+                } else {
+                    var err = await response.json();
+                    if (window.adminAlert) {
+                        window.adminAlert(err.detail || '删除失败', 'error');
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+                if (window.adminAlert) {
+                    window.adminAlert('删除失败', 'error');
+                }
+            }
+        }
+
+        // 上传文件
+        async function uploadFiles(files) {
+            var dropZone = document.getElementById('dropZone');
+            dropZone.classList.remove('hidden');
+
+            var formData = new FormData();
+            for (var i = 0; i < files.length; i++) {
+                formData.append('files', files[i]);
+            }
+            if (currentPath) formData.append('subdir', currentPath);
+
+            try {
+                var response = await fetch(API_URL + '/upload/images', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('adminToken')
+                    },
+                    body: formData
+                });
+
+                dropZone.classList.add('hidden');
+
+                if (response.ok) {
+                    var result = await response.json();
+                    if (window.adminAlert) {
+                        await window.adminAlert('成功上传 ' + result.uploaded + ' 个文件', 'success');
+                    }
+                    loadFiles();
+                } else {
+                    var err = await response.json();
+                    if (window.adminAlert) {
+                        window.adminAlert(err.detail || '上传失败', 'error');
+                    }
+                }
+            } catch (err) {
+                dropZone.classList.add('hidden');
+                console.error(err);
+                if (window.adminAlert) {
+                    window.adminAlert('上传失败', 'error');
+                }
+            }
+        }
+
+        var fileInput = document.getElementById('fileInput');
+        if (fileInput) {
+            fileInput.addEventListener('change', function() {
+                if (this.files && this.files.length > 0) {
+                    uploadFiles(this.files);
+                    this.value = '';
+                }
+            });
+        }
+
+        // 拖拽上传
+        var dropZone = document.getElementById('dropZone');
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function(eventName) {
+            document.body.addEventListener(eventName, function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            });
+        });
+
+        ['dragenter', 'dragover'].forEach(function(eventName) {
+            document.body.addEventListener(eventName, function() {
+                dropZone.classList.remove('hidden');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(function(eventName) {
+            document.body.addEventListener(eventName, function() {
+                dropZone.classList.add('hidden');
+            });
+        });
+
+        document.body.addEventListener('drop', function(e) {
+            var files = e.dataTransfer.files;
+            if (files.length > 0) {
+                uploadFiles(files);
+            }
+        });
+
+        // 视图切换
+        document.getElementById('toggleViewBtn')?.addEventListener('click', function() {
+            var grid = document.getElementById('mediaGrid');
+            var gridIcon = document.getElementById('gridIcon');
+            var listIcon = document.getElementById('listIcon');
+
+            if (viewMode === 'grid') {
+                viewMode = 'list';
+                grid.classList.add('list-view');
+                gridIcon.classList.add('hidden');
+                listIcon.classList.remove('hidden');
+            } else {
+                viewMode = 'grid';
+                grid.classList.remove('list-view');
+                gridIcon.classList.remove('hidden');
+                listIcon.classList.add('hidden');
+            }
+        });
+
+        // 创建文件夹
+        document.getElementById('createFolderBtn')?.addEventListener('click', function() {
+            document.getElementById('createFolderModal').classList.remove('hidden');
+            document.getElementById('createFolderModal').classList.add('flex');
+            document.getElementById('folderNameInput').value = '';
+            document.getElementById('folderNameInput').focus();
+        });
+
+        document.getElementById('cancelCreateFolder')?.addEventListener('click', function() {
+            document.getElementById('createFolderModal').classList.add('hidden');
+            document.getElementById('createFolderModal').classList.remove('flex');
+        });
+
+        document.getElementById('confirmCreateFolder')?.addEventListener('click', async function() {
+            var folderName = document.getElementById('folderNameInput').value.trim();
+            if (!folderName) {
+                if (window.adminAlert) {
+                    window.adminAlert('请输入文件夹名称', 'error');
+                }
+                return;
+            }
+
+            var folderPath = currentPath ? currentPath + '/' + folderName : folderName;
+
+            try {
+                var formData = new FormData();
+                formData.append('path', folderPath);
+
+                var response = await fetch(API_URL + '/upload/folder', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('adminToken')
+                    },
+                    body: formData
+                });
+
+                if (response.ok) {
+                    if (window.adminAlert) {
+                        await window.adminAlert('文件夹创建成功', 'success');
+                    }
+                    document.getElementById('createFolderModal').classList.add('hidden');
+                    document.getElementById('createFolderModal').classList.remove('flex');
+                    loadFolderStructure(); // 重新加载文件夹树
+                    loadFiles();
+                } else {
+                    var err = await response.json();
+                    if (window.adminAlert) {
+                        window.adminAlert(err.detail || '创建失败', 'error');
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+                if (window.adminAlert) {
+                    window.adminAlert('创建失败', 'error');
+                }
+            }
+        });
+
+        // 初始加载
+        loadFolderStructure();
+        loadFiles();
+    });
+</script>

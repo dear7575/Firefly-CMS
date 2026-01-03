@@ -203,5 +203,14 @@ export default defineConfig({
 		ssr: {
 			noExternal: ["dayjs", "marked", "hastscript", "qrcode", "gray-matter", "reading-time"],
 		},
+		server: {
+			proxy: {
+				// 代理上传文件请求到后端 API 服务器
+				'/uploads': {
+					target: 'http://localhost:8000',
+					changeOrigin: true,
+				},
+			},
+		},
 	},
 });

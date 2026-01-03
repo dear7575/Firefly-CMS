@@ -130,6 +130,7 @@ def get_posts(
     page: int = 1,
     page_size: int = 10,
     all: bool = False,
+    include_deleted: bool = False,
     db: Session = Depends(get_db)
 ):
     """
@@ -142,12 +143,19 @@ def get_posts(
         page: 页码，从1开始，默认为1
         page_size: 每页数量，默认为10
         all: 是否返回全部文章（不分页），默认为False
+        include_deleted: 是否包含已删除的文章，默认为False
 
     Returns:
         List[dict]: 文章列表，包含分页信息
     """
     # 按置顶优先、置顶排序（数字小的在前）、发布时间倒序排列
-    query = db.query(models.Post).order_by(
+    query = db.query(models.Post)
+
+    # 默认不包含已删除的文章
+    if not include_deleted:
+        query = query.filter(models.Post.deleted_at == None)
+
+    query = query.order_by(
         models.Post.pinned.desc(),
         models.Post.pin_order.asc(),
         models.Post.published_at.desc()
@@ -177,6 +185,7 @@ def get_posts(
         "pinned": p.pinned or False,
         "pin_order": p.pin_order or 0,
         "has_password": p.password is not None and p.password != "",
+        "deleted_at": p.deleted_at,
         "_pagination": {
             "page": page if not all else 1,
             "page_size": page_size if not all else total,
@@ -401,19 +410,22 @@ def update_post(
     return {"message": "文章更新成功"}
 
 
-@router.delete("/{post_id}", summary="删除文章")
+@router.delete("/{post_id}", summary="删除文章（软删除）")
 def delete_post(
         post_id: str,
+        permanent: bool = False,
         db: Session = Depends(get_db),
         current_user: models.Admin = Depends(get_current_user)
 ):
     """
-    删除指定文章
+    删除指定文章（软删除）
 
-    需要认证。
+    需要认证。默认为软删除，文章会移入回收站。
+    如果 permanent=True，则永久删除文章。
 
     Args:
         post_id: 文章 UUID
+        permanent: 是否永久删除，默认为 False（软删除）
 
     Returns:
         dict: 成功消息
@@ -425,9 +437,16 @@ def delete_post(
     if not db_post:
         raise HTTPException(status_code=404, detail="文章不存在")
 
-    db.delete(db_post)
-    db.commit()
-    return {"message": "文章删除成功"}
+    if permanent:
+        # 永久删除
+        db.delete(db_post)
+        db.commit()
+        return {"message": "文章已永久删除"}
+    else:
+        # 软删除
+        db_post.deleted_at = datetime.utcnow()
+        db.commit()
+        return {"message": "文章已移入回收站"}
 
 
 @router.patch("/{post_id}/pin", summary="切换文章置顶状态")
@@ -540,4 +559,125 @@ def verify_post_password(
         return {"valid": True, "message": "密码正确"}
     else:
         return {"valid": False, "message": "密码错误"}
+
+
+# ============== 回收站相关 API ==============
+
+@router.get("/trash/list", response_model=List[dict], summary="获取回收站文章列表")
+def get_trash_posts(
+    page: int = 1,
+    page_size: int = 10,
+    all: bool = False,
+    db: Session = Depends(get_db),
+    current_user: models.Admin = Depends(get_current_user)
+):
+    """
+    获取回收站中的文章列表
+
+    需要认证。只返回已软删除的文章。
+
+    Args:
+        page: 页码，从1开始，默认为1
+        page_size: 每页数量，默认为10
+        all: 是否返回全部文章（不分页），默认为False
+
+    Returns:
+        List[dict]: 回收站文章列表
+    """
+    # 只查询已删除的文章，按删除时间倒序排列
+    query = db.query(models.Post).filter(
+        models.Post.deleted_at != None
+    ).order_by(models.Post.deleted_at.desc())
+
+    # 获取总数
+    total = query.count()
+
+    # 如果不是获取全部，则分页
+    if not all:
+        offset = (page - 1) * page_size
+        query = query.offset(offset).limit(page_size)
+
+    posts = query.all()
+
+    return [{
+        "id": p.id,
+        "title": p.title,
+        "slug": p.slug,
+        "description": p.description,
+        "image": p.image,
+        "published_at": p.published_at,
+        "deleted_at": p.deleted_at,
+        "category": p.category.name if p.category else None,
+        "tags": [t.name for t in p.tags],
+        "is_draft": p.is_draft == 1,
+        "_pagination": {
+            "page": page if not all else 1,
+            "page_size": page_size if not all else total,
+            "total": total,
+            "total_pages": (total + page_size - 1) // page_size if not all else 1
+        }
+    } for p in posts]
+
+
+@router.post("/{post_id}/restore", summary="恢复已删除的文章")
+def restore_post(
+        post_id: str,
+        db: Session = Depends(get_db),
+        current_user: models.Admin = Depends(get_current_user)
+):
+    """
+    从回收站恢复文章
+
+    需要认证。
+
+    Args:
+        post_id: 文章 UUID
+
+    Returns:
+        dict: 成功消息
+
+    Raises:
+        HTTPException: 文章不存在或未被删除时返回错误
+    """
+    db_post = db.query(models.Post).filter(models.Post.id == post_id).first()
+    if not db_post:
+        raise HTTPException(status_code=404, detail="文章不存在")
+
+    if db_post.deleted_at is None:
+        raise HTTPException(status_code=400, detail="文章未被删除，无需恢复")
+
+    # 恢复文章
+    db_post.deleted_at = None
+    db.commit()
+
+    return {"message": "文章已恢复"}
+
+
+@router.delete("/trash/empty", summary="清空回收站")
+def empty_trash(
+        db: Session = Depends(get_db),
+        current_user: models.Admin = Depends(get_current_user)
+):
+    """
+    清空回收站（永久删除所有已软删除的文章）
+
+    需要认证。此操作不可逆。
+
+    Returns:
+        dict: 成功消息，包含删除的文章数量
+    """
+    # 查询所有已删除的文章
+    deleted_posts = db.query(models.Post).filter(
+        models.Post.deleted_at != None
+    ).all()
+
+    count = len(deleted_posts)
+
+    # 永久删除
+    for post in deleted_posts:
+        db.delete(post)
+
+    db.commit()
+
+    return {"message": f"已永久删除 {count} 篇文章"}
 

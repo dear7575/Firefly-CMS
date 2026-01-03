@@ -36,6 +36,7 @@ class Post(Base):
     pin_order = Column(Integer, default=0, index=True, comment="置顶排序(数字越小越靠前)")
     password = Column(String(255), nullable=True, comment="文章访问密码(明文,可选)")
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, comment="最后更新时间")
+    deleted_at = Column(DateTime, nullable=True, index=True, comment="软删除时间(NULL表示未删除)")
 
     category = relationship("Category", back_populates="posts")
     tags = relationship("Tag", secondary=post_tags, back_populates="posts")
