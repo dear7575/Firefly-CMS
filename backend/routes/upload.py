@@ -252,6 +252,55 @@ async def delete_folder(
         raise HTTPException(status_code=500, detail=f"删除失败: {str(e)}")
 
 
+@router.put("/folder/{path:path}", summary="重命名文件夹")
+async def rename_folder(
+    path: str,
+    new_name: str = Form(...),
+    current_user: models.Admin = Depends(get_current_user)
+):
+    """
+    重命名文件夹
+
+    - **path**: 原文件夹路径
+    - **new_name**: 新文件夹名称
+    """
+    # 验证新名称
+    if not new_name or ".." in new_name or "/" in new_name or "\\" in new_name:
+        raise HTTPException(status_code=400, detail="无效的文件夹名称")
+
+    folder_path = os.path.join(settings.UPLOAD_DIR, path)
+
+    # 安全检查
+    real_path = os.path.realpath(folder_path)
+    upload_dir = os.path.realpath(settings.UPLOAD_DIR)
+    if not real_path.startswith(upload_dir) or real_path == upload_dir:
+        raise HTTPException(status_code=403, detail="禁止访问")
+
+    if not os.path.exists(folder_path):
+        raise HTTPException(status_code=404, detail="文件夹不存在")
+
+    if not os.path.isdir(folder_path):
+        raise HTTPException(status_code=400, detail="不是文件夹")
+
+    # 构建新路径
+    parent_dir = os.path.dirname(folder_path)
+    new_path = os.path.join(parent_dir, new_name)
+
+    # 检查新路径是否已存在
+    if os.path.exists(new_path):
+        raise HTTPException(status_code=400, detail="目标文件夹已存在")
+
+    try:
+        shutil.move(folder_path, new_path)
+        # 计算相对路径
+        new_relative_path = os.path.relpath(new_path, settings.UPLOAD_DIR).replace("\\", "/")
+        return {"message": "文件夹重命名成功", "old_path": path, "new_path": new_relative_path}
+    except PermissionError:
+        raise HTTPException(status_code=500, detail="文件夹被占用，请关闭相关程序后重试")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"重命名失败: {str(e)}")
+
+
 @router.delete("/{subdir}/{filename}", summary="删除文件")
 async def delete_file(
     subdir: str,
