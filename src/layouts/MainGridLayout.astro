@@ -177,7 +177,8 @@ const transparentClass = shouldEnableTransparency
 	? "wallpaper-transparent"
 	: "";
 
-const navbarWidthFull = siteConfig.navbarWidthFull ?? false;
+// 导航栏全宽配置（动态配置优先）
+const navbarWidthFull = dynamicSettings.brand_navbar_width_full ?? siteConfig.navbarWidthFull ?? false;
 ---
 
 <Layout title={title} banner={banner} description={description} lang={lang} setOGTypeArticle={setOGTypeArticle} postSlug={postSlug}>

@@ -1,9 +1,11 @@
 <script lang="ts">
 import Icon from "@iconify/svelte";
-import QRCode from "qrcode";
 import { onMount } from "svelte";
 import I18nKey from "../../i18n/i18nKey";
 import { i18n } from "../../i18n/translation";
+
+// 动态导入 qrcode 库，仅在浏览器环境中加载
+let QRCode: any = null;
 
 export let title: string;
 export let author: string;
@@ -19,7 +21,15 @@ let posterImage: string | null = null;
 let generating = false;
 let themeColor = "#558e88"; // Default blue
 
-onMount(() => {
+onMount(async () => {
+	// 动态导入 qrcode 库
+	try {
+		const qrcodeModule = await import("qrcode");
+		QRCode = qrcodeModule.default || qrcodeModule;
+	} catch (e) {
+		console.error("Failed to load QRCode library:", e);
+	}
+
 	// Get theme color from CSS variable
 	const temp = document.createElement("div");
 	temp.style.color = "var(--primary)";
@@ -105,6 +115,18 @@ function drawRoundedRect(
 async function generatePoster() {
 	showModal = true;
 	if (posterImage) return;
+
+	// 检查 QRCode 是否已加载
+	if (!QRCode) {
+		try {
+			const qrcodeModule = await import("qrcode");
+			QRCode = qrcodeModule.default || qrcodeModule;
+		} catch (e) {
+			console.error("Failed to load QRCode library:", e);
+			generating = false;
+			return;
+		}
+	}
 
 	generating = true;
 	try {

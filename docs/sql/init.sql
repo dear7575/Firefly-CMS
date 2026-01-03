@@ -237,7 +237,8 @@ INSERT INTO `site_settings` VALUES ('1dd64443-af3f-4a35-8bc2-c0df2437d377', 'wal
 INSERT INTO `site_settings` VALUES ('1e7f8707-ea61-4583-b5e0-874bfcd69f30', 'banner_credit_desktop_enable', 'true', 'boolean', 'banner', '桌面端显示来源', '桌面端是否显示图片来源', 90, '2025-12-26 02:02:09');
 INSERT INTO `site_settings` VALUES ('227abbf2-7c94-4e34-bc7b-d20ce64980ec', 'announcement_title', '公告', 'string', 'announcement', 'Title', NULL, 0, '2025-12-27 09:50:08');
 INSERT INTO `site_settings` VALUES ('25df22af-fd91-40f3-94c8-461698d9abc1', 'site_lang', 'zh_CN', 'string', 'basic', '站点语言', '网站的默认语言', 95, '2025-12-26 02:02:09');
-INSERT INTO `site_settings` VALUES ('32851742-3b78-4f68-bc50-4870a28eb967', 'brand_navbar_width_full', 'false', 'boolean', 'brand', '全宽导航栏', '导航栏是否占满屏幕宽度', 96, '2025-12-26 02:02:09');
+INSERT INTO `site_settings` VALUES ('b1c2d3e4-f5a6-4b7c-8d9e-0f1a2b3c4d5e', 'brand_navbar_layout', 'space-between', 'string', 'brand', '导航栏布局', 'left=左对齐, center=居中, space-between=两端对齐', 95, '2025-12-26 02:02:09');
+INSERT INTO `site_settings` VALUES ('32851742-3b78-4f68-bc50-4870a28eb967', 'brand_navbar_width_full', 'false', 'boolean', 'brand', '导航栏全宽', NULL, 94, '2025-12-26 02:02:09');
 INSERT INTO `site_settings` VALUES ('39aef70b-67e4-4fa6-a498-726ac90daaf4', 'brand_logo', '/assets/images/LiuYingPure3.svg', 'string', 'brand', '网站Logo', '导航栏Logo图片URL', 100, '2025-12-26 02:02:09');
 INSERT INTO `site_settings` VALUES ('3be93de2-027e-4209-9417-04b36fbcbfe2', 'wallpaper_mode', 'banner', 'string', 'wallpaper', '壁纸模式', '壁纸模式: banner/overlay/none', 100, '2025-12-26 02:02:09');
 INSERT INTO `site_settings` VALUES ('439db07e-1902-45d3-8842-46500a94cf7e', 'footer_custom_html', '', 'text', 'footer', '自定义HTML', '页脚自定义HTML内容', 96, '2025-12-26 01:53:39');

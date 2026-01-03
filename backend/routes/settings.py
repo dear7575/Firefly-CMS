@@ -511,6 +511,10 @@ def init_default_settings(
         {"key": "theme_hue", "value": "165", "type": "number", "group": "theme", "label": "主题色相", "sort_order": 100},
         {"key": "theme_fixed", "value": "false", "type": "boolean", "group": "theme", "label": "固定主题色", "sort_order": 99},
         {"key": "theme_default_mode", "value": "system", "type": "string", "group": "theme", "label": "默认主题模式", "sort_order": 98},
+
+        # 导航栏设置
+        {"key": "brand_navbar_layout", "value": "space-between", "type": "string", "group": "brand", "label": "导航栏布局", "description": "left=左对齐, center=居中, space-between=两端对齐", "sort_order": 95},
+        {"key": "brand_navbar_width_full", "value": "false", "type": "boolean", "group": "brand", "label": "导航栏全宽", "sort_order": 94},
     ]
 
     created_count = 0

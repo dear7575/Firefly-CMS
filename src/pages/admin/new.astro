@@ -297,7 +297,27 @@ const editorI18n = {
 <script is:inline src="/assets/vendor/vditor/index.min.js"></script>
 
 <script is:inline>
-(function() {
+// 使用 astro:page-load 事件确保每次导航都能初始化
+document.addEventListener('astro:page-load', function() {
+    // 检查是否在新建文章页面
+    if (!window.location.pathname.includes('/admin/new')) {
+        return;
+    }
+
+    // 清理之前的实例
+    if (window._newPageVditor) {
+        try {
+            window._newPageVditor.destroy();
+        } catch (e) {}
+        window._newPageVditor = null;
+    }
+    window._newPageVditorInitialized = false;
+
+    // 开始初始化
+    initNewPage();
+});
+
+function initNewPage() {
     // 防止重复初始化
     if (window._newPageVditorInitialized) {
         console.log("New page Vditor already initialized, skipping...");
@@ -758,7 +778,7 @@ const editorI18n = {
     initVditor();
     loadCategories();
     loadTags();
-})();
+}
 </script>
 
 <style is:global>

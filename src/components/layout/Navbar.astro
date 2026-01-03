@@ -54,6 +54,9 @@ const navbarLogoValue = dynamicSettings.brand_logo || siteConfig.navbarLogo?.val
 // 获取导航栏宽度配置
 const navbarWidthFull = dynamicSettings.brand_navbar_width_full || (siteConfig.navbarWidthFull ?? false);
 
+// 获取导航栏布局配置：left=左对齐, center=居中, space-between=两端对齐
+const navbarLayout = dynamicSettings.brand_navbar_layout || "space-between";
+
 // 检查是否为首页
 const isHomePageCheck = isHomePage(Astro.url.pathname);
 
@@ -66,14 +69,17 @@ let links: NavBarLink[] = navBarConfig.links.map(
 	},
 );
 ---
-<div id="navbar" class="z-50 onload-animation" data-transparent-mode={navbarTransparentMode} data-is-home={isHomePageCheck} data-full-width={navbarWidthFull}>
+<div id="navbar" class="z-50 onload-animation" data-transparent-mode={navbarTransparentMode} data-is-home={isHomePageCheck} data-full-width={navbarWidthFull} data-layout={navbarLayout}>
     <div class="absolute h-8 left-0 right-0 -top-8 bg-[var(--card-bg)] transition"></div> <!-- used for onload animation -->
     <div class:list={[
         className,
         "!overflow-visible h-[4.5rem] mx-auto flex items-center px-4",
-        navbarWidthFull ? "" : "justify-between max-w-[var(--page-width)]"
+        navbarWidthFull ? "" : "max-w-[var(--page-width)]",
+        navbarLayout === "center" ? "navbar-center-layout" : "",
+        navbarLayout === "left" ? "navbar-left-layout" : "",
+        navbarLayout === "space-between" ? "justify-between" : ""
     ]}>
-        <a href={url('/')} class="btn-plain scale-animation rounded-lg h-[3.25rem] px-5 font-bold active:scale-95">
+        <a href={url('/')} class="btn-plain scale-animation rounded-lg h-[3.25rem] px-5 font-bold active:scale-95 navbar-logo">
                             <div class="flex flex-row dark:text-white text-black items-center text-md">
                                 {navbarLogoType === "icon" && !navbarLogoValue.startsWith("/") && !navbarLogoValue.startsWith("http") ? (
                                     <Icon name={navbarLogoValue || "material-symbols:home-pin-outline"} class="text-[1.75rem] mb-1 mr-2" />
@@ -85,12 +91,12 @@ let links: NavBarLink[] = navBarConfig.links.map(
                 {navbarTitle}
             </div>
         </a>
-        <div class="hidden md:flex items-center space-x-1">
+        <div class="hidden md:flex items-center space-x-1 navbar-menu">
             {links.map((l) => {
                 return <DropdownMenu link={l} />;
             })}
         </div>
-        <div class:list={["flex", navbarWidthFull ? "ml-auto" : ""]}>
+        <div class:list={["flex navbar-actions", navbarLayout === "left" ? "ml-auto" : ""]}>
             <!--<SearchPanel client:load>-->
             {featureSearch && (
             <Search

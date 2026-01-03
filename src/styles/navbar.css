@@ -792,13 +792,70 @@
  * 仅在桌面端 (min-width: 1024px) 生效，移动端保留圆角
  * ============================================ */
 @media (min-width: 1024px) {
-    #navbar-wrapper #navbar[data-full-width="true"] > div,
-    body:has(#banner-wrapper) #navbar-wrapper #navbar[data-full-width="true"] > div,
-    body.wallpaper-transparent #navbar-wrapper #navbar[data-full-width="true"] > div,
-    #navbar-wrapper #navbar[data-full-width="true"].scrolled > div {
+    #navbar[data-full-width="true"] > div,
+    body:has(#banner-wrapper) #navbar[data-full-width="true"] > div,
+    body.wallpaper-transparent #navbar[data-full-width="true"] > div,
+    #navbar[data-full-width="true"].scrolled > div {
         border-radius: 0 !important;
         width: 100% !important;
         max-width: none !important;
         margin: 0 !important;
+    }
+}
+
+/* ============================================
+ * 导航栏布局模式
+ * 支持三种布局：left（左对齐）、center（居中）、space-between（两端对齐）
+ * ============================================ */
+
+/* 居中布局 - 菜单项居中显示 */
+.navbar-center-layout {
+    display: grid !important;
+    grid-template-columns: 1fr auto 1fr !important;
+    align-items: center !important;
+}
+
+.navbar-center-layout .navbar-logo {
+    justify-self: start;
+}
+
+.navbar-center-layout .navbar-menu {
+    justify-self: center;
+}
+
+.navbar-center-layout .navbar-actions {
+    justify-self: end;
+}
+
+/* 左对齐布局 - 所有元素靠左 */
+.navbar-left-layout {
+    justify-content: flex-start !important;
+    gap: 0.25rem;
+}
+
+.navbar-left-layout .navbar-logo {
+    padding-right: 0.5rem;
+}
+
+.navbar-left-layout .navbar-menu {
+    margin-left: 0;
+}
+
+/* 移动端保持默认布局 */
+@media (max-width: 767px) {
+    .navbar-center-layout,
+    .navbar-left-layout {
+        display: flex !important;
+        grid-template-columns: unset !important;
+        justify-content: space-between !important;
+    }
+
+    .navbar-center-layout .navbar-logo,
+    .navbar-center-layout .navbar-menu,
+    .navbar-center-layout .navbar-actions,
+    .navbar-left-layout .navbar-logo,
+    .navbar-left-layout .navbar-menu,
+    .navbar-left-layout .navbar-actions {
+        justify-self: unset;
     }
 }

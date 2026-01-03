@@ -149,7 +149,7 @@ const groupIcons: Record<string, string> = {
                 <div>
                     <label
                         class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2"
-                        >键名 *</label
+                        >键名 <span class="text-red-500">*</span></label
                     >
                     <input
                         type="text"
@@ -164,12 +164,19 @@ const groupIcons: Record<string, string> = {
                         class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2"
                         >值</label
                     >
+                    <!-- 普通文本输入 -->
                     <textarea
                         id="settingValue"
                         rows="3"
                         class="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-[var(--primary)] outline-none resize-none"
                     ></textarea>
-
+                    <!-- Boolean 开关 -->
+                    <div id="settingBooleanContainer" class="hidden">
+                        <div class="flex items-center gap-3">
+                            <div id="settingBooleanSwitch" class="toggle-switch" data-value="false"></div>
+                            <span id="settingBooleanLabel" class="text-sm text-zinc-600 dark:text-zinc-400">否</span>
+                        </div>
+                    </div>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
@@ -177,36 +184,77 @@ const groupIcons: Record<string, string> = {
                             class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2"
                             >类型</label
                         >
-                        <select
-                            id="settingType"
-                            class="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-[var(--primary)] outline-none"
-                        >
-                            <option value="string">字符串</option>
-                            <option value="text">长文本</option>
-                            <option value="number">数字</option>
-                            <option value="boolean">布尔值</option>
-                            <option value="json">JSON</option>
-                        </select>
+                        <!-- 自定义类型选择器 -->
+                        <div class="custom-select" id="typeSelector">
+                            <div class="custom-select-trigger" id="typeTrigger">
+                                <span class="custom-select-value" id="typeValue">字符串</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="custom-select-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                            <div class="custom-select-dropdown hidden" id="typeDropdown">
+                                <div class="custom-select-options" id="typeOptions">
+                                    <div class="custom-select-option selected" data-value="string">
+                                        <span class="custom-select-option-name">字符串</span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="custom-select-option-check" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    </div>
+                                    <div class="custom-select-option" data-value="text">
+                                        <span class="custom-select-option-name">长文本</span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="custom-select-option-check" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    </div>
+                                    <div class="custom-select-option" data-value="number">
+                                        <span class="custom-select-option-name">数字</span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="custom-select-option-check" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    </div>
+                                    <div class="custom-select-option" data-value="boolean">
+                                        <span class="custom-select-option-name">布尔值</span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="custom-select-option-check" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    </div>
+                                    <div class="custom-select-option" data-value="json">
+                                        <span class="custom-select-option-name">JSON</span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="custom-select-option-check" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="settingType" value="string" />
                     </div>
                     <div>
                         <label
                             class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2"
                             >分组</label
                         >
-                        <select
-                            id="settingGroup"
-                            class="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-[var(--primary)] outline-none"
-                        >
-                            <option value="basic">基本信息</option>
-                            <option value="brand">品牌设置</option>
-                            <option value="profile">个人资料</option>
-
-                            <option value="footer">页脚设置</option>
-                            <option value="feature">功能开关</option>
-                            <option value="post">文章设置</option>
-                            <option value="api">API设置</option>
-                            <option value="general">通用设置</option>
-                        </select>
+                        <!-- 自定义分组选择器 -->
+                        <div class="custom-select" id="groupSelector">
+                            <div class="custom-select-trigger" id="groupTrigger">
+                                <span class="custom-select-value" id="groupValue">基本信息</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="custom-select-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                            <div class="custom-select-dropdown hidden" id="groupDropdown">
+                                <div class="custom-select-search">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                    <input type="text" id="groupSearch" placeholder="搜索分组..." />
+                                </div>
+                                <div class="custom-select-options" id="groupOptions">
+                                    <!-- 分组选项会通过 JS 动态填充 -->
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="settingGroup" value="basic" />
                     </div>
                 </div>
                 <div>
@@ -548,6 +596,256 @@ const groupIcons: Record<string, string> = {
                 if (settingForm) settingForm.reset();
                 if (settingId) settingId.value = "";
                 if (settingKey) settingKey.disabled = false;
+                // 重置为文本输入模式
+                updateValueInputMode("string");
+            }
+
+            // 根据类型切换值输入模式
+            function updateValueInputMode(type) {
+                var valueEl = document.getElementById("settingValue");
+                var boolContainer = document.getElementById("settingBooleanContainer");
+
+                if (type === "boolean") {
+                    if (valueEl) valueEl.parentElement.querySelector("textarea").classList.add("hidden");
+                    if (boolContainer) boolContainer.classList.remove("hidden");
+                } else {
+                    if (valueEl) valueEl.classList.remove("hidden");
+                    if (boolContainer) boolContainer.classList.add("hidden");
+                }
+            }
+
+            // 设置开关状态
+            function setBooleanSwitch(value) {
+                var switchEl = document.getElementById("settingBooleanSwitch");
+                var labelEl = document.getElementById("settingBooleanLabel");
+                var isTrue = value && value.toLowerCase() === "true";
+
+                if (switchEl) {
+                    switchEl.dataset.value = isTrue ? "true" : "false";
+                    if (isTrue) {
+                        switchEl.classList.add("active");
+                    } else {
+                        switchEl.classList.remove("active");
+                    }
+                }
+                if (labelEl) {
+                    labelEl.textContent = isTrue ? "是" : "否";
+                }
+            }
+
+            // ============== 自定义选择器逻辑 ==============
+            var GROUP_OPTIONS = [
+                { value: "basic", label: "基本信息" },
+                { value: "brand", label: "品牌设置" },
+                { value: "profile", label: "个人资料" },
+                { value: "theme", label: "主题设置" },
+                { value: "footer", label: "页脚设置" },
+                { value: "feature", label: "功能开关" },
+                { value: "post", label: "文章设置" },
+                { value: "general", label: "通用设置" },
+                { value: "bangumi", label: "番组计划" },
+                { value: "banner", label: "横幅设置" },
+                { value: "page", label: "页面开关" },
+                { value: "wallpaper", label: "壁纸设置" },
+                { value: "waves", label: "波浪动画" }
+            ];
+
+            var TYPE_LABELS = {
+                "string": "字符串",
+                "text": "长文本",
+                "number": "数字",
+                "boolean": "布尔值",
+                "json": "JSON"
+            };
+
+            // 渲染分组选项
+            function renderGroupOptions(filter) {
+                var container = document.getElementById("groupOptions");
+                if (!container) return;
+
+                var filtered = filter
+                    ? GROUP_OPTIONS.filter(function(g) { return g.label.includes(filter); })
+                    : GROUP_OPTIONS;
+
+                var currentValue = document.getElementById("settingGroup").value;
+
+                if (filtered.length === 0) {
+                    container.innerHTML = '<div class="custom-select-empty">未找到匹配的分组</div>';
+                    return;
+                }
+
+                container.innerHTML = filtered.map(function(g) {
+                    return '<div class="custom-select-option' + (g.value === currentValue ? ' selected' : '') + '" data-value="' + g.value + '">' +
+                        '<span class="custom-select-option-name">' + g.label + '</span>' +
+                        '<svg xmlns="http://www.w3.org/2000/svg" class="custom-select-option-check" fill="none" viewBox="0 0 24 24" stroke="currentColor">' +
+                        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />' +
+                        '</svg>' +
+                        '</div>';
+                }).join('');
+
+                // 绑定点击事件
+                container.querySelectorAll('.custom-select-option').forEach(function(opt) {
+                    opt.addEventListener('click', function() {
+                        selectGroup(this.dataset.value);
+                    });
+                });
+            }
+
+            function selectGroup(value) {
+                var hiddenInput = document.getElementById("settingGroup");
+                var valueDisplay = document.getElementById("groupValue");
+                var selector = document.getElementById("groupSelector");
+                var dropdown = document.getElementById("groupDropdown");
+
+                if (hiddenInput) hiddenInput.value = value;
+                if (valueDisplay) {
+                    var opt = GROUP_OPTIONS.find(function(g) { return g.value === value; });
+                    valueDisplay.textContent = opt ? opt.label : value;
+                }
+
+                // 更新选中状态
+                document.querySelectorAll('#groupOptions .custom-select-option').forEach(function(opt) {
+                    if (opt.dataset.value === value) {
+                        opt.classList.add('selected');
+                    } else {
+                        opt.classList.remove('selected');
+                    }
+                });
+
+                // 关闭下拉框
+                if (selector) selector.classList.remove('open');
+                if (dropdown) dropdown.classList.add('hidden');
+            }
+
+            function selectType(value) {
+                var hiddenInput = document.getElementById("settingType");
+                var valueDisplay = document.getElementById("typeValue");
+                var selector = document.getElementById("typeSelector");
+                var dropdown = document.getElementById("typeDropdown");
+
+                if (hiddenInput) hiddenInput.value = value;
+                if (valueDisplay) valueDisplay.textContent = TYPE_LABELS[value] || value;
+
+                // 更新选中状态
+                document.querySelectorAll('#typeOptions .custom-select-option').forEach(function(opt) {
+                    if (opt.dataset.value === value) {
+                        opt.classList.add('selected');
+                    } else {
+                        opt.classList.remove('selected');
+                    }
+                });
+
+                // 关闭下拉框
+                if (selector) selector.classList.remove('open');
+                if (dropdown) dropdown.classList.add('hidden');
+
+                // 触发类型变化
+                updateValueInputMode(value);
+                if (value === "boolean") {
+                    var valueEl = document.getElementById("settingValue");
+                    setBooleanSwitch(valueEl ? valueEl.value : "false");
+                }
+            }
+
+            // 初始化类型选择器
+            var typeTrigger = document.getElementById("typeTrigger");
+            var typeDropdown = document.getElementById("typeDropdown");
+            var typeSelector = document.getElementById("typeSelector");
+
+            if (typeTrigger) {
+                typeTrigger.addEventListener("click", function(e) {
+                    e.stopPropagation();
+                    var isOpen = typeSelector.classList.contains("open");
+
+                    // 关闭其他选择器
+                    document.querySelectorAll('.custom-select').forEach(function(s) {
+                        s.classList.remove('open');
+                        s.querySelector('.custom-select-dropdown').classList.add('hidden');
+                    });
+
+                    if (!isOpen) {
+                        typeSelector.classList.add("open");
+                        typeDropdown.classList.remove("hidden");
+                    }
+                });
+            }
+
+            // 类型选项点击
+            document.querySelectorAll('#typeOptions .custom-select-option').forEach(function(opt) {
+                opt.addEventListener('click', function() {
+                    selectType(this.dataset.value);
+                });
+            });
+
+            // 初始化分组选择器
+            var groupTrigger = document.getElementById("groupTrigger");
+            var groupDropdown = document.getElementById("groupDropdown");
+            var groupSelector = document.getElementById("groupSelector");
+            var groupSearch = document.getElementById("groupSearch");
+
+            if (groupTrigger) {
+                groupTrigger.addEventListener("click", function(e) {
+                    e.stopPropagation();
+                    var isOpen = groupSelector.classList.contains("open");
+
+                    // 关闭其他选择器
+                    document.querySelectorAll('.custom-select').forEach(function(s) {
+                        s.classList.remove('open');
+                        s.querySelector('.custom-select-dropdown').classList.add('hidden');
+                    });
+
+                    if (!isOpen) {
+                        groupSelector.classList.add("open");
+                        groupDropdown.classList.remove("hidden");
+                        renderGroupOptions('');
+                        if (groupSearch) {
+                            groupSearch.value = '';
+                            groupSearch.focus();
+                        }
+                    }
+                });
+            }
+
+            if (groupSearch) {
+                groupSearch.addEventListener("input", function() {
+                    renderGroupOptions(this.value);
+                });
+            }
+
+            // 点击外部关闭下拉框
+            document.addEventListener("click", function(e) {
+                if (!e.target.closest('.custom-select')) {
+                    document.querySelectorAll('.custom-select').forEach(function(s) {
+                        s.classList.remove('open');
+                        var dropdown = s.querySelector('.custom-select-dropdown');
+                        if (dropdown) dropdown.classList.add('hidden');
+                    });
+                }
+            });
+
+            // ============== 原有逻辑 ==============
+
+            // 开关点击事件
+            var boolSwitch = document.getElementById("settingBooleanSwitch");
+            if (boolSwitch) {
+                boolSwitch.addEventListener("click", function() {
+                    var isTrue = this.dataset.value === "true";
+                    var newValue = !isTrue;
+                    this.dataset.value = newValue ? "true" : "false";
+
+                    if (newValue) {
+                        this.classList.add("active");
+                    } else {
+                        this.classList.remove("active");
+                    }
+
+                    var labelEl = document.getElementById("settingBooleanLabel");
+                    if (labelEl) labelEl.textContent = newValue ? "是" : "否";
+
+                    // 同步到隐藏的 textarea
+                    var valueEl = document.getElementById("settingValue");
+                    if (valueEl) valueEl.value = newValue ? "true" : "false";
+                });
             }
 
             window.editSetting = function (id) {
@@ -575,6 +873,30 @@ const groupIcons: Record<string, string> = {
                 if (settingLabelEl) settingLabelEl.value = setting.label || "";
                 if (settingDescriptionEl)
                     settingDescriptionEl.value = setting.description || "";
+
+                // 同步自定义选择器显示
+                var typeValue = document.getElementById("typeValue");
+                var groupValue = document.getElementById("groupValue");
+                if (typeValue) typeValue.textContent = TYPE_LABELS[setting.type] || TYPE_LABELS["string"];
+                if (groupValue) {
+                    var groupOpt = GROUP_OPTIONS.find(function(g) { return g.value === setting.group; });
+                    groupValue.textContent = groupOpt ? groupOpt.label : "基本信息";
+                }
+
+                // 更新类型选项选中状态
+                document.querySelectorAll('#typeOptions .custom-select-option').forEach(function(opt) {
+                    if (opt.dataset.value === (setting.type || "string")) {
+                        opt.classList.add('selected');
+                    } else {
+                        opt.classList.remove('selected');
+                    }
+                });
+
+                // 根据类型切换输入模式
+                updateValueInputMode(setting.type || "string");
+                if (setting.type === "boolean") {
+                    setBooleanSwitch(setting.value);
+                }
 
                 showModal(true);
             };
