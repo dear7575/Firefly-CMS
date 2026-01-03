@@ -473,11 +473,12 @@ const API_URL = getApiUrl();
 
             console.log("Initializing Vditor for post:", postId);
 
-            // Initialize Vditor
+            // Initialize Vditor - 使用本地资源
             vditor = new Vditor("vditor", {
                 height: "100%",
                 mode: "ir",
                 placeholder: "Loading content...",
+                cdn: "/assets/vendor/vditor",
                 cache: { enable: false },
                 theme: document.documentElement.classList.contains("dark")
                     ? "dark"
@@ -737,7 +738,7 @@ const API_URL = getApiUrl();
                     if (response.ok) {
                         // Clear initialization flag for next visit
                         window._editPageInitialized = false;
-                        window.location.href = "/admin/";
+                        window.location.href = "/admin/posts";
                     } else {
                         var errData = await response.json();
                         // Handle different error formats

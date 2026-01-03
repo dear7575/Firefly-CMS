@@ -109,18 +109,18 @@ const API_URL = getApiUrl();
                         class="w-full h-10 rounded-xl border border-zinc-200 dark:border-zinc-700/50 cursor-pointer transition-all hover:border-zinc-300 dark:hover:border-zinc-600"
                     />
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center justify-between">
+                    <label
+                        class="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+                        >{i18n(I18nKey.adminEnabled)}</label
+                    >
+                    <div id="tagEnabledToggle" class="toggle-switch active"></div>
                     <input
                         type="checkbox"
                         id="tagEnabled"
                         checked
-                        class="w-4 h-4 rounded"
+                        class="hidden"
                     />
-                    <label
-                        for="tagEnabled"
-                        class="text-sm text-zinc-700 dark:text-zinc-300"
-                        >{i18n(I18nKey.adminEnabled)}</label
-                    >
                 </div>
             </form>
             <div
@@ -285,6 +285,16 @@ const API_URL = getApiUrl();
             if (tagColorEl) tagColorEl.value = tag.color || "#6366f1";
             if (tagEnabledEl) tagEnabledEl.checked = tag.enabled;
 
+            // 同步开关状态
+            var toggle = document.getElementById("tagEnabledToggle");
+            if (toggle) {
+                if (tag.enabled) {
+                    toggle.classList.add("active");
+                } else {
+                    toggle.classList.remove("active");
+                }
+            }
+
             showModal(true);
         };
 
@@ -324,8 +334,36 @@ const API_URL = getApiUrl();
         var tagModal = document.getElementById("tagModal");
         var tagForm = document.getElementById("tagForm");
 
+        // 开关组件交互
+        var enabledToggle = document.getElementById("tagEnabledToggle");
+        var enabledCheckbox = document.getElementById("tagEnabled");
+        if (enabledToggle && enabledCheckbox) {
+            enabledToggle.addEventListener("click", function() {
+                enabledCheckbox.checked = !enabledCheckbox.checked;
+                if (enabledCheckbox.checked) {
+                    enabledToggle.classList.add("active");
+                } else {
+                    enabledToggle.classList.remove("active");
+                }
+            });
+        }
+
+        // 同步开关状态的辅助函数
+        function syncToggleState() {
+            if (enabledToggle && enabledCheckbox) {
+                if (enabledCheckbox.checked) {
+                    enabledToggle.classList.add("active");
+                } else {
+                    enabledToggle.classList.remove("active");
+                }
+            }
+        }
+
         if (addTagBtn)
             addTagBtn.addEventListener("click", function () {
+                // 重置开关状态为启用
+                if (enabledCheckbox) enabledCheckbox.checked = true;
+                syncToggleState();
                 showModal(false);
             });
         if (cancelBtn) cancelBtn.addEventListener("click", hideModal);

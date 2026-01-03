@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Table, Boolean, Float
+from sqlalchemy.dialects.mysql import LONGTEXT
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import uuid
@@ -26,7 +27,7 @@ class Post(Base):
     title = Column(String(255), nullable=False, index=True, comment="文章标题")
     slug = Column(String(255), unique=True, nullable=False, index=True, comment="文章URL别名")
     description = Column(Text, nullable=True, comment="文章摘要描述")
-    content = Column(Text, nullable=False, comment="文章正文内容(Markdown)")
+    content = Column(LONGTEXT, nullable=False, comment="文章正文内容(Markdown)")
     image = Column(String(500), nullable=True, comment="文章封面图片URL")
     published_at = Column(DateTime, default=datetime.utcnow, comment="发布时间")
     category_id = Column(String(36), ForeignKey("categories.id"), comment="所属分类ID")

@@ -747,6 +747,179 @@ const menuItems = [
             font-size: 0.875rem;
         }
 
+        /* 美化颜色选择器 */
+        .color-picker-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .color-picker-preview {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 0.75rem;
+            background: white;
+            border: 1px solid #e4e4e7;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .dark .color-picker-preview {
+            background: rgba(24, 24, 27, 0.8);
+            border-color: rgba(63, 63, 70, 0.5);
+        }
+
+        .color-picker-preview:hover {
+            border-color: var(--primary);
+        }
+
+        .color-picker-swatch {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0;
+        }
+
+        .color-picker-value {
+            font-family: monospace;
+            font-size: 0.875rem;
+            color: #3f3f46;
+        }
+
+        .dark .color-picker-value {
+            color: #d4d4d8;
+        }
+
+        .color-picker-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            margin-top: 0.5rem;
+            background: rgba(255, 255, 255, 0.98);
+            border: 1px solid #e4e4e7;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            z-index: 60;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+            backdrop-filter: blur(12px);
+            display: none;
+        }
+
+        .color-picker-dropdown.open {
+            display: block;
+            animation: selectDropdownFadeIn 0.2s ease-out;
+        }
+
+        .dark .color-picker-dropdown {
+            background: rgba(24, 24, 27, 0.98);
+            border-color: rgba(63, 63, 70, 0.5);
+        }
+
+        .color-picker-slider-container {
+            position: relative;
+            height: 1.5rem;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .color-picker-gradient {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to right, oklch(0.75 0.12 0), oklch(0.75 0.12 30), oklch(0.75 0.12 60), oklch(0.75 0.12 90), oklch(0.75 0.12 120), oklch(0.75 0.12 150), oklch(0.75 0.12 180), oklch(0.75 0.12 210), oklch(0.75 0.12 240), oklch(0.75 0.12 270), oklch(0.75 0.12 300), oklch(0.75 0.12 330), oklch(0.75 0.12 360));
+        }
+
+        .color-picker-slider {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .color-picker-thumb {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 0.5rem;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            pointer-events: none;
+            transform: translateX(-50%);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .color-picker-presets {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid #f4f4f5;
+        }
+
+        .dark .color-picker-presets {
+            border-top-color: rgba(39, 39, 42, 0.5);
+        }
+
+        .color-picker-preset {
+            width: 1.75rem;
+            height: 1.75rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: transform 0.15s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .color-picker-preset:hover {
+            transform: scale(1.15);
+        }
+
+        /* 开关组件样式 */
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: #d4d4d8;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: var(--primary, oklch(0.70 0.14 250));
+        }
+
+        .toggle-switch.active::after {
+            left: 22px;
+        }
+
+        .dark .toggle-switch {
+            background: #3f3f46;
+        }
+
+        .dark .toggle-switch.active {
+            background: oklch(0.55 0.15 250);
+        }
+
         /* 弹框美化 */
         #adminModalContent {
             background: linear-gradient(180deg, oklch(0.99 0.005 var(--hue)) 0%, oklch(0.97 0.008 var(--hue)) 100%);
@@ -1059,8 +1232,8 @@ const menuItems = [
                                     class="p-2 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
                                     title="主题色"
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24">
+                                    <path fill="currentColor" d="M12 22C6.49 22 2 17.51 2 12S6.49 2 12 2s10 4.04 10 9c0 3.31-2.69 6-6 6h-1.77c-.28 0-.5.22-.5.5c0 .12.05.23.13.33c.41.47.64 1.06.64 1.67A2.5 2.5 0 0 1 12 22m0-18c-4.41 0-8 3.59-8 8s3.59 8 8 8c.28 0 .5-.22.5-.5a.54.54 0 0 0-.14-.35c-.41-.46-.63-1.05-.63-1.65a2.5 2.5 0 0 1 2.5-2.5H16c2.21 0 4-1.79 4-4c0-3.86-3.59-7-8-7m-5.5 9a1.5 1.5 0 1 1 0-3a1.5 1.5 0 0 1 0 3m3-4a1.5 1.5 0 1 1 0-3a1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3a1.5 1.5 0 0 1 0 3m3 4a1.5 1.5 0 1 1 0-3a1.5 1.5 0 0 1 0 3"/>
                                 </svg>
                             </button>
                             <!-- Theme Picker Dropdown -->
@@ -1077,7 +1250,7 @@ const menuItems = [
                                     <span id="currentHueDisplay" class="bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 px-2 py-1 rounded text-xs font-mono font-bold">165</span>
                                 </div>
                                 <div class="relative h-6 rounded-lg overflow-hidden w-full cursor-pointer group">
-                                    <div class="absolute inset-0" style="background: linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%);"></div>
+                                    <div class="absolute inset-0" style="background: linear-gradient(to right, oklch(0.75 0.12 0), oklch(0.75 0.12 30), oklch(0.75 0.12 60), oklch(0.75 0.12 90), oklch(0.75 0.12 120), oklch(0.75 0.12 150), oklch(0.75 0.12 180), oklch(0.75 0.12 210), oklch(0.75 0.12 240), oklch(0.75 0.12 270), oklch(0.75 0.12 300), oklch(0.75 0.12 330), oklch(0.75 0.12 360));"></div>
                                     <input 
                                         type="range" 
                                         id="headerHueSlider" 
@@ -1097,23 +1270,17 @@ const menuItems = [
                                 class="p-2 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
                                 title="切换主题"
                         >
-                            <!-- 亮色模式图标 (太阳) -->
-                            <svg id="iconLight" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none"
-                                 viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                            <!-- 亮色模式图标 (太阳) - material-symbols:wb-sunny-outline-rounded -->
+                            <svg id="iconLight" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" viewBox="0 0 24 24">
+                                <path fill="currentColor" d="M12 17q-2.075 0-3.537-1.463T7 12t1.463-3.537T12 7t3.538 1.463T17 12t-1.463 3.538T12 17m0-2q1.25 0 2.125-.875T15 12t-.875-2.125T12 9t-2.125.875T9 12t.875 2.125T12 15m-7-4H1v2h4zm18 0h-4v2h4zM11 1v4h2V1zm0 18v4h2v-4zM6.35 7.75L3.87 5.27l1.41-1.41l2.48 2.48zm12.02 12.02l-2.48-2.48l1.4-1.4l2.49 2.47zM16.25 6.35l2.48-2.48l1.4 1.41l-2.47 2.48zm-12.02 12.02l2.48-2.48l1.4 1.4l-2.47 2.49z"/>
                             </svg>
-                            <!-- 暗色模式图标 (月亮) -->
-                            <svg id="iconDark" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none"
-                                 viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                            <!-- 暗色模式图标 (月亮) - material-symbols:dark-mode-outline-rounded -->
+                            <svg id="iconDark" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" viewBox="0 0 24 24">
+                                <path fill="currentColor" d="M12 21q-3.75 0-6.375-2.625T3 12t2.625-6.375T12 3q.35 0 .688.025t.662.075q-1.025.725-1.638 1.888T11.1 7.5q0 2.25 1.575 3.825T16.5 12.9q1.375 0 2.525-.613T20.9 10.65q.05.325.075.662T21 12q0 3.75-2.625 6.375T12 21m0-2q2.2 0 3.95-1.213t2.55-3.162q-.5.125-1 .2t-1 .075q-3.075 0-5.238-2.163T9.1 7.5q0-.5.075-1t.2-1q-1.95.8-3.163 2.55T5 12q0 2.9 2.05 4.95T12 19m-.25-6.75"/>
                             </svg>
-                            <!-- 跟随系统图标 (电脑/自动) -->
-                            <svg id="iconSystem" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none"
-                                 viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            <!-- 跟随系统图标 (自动) - material-symbols:brightness-auto-outline-rounded -->
+                            <svg id="iconSystem" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" viewBox="0 0 24 24">
+                                <path fill="currentColor" d="M12 9a3 3 0 0 0-3 3a3 3 0 0 0 3 3a3 3 0 0 0 3-3a3 3 0 0 0-3-3m0 8a5 5 0 0 1-5-5a5 5 0 0 1 5-5a5 5 0 0 1 5 5a5 5 0 0 1-5 5m0-15a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1m0 17a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1M5.64 5.64a1 1 0 0 1 1.41 0a1 1 0 0 1 0 1.41l-1.41 1.41a1 1 0 0 1-1.41 0a1 1 0 0 1 0-1.41zM18.36 18.36a1 1 0 0 1 1.41 0a1 1 0 0 1 0 1.41l-1.41 1.41a1 1 0 0 1-1.41 0a1 1 0 0 1 0-1.41zM2 12a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1m17 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1M5.64 18.36l1.41-1.41a1 1 0 0 1 1.41 0a1 1 0 0 1 0 1.41l-1.41 1.41a1 1 0 0 1-1.41 0a1 1 0 0 1 0-1.41M18.36 5.64l1.41-1.41a1 1 0 0 1 1.41 0a1 1 0 0 1 0 1.41l-1.41 1.41a1 1 0 0 1-1.41 0a1 1 0 0 1 0-1.41M12 10l.94 2.06L15 13l-2.06.94L12 16l-.94-2.06L9 13l2.06-.94z"/>
                             </svg>
                         </button>
 
@@ -1484,6 +1651,167 @@ const menuItems = [
                 }
             });
         }
+    })();
+    });
+</script>
+
+<script is:inline>
+    document.addEventListener('astro:page-load', () => {
+    // ============== 美化颜色选择器 ==============
+    (function() {
+        // oklch 预设颜色（色相值）
+        var presetHues = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330];
+
+        // 将 oklch 色相转换为 hex 颜色（近似值）
+        function hueToHex(hue) {
+            // 使用 HSL 作为中间转换（oklch 和 HSL 的色相分布不同，这里做近似映射）
+            var h = hue / 360;
+            var s = 0.7;
+            var l = 0.6;
+
+            function hue2rgb(p, q, t) {
+                if (t < 0) t += 1;
+                if (t > 1) t -= 1;
+                if (t < 1/6) return p + (q - p) * 6 * t;
+                if (t < 1/2) return q;
+                if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                return p;
+            }
+
+            var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+            var p = 2 * l - q;
+            var r = Math.round(hue2rgb(p, q, h + 1/3) * 255);
+            var g = Math.round(hue2rgb(p, q, h) * 255);
+            var b = Math.round(hue2rgb(p, q, h - 1/3) * 255);
+
+            return '#' + [r, g, b].map(function(x) {
+                var hex = x.toString(16);
+                return hex.length === 1 ? '0' + hex : hex;
+            }).join('');
+        }
+
+        // 将 hex 转换为色相值（近似）
+        function hexToHue(hex) {
+            hex = hex.replace('#', '');
+            var r = parseInt(hex.substr(0, 2), 16) / 255;
+            var g = parseInt(hex.substr(2, 2), 16) / 255;
+            var b = parseInt(hex.substr(4, 2), 16) / 255;
+
+            var max = Math.max(r, g, b);
+            var min = Math.min(r, g, b);
+            var h = 0;
+
+            if (max !== min) {
+                var d = max - min;
+                switch (max) {
+                    case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+                    case g: h = ((b - r) / d + 2) / 6; break;
+                    case b: h = ((r - g) / d + 4) / 6; break;
+                }
+            }
+
+            return Math.round(h * 360);
+        }
+
+        // 初始化所有颜色选择器
+        function initColorPickers() {
+            var colorInputs = document.querySelectorAll('input[type="color"]');
+
+            colorInputs.forEach(function(input) {
+                // 跳过已经初始化的
+                if (input.dataset.colorPickerInit) return;
+                input.dataset.colorPickerInit = 'true';
+
+                // 隐藏原始 input
+                input.style.display = 'none';
+
+                // 创建包装器
+                var wrapper = document.createElement('div');
+                wrapper.className = 'color-picker-wrapper';
+                input.parentNode.insertBefore(wrapper, input);
+                wrapper.appendChild(input);
+
+                // 创建预览按钮
+                var preview = document.createElement('div');
+                preview.className = 'color-picker-preview';
+                preview.innerHTML = '<div class="color-picker-swatch" style="background-color: ' + input.value + '"></div>' +
+                    '<span class="color-picker-value">' + input.value.toUpperCase() + '</span>';
+                wrapper.appendChild(preview);
+
+                // 创建下拉面板
+                var dropdown = document.createElement('div');
+                dropdown.className = 'color-picker-dropdown';
+
+                // 滑块容器
+                var sliderContainer = document.createElement('div');
+                sliderContainer.className = 'color-picker-slider-container';
+                sliderContainer.innerHTML = '<div class="color-picker-gradient"></div>' +
+                    '<input type="range" class="color-picker-slider" min="0" max="360" step="5" value="' + hexToHue(input.value) + '">' +
+                    '<div class="color-picker-thumb" style="left: ' + (hexToHue(input.value) / 360 * 100) + '%"></div>';
+                dropdown.appendChild(sliderContainer);
+
+                // 预设颜色
+                var presetsDiv = document.createElement('div');
+                presetsDiv.className = 'color-picker-presets';
+                presetHues.forEach(function(hue) {
+                    var preset = document.createElement('div');
+                    preset.className = 'color-picker-preset';
+                    preset.style.backgroundColor = hueToHex(hue);
+                    preset.dataset.hue = hue;
+                    presetsDiv.appendChild(preset);
+                });
+                dropdown.appendChild(presetsDiv);
+
+                wrapper.appendChild(dropdown);
+
+                // 事件处理
+                var swatch = preview.querySelector('.color-picker-swatch');
+                var valueDisplay = preview.querySelector('.color-picker-value');
+                var slider = dropdown.querySelector('.color-picker-slider');
+                var thumb = dropdown.querySelector('.color-picker-thumb');
+
+                function updateColor(hue) {
+                    var hex = hueToHex(hue);
+                    input.value = hex;
+                    swatch.style.backgroundColor = hex;
+                    valueDisplay.textContent = hex.toUpperCase();
+                    thumb.style.left = (hue / 360 * 100) + '%';
+                    slider.value = hue;
+
+                    // 触发 change 事件
+                    var event = new Event('change', { bubbles: true });
+                    input.dispatchEvent(event);
+                }
+
+                preview.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    dropdown.classList.toggle('open');
+                });
+
+                slider.addEventListener('input', function(e) {
+                    updateColor(parseInt(e.target.value));
+                });
+
+                presetsDiv.addEventListener('click', function(e) {
+                    if (e.target.classList.contains('color-picker-preset')) {
+                        updateColor(parseInt(e.target.dataset.hue));
+                    }
+                });
+
+                // 点击外部关闭
+                document.addEventListener('click', function(e) {
+                    if (!wrapper.contains(e.target)) {
+                        dropdown.classList.remove('open');
+                    }
+                });
+            });
+        }
+
+        // 初始化
+        initColorPickers();
+
+        // 暴露给全局，以便动态添加的颜色选择器也能初始化
+        window.initColorPickers = initColorPickers;
     })();
     });
 </script>

@@ -151,19 +151,7 @@ const API_URL = getApiUrl();
                         class="modal-input"
                     />
                 </div>
-                <div class="flex items-center gap-2">
-                    <input
-                        type="checkbox"
-                        id="friendEnabled"
-                        checked
-                        class="w-4 h-4 rounded"
-                    />
-                    <label
-                        for="friendEnabled"
-                        class="text-sm text-zinc-700 dark:text-zinc-300"
-                        >{i18n(I18nKey.adminEnabled)}</label
-                    >
-                </div>
+<div class="flex items-center justify-between">                    <label                        class="text-sm font-medium text-zinc-700 dark:text-zinc-300"                        >{i18n(I18nKey.adminEnabled)}</label                    >                    <div id="friendEnabledToggle" class="toggle-switch active"></div>                    <input                        type="checkbox"                        id="friendEnabled"                        checked                        class="hidden"                    />                </div>
             </form>
             <div
                 class="p-6 border-t border-zinc-200 dark:border-zinc-800 flex justify-end gap-3 flex-shrink-0"
@@ -361,6 +349,16 @@ const API_URL = getApiUrl();
             if (friendWeightEl) friendWeightEl.value = friend.weight || 0;
             if (friendEnabledEl) friendEnabledEl.checked = friend.enabled;
 
+            // 同步开关状态
+            var toggle = document.getElementById("friendEnabledToggle");
+            if (toggle) {
+                if (friend.enabled) {
+                    toggle.classList.add("active");
+                } else {
+                    toggle.classList.remove("active");
+                }
+            }
+
             showModal(true);
         };
 
@@ -399,8 +397,36 @@ const API_URL = getApiUrl();
         var friendModal = document.getElementById("friendModal");
         var friendForm = document.getElementById("friendForm");
 
+        // 开关组件交互
+        var enabledToggle = document.getElementById("friendEnabledToggle");
+        var enabledCheckbox = document.getElementById("friendEnabled");
+        if (enabledToggle && enabledCheckbox) {
+            enabledToggle.addEventListener("click", function() {
+                enabledCheckbox.checked = !enabledCheckbox.checked;
+                if (enabledCheckbox.checked) {
+                    enabledToggle.classList.add("active");
+                } else {
+                    enabledToggle.classList.remove("active");
+                }
+            });
+        }
+
+        // 同步开关状态的辅助函数
+        function syncToggleState() {
+            if (enabledToggle && enabledCheckbox) {
+                if (enabledCheckbox.checked) {
+                    enabledToggle.classList.add("active");
+                } else {
+                    enabledToggle.classList.remove("active");
+                }
+            }
+        }
+
         if (addFriendBtn)
             addFriendBtn.addEventListener("click", function () {
+                // 重置开关状态为启用
+                if (enabledCheckbox) enabledCheckbox.checked = true;
+                syncToggleState();
                 showModal(false);
             });
         if (cancelBtn) cancelBtn.addEventListener("click", hideModal);
