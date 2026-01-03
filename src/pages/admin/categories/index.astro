@@ -133,18 +133,18 @@ const API_URL = getApiUrl();
                         />
                     </div>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center justify-between">
+                    <label
+                        class="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+                        >{i18n(I18nKey.adminEnabled)}</label
+                    >
+                    <div id="categoryEnabledToggle" class="toggle-switch active"></div>
                     <input
                         type="checkbox"
                         id="categoryEnabled"
                         checked
-                        class="w-4 h-4 rounded"
+                        class="hidden"
                     />
-                    <label
-                        for="categoryEnabled"
-                        class="text-sm text-zinc-700 dark:text-zinc-300"
-                        >{i18n(I18nKey.adminEnabled)}</label
-                    >
                 </div>
             </form>
             <div
@@ -333,6 +333,16 @@ const API_URL = getApiUrl();
                     categorySortOrderEl.value = cat.sort_order || 0;
                 if (categoryEnabledEl) categoryEnabledEl.checked = cat.enabled;
 
+                // 同步开关状态
+                var toggle = document.getElementById("categoryEnabledToggle");
+                if (toggle) {
+                    if (cat.enabled) {
+                        toggle.classList.add("active");
+                    } else {
+                        toggle.classList.remove("active");
+                    }
+                }
+
                 showModal(true);
             };
 
@@ -367,8 +377,36 @@ const API_URL = getApiUrl();
             var categoryModal = document.getElementById("categoryModal");
             var categoryForm = document.getElementById("categoryForm");
 
+            // 开关组件交互
+            var enabledToggle = document.getElementById("categoryEnabledToggle");
+            var enabledCheckbox = document.getElementById("categoryEnabled");
+            if (enabledToggle && enabledCheckbox) {
+                enabledToggle.addEventListener("click", function() {
+                    enabledCheckbox.checked = !enabledCheckbox.checked;
+                    if (enabledCheckbox.checked) {
+                        enabledToggle.classList.add("active");
+                    } else {
+                        enabledToggle.classList.remove("active");
+                    }
+                });
+            }
+
+            // 同步开关状态的辅助函数
+            function syncToggleState() {
+                if (enabledToggle && enabledCheckbox) {
+                    if (enabledCheckbox.checked) {
+                        enabledToggle.classList.add("active");
+                    } else {
+                        enabledToggle.classList.remove("active");
+                    }
+                }
+            }
+
             if (addCategoryBtn)
                 addCategoryBtn.addEventListener("click", function () {
+                    // 重置开关状态为启用
+                    if (enabledCheckbox) enabledCheckbox.checked = true;
+                    syncToggleState();
                     showModal(false);
                 });
             if (cancelBtn) cancelBtn.addEventListener("click", hideModal);

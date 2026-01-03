@@ -859,3 +859,67 @@
         justify-self: unset;
     }
 }
+
+/* ============================================
+ * 透明导航栏下的搜索框样式
+ * 在 full 和 semifull（未滚动）模式下，搜索框文字和图标变为白色
+ * ============================================ */
+
+/* 桌面端 - Banner模式 - full透明模式 */
+@media (min-width: 1024px) {
+    /* full 透明模式 */
+    #banner-wrapper ~ * #navbar[data-transparent-mode="full"] #search-bar,
+    body:has(#banner-wrapper) #navbar[data-transparent-mode="full"] #search-bar {
+        background: rgba(255, 255, 255, 0.08) !important;
+    }
+
+    #banner-wrapper ~ * #navbar[data-transparent-mode="full"] #search-bar:hover,
+    #banner-wrapper ~ * #navbar[data-transparent-mode="full"] #search-bar:focus-within,
+    body:has(#banner-wrapper) #navbar[data-transparent-mode="full"] #search-bar:hover,
+    body:has(#banner-wrapper) #navbar[data-transparent-mode="full"] #search-bar:focus-within {
+        background: rgba(255, 255, 255, 0.15) !important;
+    }
+
+    #banner-wrapper ~ * #navbar[data-transparent-mode="full"] #search-bar input,
+    body:has(#banner-wrapper) #navbar[data-transparent-mode="full"] #search-bar input {
+        color: rgba(255, 255, 255, 0.9) !important;
+    }
+
+    #banner-wrapper ~ * #navbar[data-transparent-mode="full"] #search-bar input::placeholder,
+    body:has(#banner-wrapper) #navbar[data-transparent-mode="full"] #search-bar input::placeholder {
+        color: rgba(255, 255, 255, 0.6) !important;
+    }
+
+    #banner-wrapper ~ * #navbar[data-transparent-mode="full"] #search-bar svg,
+    body:has(#banner-wrapper) #navbar[data-transparent-mode="full"] #search-bar svg {
+        color: rgba(255, 255, 255, 0.6) !important;
+    }
+
+    /* semifull 透明模式 - 未滚动状态 */
+    #banner-wrapper ~ * #navbar[data-transparent-mode="semifull"]:not(.scrolled) #search-bar,
+    body:has(#banner-wrapper) #navbar[data-transparent-mode="semifull"]:not(.scrolled) #search-bar {
+        background: rgba(255, 255, 255, 0.08) !important;
+    }
+
+    #banner-wrapper ~ * #navbar[data-transparent-mode="semifull"]:not(.scrolled) #search-bar:hover,
+    #banner-wrapper ~ * #navbar[data-transparent-mode="semifull"]:not(.scrolled) #search-bar:focus-within,
+    body:has(#banner-wrapper) #navbar[data-transparent-mode="semifull"]:not(.scrolled) #search-bar:hover,
+    body:has(#banner-wrapper) #navbar[data-transparent-mode="semifull"]:not(.scrolled) #search-bar:focus-within {
+        background: rgba(255, 255, 255, 0.15) !important;
+    }
+
+    #banner-wrapper ~ * #navbar[data-transparent-mode="semifull"]:not(.scrolled) #search-bar input,
+    body:has(#banner-wrapper) #navbar[data-transparent-mode="semifull"]:not(.scrolled) #search-bar input {
+        color: rgba(255, 255, 255, 0.9) !important;
+    }
+
+    #banner-wrapper ~ * #navbar[data-transparent-mode="semifull"]:not(.scrolled) #search-bar input::placeholder,
+    body:has(#banner-wrapper) #navbar[data-transparent-mode="semifull"]:not(.scrolled) #search-bar input::placeholder {
+        color: rgba(255, 255, 255, 0.6) !important;
+    }
+
+    #banner-wrapper ~ * #navbar[data-transparent-mode="semifull"]:not(.scrolled) #search-bar svg,
+    body:has(#banner-wrapper) #navbar[data-transparent-mode="semifull"]:not(.scrolled) #search-bar svg {
+        color: rgba(255, 255, 255, 0.6) !important;
+    }
+}

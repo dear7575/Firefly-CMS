@@ -61,7 +61,7 @@ def get_tags(
     if enabled_only:
         query = query.filter(models.Tag.enabled == True)
 
-    tags = query.order_by(models.Tag.name).all()
+    tags = query.order_by(models.Tag.created_at.desc()).all()
 
     result = []
     for tag in tags:

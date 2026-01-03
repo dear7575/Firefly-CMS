@@ -574,22 +574,23 @@ function initNewPage() {
             return;
         }
 
-        // Initialize Vditor
+        // 检测当前主题
+        const isDark = document.documentElement.classList.contains("dark");
+
+        // Initialize Vditor - 使用 IR 模式（即时渲染）
+        // cdn 设置为本地路径，避免从网络加载
         vditor = new Vditor("vditor", {
             height: "100%",
             mode: "ir",
             placeholder: "Write your story here...",
+            cdn: "/assets/vendor/vditor",
             cache: {
                 enable: false,
             },
-            theme: document.documentElement.classList.contains("dark")
-                ? "dark"
-                : "classic",
+            theme: isDark ? "dark" : "classic",
             preview: {
                 theme: {
-                    current: document.documentElement.classList.contains("dark")
-                        ? "dark"
-                        : "light",
+                    current: isDark ? "dark" : "light",
                 },
             },
             toolbarConfig: {
@@ -597,6 +598,15 @@ function initNewPage() {
             },
             counter: {
                 enable: true,
+            },
+            after: function() {
+                console.log("Vditor initialized successfully");
+                // 强制设置 IR 模式内容区域样式
+                var resetEl = document.querySelector('#vditor .vditor-ir .vditor-reset');
+                if (resetEl) {
+                    resetEl.style.color = isDark ? '#f4f4f5' : '#18181b';
+                    resetEl.style.caretColor = isDark ? '#f4f4f5' : '#18181b';
+                }
             },
         });
 
@@ -742,7 +752,7 @@ function initNewPage() {
             });
 
             if (response.ok) {
-                window.location.href = "/admin/";
+                window.location.href = "/admin/posts";
             } else {
                 const errData = await response.json();
                 alert((t.saveFailed || 'Save failed') + ": " + (errData.detail || "Unknown error"));
@@ -1001,27 +1011,205 @@ function initNewPage() {
     .custom-scrollbar::-webkit-scrollbar-thumb {
         @apply bg-zinc-200 dark:bg-zinc-800 rounded-full;
     }
+</style>
 
-    /* Vditor Dark Mode Adjustments */
-    .vditor {
+<style is:global>
+    /* 修复 Vditor 编辑器样式问题 */
+
+    #vditor.vditor {
         border: none !important;
+        background-color: #fff !important;
     }
 
-    .vditor-toolbar {
-        @apply transition-colors !important;
+    .dark #vditor.vditor {
+        background-color: #18181b !important;
+    }
+
+    #vditor .vditor-reset {
+        color: #18181b !important;
+    }
+
+    .dark #vditor .vditor-reset {
+        color: #f4f4f5 !important;
+    }
+
+    /* 光标颜色 */
+    #vditor.vditor--ir .vditor-reset,
+    #vditor.vditor--wysiwyg .vditor-reset,
+    #vditor.vditor--sv .vditor-reset {
+        caret-color: #18181b !important;
+    }
+
+    .dark #vditor.vditor--ir .vditor-reset,
+    .dark #vditor.vditor--wysiwyg .vditor-reset,
+    .dark #vditor.vditor--sv .vditor-reset {
+        caret-color: #f4f4f5 !important;
+    }
+
+    /* 确保空行时光标可见 - 设置最小行高和光标样式 */
+    #vditor .vditor-ir .vditor-reset {
+        min-height: 1.5em !important;
+        line-height: 1.75 !important;
+        caret-color: #18181b !important;
+        caret-shape: bar !important;
+    }
+
+    .dark #vditor .vditor-ir .vditor-reset {
+        caret-color: #f4f4f5 !important;
+    }
+
+    /* 空段落样式 */
+    #vditor .vditor-ir .vditor-reset p:empty::before,
+    #vditor .vditor-ir .vditor-reset > br {
+        content: '';
+        display: inline-block;
+        min-height: 1.5em;
+    }
+
+    /* 工具栏样式 */
+    #vditor .vditor-toolbar {
+        background-color: #fafafa !important;
+        border-bottom: 1px solid #e4e4e7 !important;
+    }
+
+    .dark #vditor .vditor-toolbar {
+        background-color: #27272a !important;
+        border-bottom: 1px solid #3f3f46 !important;
+    }
+
+    #vditor .vditor-toolbar__item svg {
+        color: #71717a !important;
+    }
+
+    .dark #vditor .vditor-toolbar__item svg {
+        color: #a1a1aa !important;
+    }
+
+    #vditor .vditor-toolbar__item:hover svg {
+        color: #18181b !important;
+    }
+
+    .dark #vditor .vditor-toolbar__item:hover svg {
+        color: #f4f4f5 !important;
+    }
+
+    /* 内容区域 */
+    #vditor .vditor-content {
+        background-color: #fff !important;
+    }
+
+    .dark #vditor .vditor-content {
+        background-color: #18181b !important;
+    }
+
+    /* IR 模式下的代码块 */
+    #vditor .vditor-ir pre.vditor-reset {
+        background-color: #f4f4f5 !important;
+    }
+
+    .dark #vditor .vditor-ir pre.vditor-reset {
+        background-color: #27272a !important;
+    }
+
+    /* 行号 */
+    #vditor .vditor-linenumber {
+        color: #a1a1aa !important;
+    }
+
+    .dark #vditor .vditor-linenumber {
+        color: #71717a !important;
+    }
+
+    /* 计数器 */
+    #vditor .vditor-counter {
+        color: #71717a !important;
         background-color: transparent !important;
-        border-bottom: 1px solid theme("colors.zinc.100") !important;
     }
 
-    .dark .vditor-toolbar {
-        border-bottom: 1px solid theme("colors.zinc.800") !important;
+    .dark #vditor .vditor-counter {
+        color: #a1a1aa !important;
     }
 
-    .vditor-content {
-        background-color: transparent !important;
+    /* placeholder */
+    #vditor .vditor-reset::before {
+        color: #a1a1aa !important;
     }
 
-    .dark .vditor-reset {
-        color: theme("colors.zinc.100") !important;
+    .dark #vditor .vditor-reset::before {
+        color: #71717a !important;
+    }
+
+    /* 确保 IR 模式下内容可见 */
+    #vditor .vditor-ir__node {
+        color: inherit !important;
+    }
+
+    #vditor .vditor-ir__marker {
+        color: #a1a1aa !important;
+    }
+
+    .dark #vditor .vditor-ir__marker {
+        color: #71717a !important;
+    }
+</style>
+
+<style is:global>
+    /* WYSIWYG 模式样式 */
+    #vditor .vditor-wysiwyg {
+        color: #18181b !important;
+        caret-color: #18181b !important;
+        background-color: #fff !important;
+    }
+
+    .dark #vditor .vditor-wysiwyg {
+        color: #f4f4f5 !important;
+        caret-color: #f4f4f5 !important;
+        background-color: #18181b !important;
+    }
+
+    #vditor .vditor-wysiwyg p,
+    #vditor .vditor-wysiwyg h1,
+    #vditor .vditor-wysiwyg h2,
+    #vditor .vditor-wysiwyg h3,
+    #vditor .vditor-wysiwyg h4,
+    #vditor .vditor-wysiwyg h5,
+    #vditor .vditor-wysiwyg h6,
+    #vditor .vditor-wysiwyg li,
+    #vditor .vditor-wysiwyg blockquote {
+        color: inherit !important;
+    }
+
+    .dark #vditor .vditor-wysiwyg p,
+    .dark #vditor .vditor-wysiwyg h1,
+    .dark #vditor .vditor-wysiwyg h2,
+    .dark #vditor .vditor-wysiwyg h3,
+    .dark #vditor .vditor-wysiwyg h4,
+    .dark #vditor .vditor-wysiwyg h5,
+    .dark #vditor .vditor-wysiwyg h6,
+    .dark #vditor .vditor-wysiwyg li,
+    .dark #vditor .vditor-wysiwyg blockquote {
+        color: #f4f4f5 !important;
+    }
+</style>
+
+<style is:global>
+    /* 强制光标可见 - 使用主题色 */
+    #vditor .vditor-ir .vditor-reset,
+    #vditor .vditor-ir .vditor-reset * {
+        caret-color: var(--primary) !important;
+    }
+
+    .dark #vditor .vditor-ir .vditor-reset,
+    .dark #vditor .vditor-ir .vditor-reset * {
+        caret-color: var(--primary) !important;
+    }
+
+    /* 确保 contenteditable 元素光标可见 */
+    #vditor [contenteditable="true"] {
+        caret-color: var(--primary) !important;
+    }
+
+    .dark #vditor [contenteditable="true"] {
+        caret-color: var(--primary) !important;
     }
 </style>
