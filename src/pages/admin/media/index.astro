@@ -321,7 +321,7 @@ import { siteConfig } from "@/config";
         // 加载完整的文件夹结构
         async function loadFolderStructure() {
             try {
-                var response = await fetch(API_URL + '/upload/list', {
+                var response = await fetch(API_URL + '/upload/folder-tree', {
                     headers: {
                         'Authorization': 'Bearer ' + localStorage.getItem('adminToken')
                     }
@@ -335,7 +335,8 @@ import { siteConfig } from "@/config";
                 }
 
                 var data = await response.json();
-                folderStructure = buildFolderTree(data.folders || []);
+                // folder-tree API 直接返回树结构
+                folderStructure = convertTreeToObject(data.tree || []);
                 renderFolderTree();
             } catch (err) {
                 console.error('加载文件夹结构失败:', err);
@@ -345,7 +346,7 @@ import { siteConfig } from "@/config";
             }
         }
 
-        // 构建文件夹树结构
+        // 构建文件夹树结构（从旧API格式）
         function buildFolderTree(folders) {
             var tree = {};
             folders.forEach(function(folder) {
@@ -363,6 +364,19 @@ import { siteConfig } from "@/config";
                 });
             });
             return tree;
+        }
+
+        // 转换后端树结构为前端对象格式
+        function convertTreeToObject(treeArray) {
+            var result = {};
+            treeArray.forEach(function(item) {
+                result[item.name] = {
+                    name: item.name,
+                    path: item.path,
+                    children: item.children ? convertTreeToObject(item.children) : {}
+                };
+            });
+            return result;
         }
 
         // 渲染文件夹树
@@ -446,27 +460,109 @@ import { siteConfig } from "@/config";
                     loadFiles();
                 });
 
-                // 右键菜单 - 删除文件夹
+                // 右键菜单 - 文件夹操作
                 if (item.dataset.path) { // 不给根目录添加右键菜单
                     label.addEventListener('contextmenu', function(e) {
                         e.preventDefault();
                         var folderPath = item.dataset.path;
                         var folderName = item.querySelector('span').textContent;
-
-                        if (window.adminConfirm) {
-                            window.adminConfirm('确定要删除文件夹 "' + folderName + '" 吗？（必须为空）').then(function(confirmed) {
-                                if (confirmed) {
-                                    deleteFolder(folderPath);
-                                }
-                            });
-                        } else {
-                            if (confirm('确定要删除文件夹 "' + folderName + '" 吗？（必须为空）')) {
-                                deleteFolder(folderPath);
-                            }
-                        }
+                        showFolderContextMenu(e, folderPath, folderName);
                     });
                 }
             });
+        }
+
+        // 显示文件夹右键菜单
+        function showFolderContextMenu(e, folderPath, folderName) {
+            // 移除已有的菜单
+            var existingMenu = document.getElementById('folderContextMenu');
+            if (existingMenu) existingMenu.remove();
+
+            var menu = document.createElement('div');
+            menu.id = 'folderContextMenu';
+            menu.className = 'fixed z-50 bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-700 py-2 min-w-[160px]';
+            menu.style.left = e.clientX + 'px';
+            menu.style.top = e.clientY + 'px';
+
+            menu.innerHTML =
+                '<button class="w-full px-4 py-2 text-left text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 flex items-center gap-2" data-action="rename">' +
+                    '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>' +
+                    '重命名' +
+                '</button>' +
+                '<button class="w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-zinc-100 dark:hover:bg-zinc-700 flex items-center gap-2" data-action="delete">' +
+                    '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>' +
+                    '删除' +
+                '</button>';
+
+            document.body.appendChild(menu);
+
+            // 绑定菜单事件
+            menu.querySelector('[data-action="rename"]').addEventListener('click', function() {
+                menu.remove();
+                renameFolder(folderPath, folderName);
+            });
+
+            menu.querySelector('[data-action="delete"]').addEventListener('click', function() {
+                menu.remove();
+                if (window.adminConfirm) {
+                    window.adminConfirm('确定要删除文件夹 "' + folderName + '" 吗？（必须为空）').then(function(confirmed) {
+                        if (confirmed) {
+                            deleteFolder(folderPath);
+                        }
+                    });
+                } else {
+                    if (confirm('确定要删除文件夹 "' + folderName + '" 吗？（必须为空）')) {
+                        deleteFolder(folderPath);
+                    }
+                }
+            });
+
+            // 点击其他地方关闭菜单
+            setTimeout(function() {
+                document.addEventListener('click', function closeMenu(e) {
+                    if (!menu.contains(e.target)) {
+                        menu.remove();
+                        document.removeEventListener('click', closeMenu);
+                    }
+                });
+            }, 0);
+        }
+
+        // 重命名文件夹
+        async function renameFolder(folderPath, oldName) {
+            var newName = prompt('请输入新的文件夹名称：', oldName);
+            if (!newName || newName === oldName) return;
+
+            try {
+                var formData = new FormData();
+                formData.append('new_name', newName);
+
+                var response = await fetch(API_URL + '/upload/folder/' + folderPath, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('adminToken')
+                    },
+                    body: formData
+                });
+
+                if (response.ok) {
+                    if (window.adminAlert) {
+                        await window.adminAlert('重命名成功', 'success');
+                    }
+                    loadFolderStructure();
+                    loadFiles();
+                } else {
+                    var err = await response.json();
+                    if (window.adminAlert) {
+                        window.adminAlert(err.detail || '重命名失败', 'error');
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+                if (window.adminAlert) {
+                    window.adminAlert('重命名失败', 'error');
+                }
+            }
         }
 
         // 切换侧边栏（移动端）
