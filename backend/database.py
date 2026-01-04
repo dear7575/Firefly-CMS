@@ -3,11 +3,12 @@
 提供数据库连接和会话管理
 """
 import os
+import secrets
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from pydantic_settings import BaseSettings
-import secrets
 
 # 默认不安全的密钥标识
 DEFAULT_INSECURE_KEY = "your-secret-key-for-jwt-please-change-in-production"
@@ -112,9 +113,8 @@ class Settings(BaseSettings):
     # 开发环境建议设置较大值，生产环境可根据实际情况调整
     RATE_LIMIT_PER_MINUTE: int = 500
 
-    class Config:
-        # 从 .env 文件加载配置
-        env_file = ".env"
+    # 从 .env 文件加载配置，并忽略不属于本模型的字段
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 
 # 创建全局配置实例

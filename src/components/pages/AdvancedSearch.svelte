@@ -8,6 +8,7 @@
 	import { navBarSearchConfig } from "@/config";
 	import { NavBarSearchMethod } from "@/types/config";
 	import { getApiUrl } from "@/utils/api-utils";
+	import { parseApiResponse } from "@/utils/api-response";
 
 	// --- Props ---
 	export let title = i18n(I18nKey.search);
@@ -61,10 +62,11 @@
 				const response = await fetch(
 					`${apiUrl}/search/?q=${encodeURIComponent(keyword)}&limit=50`,
 				);
-				if (!response.ok) {
-					throw new Error(`搜索请求失败: ${response.status}`);
+				const payload = await parseApiResponse<SearchResult[]>(response);
+				if (!response.ok || payload.code >= 400) {
+					throw new Error(payload.msg || `搜索请求失败: ${response.status}`);
 				}
-				results = await response.json();
+				results = payload.data || [];
 			} else if (import.meta.env.PROD && window.pagefind) {
 				const response = await window.pagefind.search(keyword);
 				const rawResults = await Promise.all(

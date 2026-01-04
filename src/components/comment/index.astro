@@ -4,6 +4,7 @@ import { commentConfig } from "@/config/commentConfig";
 import Key from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
 import { removeFileExtension } from "@/utils/url-utils";
+import { fetchSiteSettings } from "@/services/siteSettings";
 import Artalk from "./Artalk.astro";
 import Disqus from "./Disqus.astro";
 import Giscus from "./Giscus.astro";
@@ -24,12 +25,58 @@ const path =
 	customPath || (post.collection === "posts" ? `/posts/${slug}` : `/${slug}`);
 const url = `${Astro.site?.href}${path}`;
 
-// 强制commentService类型为string，避免类型不兼容警告
-let commentService: string = commentConfig?.type || "none";
+// 获取动态配置
+let dynamicSettings: Record<string, any> = {};
+try {
+	dynamicSettings = await fetchSiteSettings();
+} catch (error) {
+	console.warn("无法获取动态配置，使用静态配置");
+}
+
+const featureComment = dynamicSettings.feature_comment ?? true;
+const commentService = String(
+	dynamicSettings.comment_type ?? commentConfig?.type ?? "none",
+).toLowerCase();
+
+const twikooConfig = {
+	...commentConfig.twikoo,
+	envId: String(
+		dynamicSettings.comment_twikoo_env_id ?? commentConfig.twikoo?.envId ?? "",
+	),
+	lang:
+		dynamicSettings.comment_twikoo_lang ??
+		commentConfig.twikoo?.lang ??
+		"zh-CN",
+	visitorCount:
+		dynamicSettings.comment_twikoo_visitor_count ??
+		commentConfig.twikoo?.visitorCount ??
+		false,
+};
+
+const isConfigured = (type: string) => {
+	switch (type) {
+		case "twikoo":
+			return Boolean(twikooConfig.envId);
+		case "waline":
+			return Boolean(commentConfig.waline?.serverURL);
+		case "artalk":
+			return Boolean(commentConfig.artalk?.server);
+		case "giscus":
+			return Boolean(commentConfig.giscus?.repo);
+		case "disqus":
+			return Boolean(commentConfig.disqus?.shortname);
+		default:
+			return false;
+	}
+};
+
+const commentConfigured =
+	commentService !== "none" && isConfigured(commentService);
+const shouldRenderComment = featureComment && commentConfigured;
 ---
 
 {
-  commentService !== "none" && (
+  featureComment && (
     <div class="card-base p-8 mb-6 relative overflow-hidden">
       <!-- 评论区装饰性背景 -->
       <div class="absolute top-0 right-0 w-32 h-32 opacity-5 pointer-events-none">
@@ -49,12 +96,22 @@ let commentService: string = commentConfig?.type || "none";
       </div>
       <!-- 评论内容区域 -->
       <div class="relative z-10">
-        {commentService === "twikoo" && <Twikoo path={path} />}
-        {commentService === "waline" && <Waline path={path} />}
-        {commentService === "giscus" && <Giscus />}
-        {commentService === "disqus" && <Disqus identifier={slug} url={url} title={'title' in post.data ? post.data.title : slug} />}
-          {commentService === "artalk" && <Artalk path={path} />}
-        {commentService === "none" && (
+        {shouldRenderComment && commentService === "twikoo" && (
+          <Twikoo path={path} config={twikooConfig} />
+        )}
+        {shouldRenderComment && commentService === "waline" && <Waline path={path} />}
+        {shouldRenderComment && commentService === "giscus" && <Giscus />}
+        {shouldRenderComment && commentService === "disqus" && (
+          <Disqus
+            identifier={slug}
+            url={url}
+            title={'title' in post.data ? post.data.title : slug}
+          />
+        )}
+        {shouldRenderComment && commentService === "artalk" && (
+          <Artalk path={path} />
+        )}
+        {!commentConfigured && (
           <div class="text-center py-8 text-[var(--content-meta)]">
             <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--btn-regular-bg)] flex items-center justify-center">
               <svg class="w-8 h-8 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">

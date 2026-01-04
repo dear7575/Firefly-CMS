@@ -185,9 +185,9 @@ const API_URL = getApiUrl();
             if (!grid) return; // 不在 friends 页面，直接返回
 
             try {
-                var response = await fetch(`${API_URL}/friends`);
-                if (!response.ok) throw new Error("Failed to load");
-                friends = await response.json();
+                var result = await window.adminRequest(`${API_URL}/friends`);
+                if (!result.ok) throw new Error(result.msg || "加载失败");
+                friends = result.data || [];
 
                 if (friends.length === 0) {
                     grid.innerHTML =
@@ -363,17 +363,14 @@ const API_URL = getApiUrl();
         };
 
         window.deleteFriend = async function (id, name) {
-            if (
-                !confirm(
-                    (
-                        t.confirmDeleteFriend || 'Delete friend "{name}"?'
-                    ).replace("{name}", name),
-                )
-            )
-                return;
+            var confirmMsg = (
+                t.confirmDeleteFriend || 'Delete friend "{name}"?'
+            ).replace("{name}", name);
+            var confirmed = await window.showAdminConfirm(confirmMsg);
+            if (!confirmed) return;
 
             try {
-                var response = await fetch(API_URL + "/friends/" + id, {
+                var result = await window.adminRequest(API_URL + "/friends/" + id, {
                     method: "DELETE",
                     headers: {
                         Authorization:
@@ -381,14 +378,13 @@ const API_URL = getApiUrl();
                     },
                 });
 
-                if (response.ok) {
+                if (result.ok) {
                     loadFriends();
                 } else {
-                    var err = await response.json();
-                    alert(err.detail || t.deleteFailed || "Delete failed");
+                    window.showAdminAlert(result.msg || t.deleteFailed || "Delete failed", "error");
                 }
             } catch (err) {
-                alert(t.deleteFailed || "Delete failed");
+                window.showAdminAlert(t.deleteFailed || "Delete failed", "error");
             }
         };
 
@@ -470,7 +466,7 @@ const API_URL = getApiUrl();
                 };
 
                 try {
-                    var response = await fetch(
+                    var result = await window.adminRequest(
                         API_URL + "/friends/" + (id || ""),
                         {
                             method: id ? "PUT" : "POST",
@@ -484,15 +480,14 @@ const API_URL = getApiUrl();
                         },
                     );
 
-                    if (response.ok) {
+                    if (result.ok) {
                         hideModal();
                         loadFriends();
                     } else {
-                        var err = await response.json();
-                        alert(err.detail || t.saveFailed || "Save failed");
+                        window.showAdminAlert(result.msg || t.saveFailed || "Save failed", "error");
                     }
                 } catch (err) {
-                    alert(t.saveFailed || "Save failed");
+                    window.showAdminAlert(t.saveFailed || "Save failed", "error");
                 }
             });
         }

@@ -2,6 +2,8 @@
 异常处理器模块
 提供全局异常处理函数
 """
+import logging
+
 from fastapi import Request
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
@@ -17,6 +19,10 @@ from exceptions import (
     DatabaseError,
     ValidationError
 )
+from logging_config import log_exception
+from response_utils import build_error
+
+logger = logging.getLogger("firefly")
 
 
 async def api_exception_handler(request: Request, exc: APIException) -> JSONResponse:
@@ -64,13 +70,11 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException) 
 
     return JSONResponse(
         status_code=exc.status_code,
-        content={
-            "success": False,
-            "error": {
-                "code": code_map.get(exc.status_code, "HTTP_ERROR"),
-                "message": str(exc.detail)
-            }
-        }
+        content=build_error(
+            exc.status_code,
+            str(exc.detail),
+            error_code=code_map.get(exc.status_code, "HTTP_ERROR")
+        )
     )
 
 
@@ -96,16 +100,12 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
     return JSONResponse(
         status_code=422,
-        content={
-            "success": False,
-            "error": {
-                "code": "VALIDATION_ERROR",
-                "message": "请求数据验证失败",
-                "details": {
-                    "errors": errors
-                }
-            }
-        }
+        content=build_error(
+            422,
+            "请求数据验证失败",
+            error_code="VALIDATION_ERROR",
+            details={"errors": errors}
+        )
     )
 
 
@@ -120,16 +120,20 @@ async def sqlalchemy_exception_handler(request: Request, exc: SQLAlchemyError) -
     Returns:
         JSONResponse: 标准化的错误响应
     """
+    log_exception(
+        logger,
+        f"数据库异常: {request.method} {request.url.path}",
+        exc
+    )
+    request.state.error_logged = True
     # 在生产环境中不应暴露详细的数据库错误信息
     return JSONResponse(
         status_code=500,
-        content={
-            "success": False,
-            "error": {
-                "code": "DATABASE_ERROR",
-                "message": "数据库操作失败，请稍后重试"
-            }
-        }
+        content=build_error(
+            500,
+            "数据库操作失败，请稍后重试",
+            error_code="DATABASE_ERROR"
+        )
     )
 
 
@@ -147,24 +151,20 @@ async def jwt_exception_handler(request: Request, exc: JWTError) -> JSONResponse
     if isinstance(exc, ExpiredSignatureError):
         return JSONResponse(
             status_code=401,
-            content={
-                "success": False,
-                "error": {
-                    "code": "TOKEN_EXPIRED",
-                    "message": "认证信息已过期，请重新登录"
-                }
-            }
+            content=build_error(
+                401,
+                "认证信息已过期，请重新登录",
+                error_code="TOKEN_EXPIRED"
+            )
         )
 
     return JSONResponse(
         status_code=401,
-        content={
-            "success": False,
-            "error": {
-                "code": "INVALID_TOKEN",
-                "message": "无效的认证信息"
-            }
-        }
+        content=build_error(
+            401,
+            "无效的认证信息",
+            error_code="INVALID_TOKEN"
+        )
     )
 
 
@@ -179,18 +179,20 @@ async def generic_exception_handler(request: Request, exc: Exception) -> JSONRes
     Returns:
         JSONResponse: 标准化的错误响应
     """
-    # 记录异常信息（生产环境应使用日志系统）
-    print(f"未处理的异常: {type(exc).__name__}: {str(exc)}")
+    log_exception(
+        logger,
+        f"未处理的异常: {request.method} {request.url.path}",
+        exc
+    )
+    request.state.error_logged = True
 
     return JSONResponse(
         status_code=500,
-        content={
-            "success": False,
-            "error": {
-                "code": "INTERNAL_ERROR",
-                "message": "服务器内部错误，请稍后重试"
-            }
-        }
+        content=build_error(
+            500,
+            "服务器内部错误，请稍后重试",
+            error_code="INTERNAL_ERROR"
+        )
     )
 
 

@@ -4,6 +4,7 @@
  */
 
 import { getApiUrl } from "@/utils/api-utils";
+import { parseApiResponse } from "@/utils/api-response";
 
 // API 基础地址（从工具类动态获取）
 const getBaseUrl = () => getApiUrl();
@@ -76,6 +77,12 @@ const DEFAULT_SETTINGS: Record<string, any> = {
     feature_archive: true,
     feature_friends: true,
 
+    // 评论设置
+    comment_type: "none",
+    comment_twikoo_env_id: "",
+    comment_twikoo_lang: "zh-CN",
+    comment_twikoo_visitor_count: true,
+
     // 文章设置
     post_per_page: 10,
     post_default_layout: 'list',
@@ -129,7 +136,8 @@ async function fetchFromAPI(): Promise<Record<string, any>> {
             throw new Error(`HTTP ${response.status}`);
         }
 
-        return await response.json();
+        const payload = await parseApiResponse<Record<string, any>>(response);
+        return payload.data || {};
     } catch (error) {
         clearTimeout(timeoutId);
         throw error;
@@ -279,7 +287,8 @@ async function fetchGroupFromAPI(group: string): Promise<Record<string, any>> {
             throw new Error(`HTTP ${response.status}`);
         }
 
-        return await response.json();
+        const payload = await parseApiResponse<Record<string, any>>(response);
+        return payload.data || {};
     } catch (error) {
         clearTimeout(timeoutId);
         throw error;

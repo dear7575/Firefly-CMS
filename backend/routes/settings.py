@@ -507,6 +507,12 @@ def init_default_settings(
         {"key": "footer_copyright", "value": "", "type": "string", "group": "footer", "label": "版权信息", "sort_order": 98},
         {"key": "footer_powered_by", "value": "true", "type": "boolean", "group": "footer", "label": "显示Powered by", "sort_order": 97},
 
+        # 评论设置
+        {"key": "comment_type", "value": "twikoo", "type": "string", "group": "comment", "label": "评论系统类型", "description": "可选: none/twikoo/waline/giscus/disqus/artalk", "sort_order": 100},
+        {"key": "comment_twikoo_env_id", "value": "", "type": "string", "group": "comment", "label": "Twikoo EnvId", "description": "Twikoo 服务地址或环境 ID", "sort_order": 99},
+        {"key": "comment_twikoo_lang", "value": "zh-CN", "type": "string", "group": "comment", "label": "Twikoo 语言", "description": "Twikoo 语言设置", "sort_order": 98},
+        {"key": "comment_twikoo_visitor_count", "value": "true", "type": "boolean", "group": "comment", "label": "访问量统计", "description": "是否启用文章访问量统计", "sort_order": 97},
+
         # 主题设置
         {"key": "theme_hue", "value": "165", "type": "number", "group": "theme", "label": "主题色相", "sort_order": 100},
         {"key": "theme_fixed", "value": "false", "type": "boolean", "group": "theme", "label": "固定主题色", "sort_order": 99},

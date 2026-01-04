@@ -344,9 +344,9 @@ function initNewPage() {
         if (!categoryOptions) return;
 
         try {
-            const response = await fetch(API_URL + '/categories');
-            if (response.ok) {
-                allCategories = await response.json().then(cats => cats.filter(c => c.enabled));
+            const result = await window.adminRequest(API_URL + '/categories');
+            if (result.ok) {
+                allCategories = (result.data || []).filter(c => c.enabled);
                 renderCategoryOptions();
                 initCategorySelector();
             }
@@ -468,9 +468,9 @@ function initNewPage() {
         if (!tagsContainer) return;
 
         try {
-            const response = await fetch(API_URL + '/tags');
-            if (response.ok) {
-                allTags = await response.json();
+            const result = await window.adminRequest(API_URL + '/tags');
+            if (result.ok) {
+                allTags = result.data || [];
                 renderTags();
             } else {
                 tagsContainer.innerHTML = '<span class="text-sm text-red-500">加载标签失败</span>';
@@ -689,18 +689,18 @@ function initNewPage() {
         const slug = slugEl ? slugEl.value : '';
 
         if (!title || !slug) {
-            alert(t.requiredFields || "Title and Slug are required");
+            window.showAdminAlert(t.requiredFields || "Title and Slug are required", "warning");
             return;
         }
 
         if (!vditor) {
-            alert("Editor not initialized");
+            window.showAdminAlert("Editor not initialized", "error");
             return;
         }
 
         const content = vditor.getValue();
         if (!content) {
-            alert(t.contentEmpty || "Content is empty");
+            window.showAdminAlert(t.contentEmpty || "Content is empty", "warning");
             return;
         }
 
@@ -742,7 +742,7 @@ function initNewPage() {
                     '<span class="animate-spin inline-block mr-2">◌</span> ' + (saveBtn.dataset.publishingText || 'Publishing...');
             }
 
-            const response = await fetch(`${API_URL}/posts`, {
+            const result = await window.adminRequest(`${API_URL}/posts`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -751,11 +751,13 @@ function initNewPage() {
                 body: JSON.stringify(postData),
             });
 
-            if (response.ok) {
+            if (result.ok) {
                 window.location.href = "/admin/posts";
             } else {
-                const errData = await response.json();
-                alert((t.saveFailed || 'Save failed') + ": " + (errData.detail || "Unknown error"));
+                window.showAdminAlert(
+                    (t.saveFailed || "Save failed") + ": " + (result.msg || "Unknown error"),
+                    "error",
+                );
                 if (saveBtn) {
                     saveBtn.disabled = false;
                     saveBtn.innerHTML = saveBtn.dataset.publishText || "Publish Post";
@@ -763,7 +765,7 @@ function initNewPage() {
             }
         } catch (err) {
             console.error(err);
-            alert(t.saveFailed || "An error occurred while saving.");
+            window.showAdminAlert(t.saveFailed || "An error occurred while saving.", "error");
             if (saveBtn) {
                 saveBtn.disabled = false;
                 saveBtn.innerHTML = saveBtn.dataset.publishText || "Publish Post";

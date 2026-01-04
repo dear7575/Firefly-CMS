@@ -3,6 +3,7 @@ import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import { getCategoryUrl } from "@utils/url-utils";
 import { getApiUrl } from "@utils/api-utils";
+import { parseApiResponse } from "@utils/api-response";
 
 // Retrieve posts and sort them by publication date
 async function getRawSortedPosts() {
@@ -17,7 +18,8 @@ async function getRawSortedPosts() {
 		console.log(`[SSR] Fetching dynamic posts from: ${apiUrl}/posts?all=true`);
 		const res = await fetch(`${apiUrl}/posts?all=true`);
 		if (res.ok) {
-			const data = await res.json();
+			const payload = await parseApiResponse<any>(res);
+			const data = payload.data;
 			// API 返回的是包含 _pagination 的对象或者是数组，这里根据 get_posts 的返回进行处理
 			// main.py 中 get_posts 返回的是 List[dict]，每个 dict 包含 _pagination
 			const postsArray = Array.isArray(data) ? data : (data.items || []);

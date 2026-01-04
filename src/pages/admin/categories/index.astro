@@ -180,9 +180,9 @@ const API_URL = getApiUrl();
                 if (!grid) return; // Not on categories page? Or DOM not ready?
 
                 try {
-                    var response = await fetch(`${API_URL}/categories`);
-                    if (!response.ok) throw new Error("Failed to load");
-                    categories = await response.json();
+                    var result = await window.adminRequest(`${API_URL}/categories`);
+                    if (!result.ok) throw new Error(result.msg || "加载失败");
+                    categories = result.data || [];
 
                     if (categories.length === 0) {
                         grid.innerHTML =
@@ -350,10 +350,11 @@ const API_URL = getApiUrl();
                 var confirmMsg = (
                     t.confirmDeleteCategory || 'Delete category "{name}"?'
                 ).replace("{name}", name);
-                if (!confirm(confirmMsg)) return;
+                var confirmed = await window.showAdminConfirm(confirmMsg);
+                if (!confirmed) return;
 
                 try {
-                    var response = await fetch(API_URL + "/categories/" + id, {
+                    var result = await window.adminRequest(API_URL + "/categories/" + id, {
                         method: "DELETE",
                         headers: {
                             Authorization:
@@ -361,14 +362,13 @@ const API_URL = getApiUrl();
                         },
                     });
 
-                    if (response.ok) {
+                    if (result.ok) {
                         loadCategories();
                     } else {
-                        var err = await response.json();
-                        alert(err.detail || t.deleteFailed || "Delete failed");
+                        window.showAdminAlert(result.msg || t.deleteFailed || "Delete failed", "error");
                     }
                 } catch (err) {
-                    alert(t.deleteFailed || "Delete failed");
+                    window.showAdminAlert(t.deleteFailed || "Delete failed", "error");
                 }
             };
 
@@ -456,7 +456,7 @@ const API_URL = getApiUrl();
                     };
 
                     try {
-                        var response = await fetch(
+                        var result = await window.adminRequest(
                             API_URL + "/categories/" + (id || ""),
                             {
                                 method: id ? "PUT" : "POST",
@@ -470,15 +470,14 @@ const API_URL = getApiUrl();
                             },
                         );
 
-                        if (response.ok) {
+                        if (result.ok) {
                             hideModal();
                             loadCategories();
                         } else {
-                            var err = await response.json();
-                            alert(err.detail || t.saveFailed || "Save failed");
+                            window.showAdminAlert(result.msg || t.saveFailed || "Save failed", "error");
                         }
                     } catch (err) {
-                        alert(t.saveFailed || "Save failed");
+                        window.showAdminAlert(t.saveFailed || "Save failed", "error");
                     }
                 });
             }

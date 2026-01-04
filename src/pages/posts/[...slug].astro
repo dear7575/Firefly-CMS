@@ -626,7 +626,8 @@ const jsonLd = {
           return;
         }
 
-        const data = await response.json();
+        const payload = await response.json();
+        const data = payload && payload.data !== undefined ? payload.data : payload;
 
         if (data.valid) {
           // Password correct - store and reveal content
