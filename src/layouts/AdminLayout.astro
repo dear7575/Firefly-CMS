@@ -242,6 +242,46 @@ const menuItems = [
         window.API_URL = PUBLIC_API_URL;
         window.adminI18n = adminI18n;
 
+        if (!window.adminRequest) {
+            window.safeJson = async function (response) {
+                try {
+                    return await response.json();
+                } catch (e) {
+                    return null;
+                }
+            };
+
+            window.parseApiResponse = async function (response) {
+                const payload = await window.safeJson(response);
+                if (payload && typeof payload === "object" && "code" in payload && "msg" in payload && "data" in payload) {
+                    return {
+                        ok: payload.code >= 200 && payload.code < 300,
+                        code: payload.code,
+                        msg: payload.msg,
+                        data: payload.data,
+                        raw: payload
+                    };
+                }
+
+                const message =
+                    payload && typeof payload === "object"
+                        ? (payload.msg || payload.message || payload.detail)
+                        : null;
+
+                return {
+                    ok: response.ok,
+                    code: response.status,
+                    msg: message || (response.ok ? "操作成功" : "操作失败"),
+                    data: payload,
+                    raw: payload
+                };
+            };
+
+            window.adminRequest = async function (url, options) {
+                const response = await fetch(url, options);
+                return window.parseApiResponse(response);
+            };
+        }
 
 
         // 全局错误处理器，忽略 Vditor 和浏览器扩展相关的错误（尽早注册）
@@ -1393,6 +1433,14 @@ const menuItems = [
             <h3 id="adminModalTitle" class="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2"></h3>
             <!-- 消息 -->
             <p id="adminModalMessage" class="text-zinc-600 dark:text-zinc-400 text-sm"></p>
+            <div id="adminModalInputWrapper" class="mt-4 hidden">
+                <input
+                    id="adminModalInput"
+                    type="text"
+                    class="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-[var(--primary)] outline-none"
+                    placeholder=""
+                />
+            </div>
         </div>
         <!-- 按钮区域 -->
         <div id="adminModalButtons" class="px-6 pb-6 flex gap-3 justify-center">
@@ -1613,19 +1661,17 @@ const menuItems = [
                 var confirmPw = document.getElementById('globalConfirmPassword').value;
 
                 if(newPw.length < 6) {
-                    if(window.adminAlert) window.adminAlert('新密码长度至少6位', 'warning');
-                    else alert('新密码长度至少6位');
+                    window.showAdminAlert('新密码长度至少6位', 'warning');
                     return;
                 }
                 if(newPw !== confirmPw) {
-                    if(window.adminAlert) window.adminAlert('两次输入密码不一致', 'warning');
-                    else alert('两次输入密码不一致');
+                    window.showAdminAlert('两次输入密码不一致', 'warning');
                     return;
                 }
 
                 try {
                     var token = localStorage.getItem('adminToken');
-                    var res = await fetch(API_URL + '/auth/change-password', {
+                    var result = await window.adminRequest(API_URL + '/auth/change-password', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -1638,22 +1684,17 @@ const menuItems = [
                         })
                     });
 
-                    if(res.ok) {
-                        if(window.adminAlert) await window.adminAlert('密码修改成功，请重新登录', 'success');
-                        else alert('密码修改成功，请重新登录');
+                    if(result.ok) {
+                        await window.showAdminAlert(result.msg || '密码修改成功，请重新登录', 'success');
                         
                         localStorage.removeItem('adminToken');
                         window.location.href = '/admin/login';
                     } else {
-                        var err = await res.json();
-                        var msg = err.detail || '修改失败';
-                        if(window.adminAlert) window.adminAlert(msg, 'error');
-                        else alert(msg);
+                        window.showAdminAlert(result.msg || '修改失败', 'error');
                     }
                 } catch(e) {
                     console.error(e);
-                    if(window.adminAlert) window.adminAlert('网络错误', 'error');
-                    else alert('网络错误');
+                    window.showAdminAlert('网络错误', 'error');
                 }
             });
         }
@@ -1826,14 +1867,19 @@ const menuItems = [
     document.addEventListener('astro:page-load', () => {
     // ============== 全局美化弹框函数 ==============
     (function () {
+        if (window._adminModalInitialized) return;
+        window._adminModalInitialized = true;
         var modal = document.getElementById('adminModal');
         var modalContent = document.getElementById('adminModalContent');
         var modalTitle = document.getElementById('adminModalTitle');
         var modalMessage = document.getElementById('adminModalMessage');
         var modalIcon = document.getElementById('adminModalIcon');
+        var modalInputWrapper = document.getElementById('adminModalInputWrapper');
+        var modalInput = document.getElementById('adminModalInput');
         var confirmBtn = document.getElementById('adminModalConfirm');
         var cancelBtn = document.getElementById('adminModalCancel');
         var resolveCallback = null;
+        var currentMode = "alert";
 
         var icons = {
             success: {el: document.getElementById('iconSuccess'), bg: 'bg-green-100 dark:bg-green-900/30'},
@@ -1850,6 +1896,8 @@ const menuItems = [
             var showCancel = options.showCancel || false;
             var confirmText = options.confirmText || '确定';
             var cancelText = options.cancelText || '取消';
+            var inputOptions = options.input || null;
+            currentMode = options.mode || (inputOptions ? "prompt" : (showCancel ? "confirm" : "alert"));
 
             // 设置内容
             modalTitle.textContent = title;
@@ -1862,6 +1910,16 @@ const menuItems = [
                 cancelBtn.classList.remove('hidden');
             } else {
                 cancelBtn.classList.add('hidden');
+            }
+
+            if (inputOptions && modalInputWrapper && modalInput) {
+                modalInputWrapper.classList.remove('hidden');
+                modalInput.type = inputOptions.type || "text";
+                modalInput.placeholder = inputOptions.placeholder || "";
+                modalInput.value = inputOptions.value || "";
+            } else if (modalInputWrapper && modalInput) {
+                modalInputWrapper.classList.add('hidden');
+                modalInput.value = "";
             }
 
             // 设置图标
@@ -1881,6 +1939,10 @@ const menuItems = [
             setTimeout(function () {
                 modalContent.classList.remove('scale-95', 'opacity-0');
                 modalContent.classList.add('scale-100', 'opacity-100');
+                if (inputOptions && modalInput) {
+                    modalInput.focus();
+                    modalInput.select();
+                }
             }, 10);
 
             return new Promise(function (resolve) {
@@ -1896,9 +1958,14 @@ const menuItems = [
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
                 if (resolveCallback) {
-                    resolveCallback(result);
+                    var finalResult = result;
+                    if (currentMode === "prompt") {
+                        finalResult = result ? (modalInput ? modalInput.value : "") : null;
+                    }
+                    resolveCallback(finalResult);
                     resolveCallback = null;
                 }
+                currentMode = "alert";
             }, 200);
         }
 
@@ -1923,13 +1990,23 @@ const menuItems = [
             });
         }
 
+        if (modalInput) {
+            modalInput.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    hideModal(true);
+                }
+            });
+        }
+
         // 全局函数
         window.adminAlert = function (message, type, title) {
             return showModal({
                 type: type || 'info',
                 title: title || (type === 'success' ? '成功' : type === 'error' ? '错误' : '提示'),
                 message: message,
-                showCancel: false
+                showCancel: false,
+                mode: "alert"
             });
         };
 
@@ -1940,8 +2017,51 @@ const menuItems = [
                 message: message,
                 showCancel: true,
                 confirmText: '确定',
-                cancelText: '取消'
+                cancelText: '取消',
+                mode: "confirm"
             });
+        };
+
+        window.adminPrompt = function (message, options) {
+            var opts = options || {};
+            return showModal({
+                type: opts.type || 'info',
+                title: opts.title || '请输入',
+                message: message || '',
+                showCancel: true,
+                confirmText: opts.confirmText || '确定',
+                cancelText: opts.cancelText || '取消',
+                mode: "prompt",
+                input: {
+                    type: opts.inputType || "text",
+                    placeholder: opts.placeholder || "",
+                    value: opts.defaultValue || ""
+                }
+            });
+        };
+
+        window.showAdminAlert = function (message, type, title) {
+            if (window.adminAlert) {
+                return window.adminAlert(message, type, title);
+            }
+            console.warn(message);
+            return Promise.resolve();
+        };
+
+        window.showAdminConfirm = function (message, title) {
+            if (window.adminConfirm) {
+                return window.adminConfirm(message, title);
+            }
+            console.warn(message);
+            return Promise.resolve(false);
+        };
+
+        window.showAdminPrompt = function (message, options) {
+            if (window.adminPrompt) {
+                return window.adminPrompt(message, options);
+            }
+            console.warn(message);
+            return Promise.resolve(null);
         };
     })();
     });
@@ -2312,9 +2432,12 @@ const menuItems = [
             }
 
             // 尝试加载个人资料头像
-            fetch(`${API_URL}/settings`)
-                .then(res => res.ok ? res.json() : Promise.reject())
-                .then(settings => {
+            window.adminRequest(`${API_URL}/settings`)
+                .then(result => {
+                    if (!result.ok) {
+                        throw new Error(result.msg || "加载设置失败");
+                    }
+                    const settings = result.data || [];
                     // 查找头像设置（profile_avatar 或 avatar）
                     const avatarSetting = settings.find(s =>
                         s.key === 'profile_avatar' || s.key === 'avatar' || s.key === 'site_avatar'
@@ -2366,9 +2489,9 @@ const menuItems = [
 
             try {
                 // 获取所有文章用于筛选计数
-                const response = await fetch(`${API_URL}/posts?all=true`);
-                if (!response.ok) throw new Error('Failed to get post list');
-                let posts = await response.json();
+                const result = await window.adminRequest(`${API_URL}/posts?all=true`);
+                if (!result.ok) throw new Error(result.msg || '获取文章列表失败');
+                let posts = result.data || [];
 
                 // 更新筛选计数并应用筛选
                 if (typeof window.postsFilterUpdate === 'function') {
@@ -2552,26 +2675,27 @@ const menuItems = [
 
         // Delete post function
         window.deletePost = async function (id) {
-            if (!confirm(t.confirmDelete)) return;
+            const confirmed = await window.showAdminConfirm(t.confirmDelete);
+            if (!confirmed) return;
 
             try {
-                const response = await fetch(`${API_URL}/posts/${id}`, {
+                const result = await window.adminRequest(`${API_URL}/posts/${id}`, {
                     method: "DELETE",
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
                     },
                 });
 
-                if (response.ok) {
+                if (result.ok) {
                     isLoading = false;
                     loadPosts(currentPage);  // 保持当前页码
-                } else if (response.status !== 401) {
+                } else if (result.code !== 401) {
                     // 401 由全局拦截器处理
-                    alert(t.deleteFailed);
+                    window.showAdminAlert(result.msg || t.deleteFailed, "error");
                 }
             } catch (err) {
                 console.error("Failed to delete post:", err);
-                alert(t.deleteFailed);
+                window.showAdminAlert(t.deleteFailed, "error");
             }
         };
 
@@ -2579,24 +2703,24 @@ const menuItems = [
         window.togglePin = async function (id) {
             try {
                 // 先获取文章当前数据
-                const getResponse = await fetch(`${API_URL}/posts/${id}`, {
+                const getResult = await window.adminRequest(`${API_URL}/posts/${id}`, {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
                     },
                 });
 
-                if (!getResponse.ok) {
-                    if (getResponse.status !== 401) {
+                if (!getResult.ok) {
+                    if (getResult.code !== 401) {
                         // 401 由全局拦截器处理
-                        alert('获取文章信息失败');
+                        window.showAdminAlert(getResult.msg || '获取文章信息失败', "error");
                     }
                     return;
                 }
 
-                const post = await getResponse.json();
+                const post = getResult.data;
 
                 // 使用 PUT 接口更新置顶状态
-                const response = await fetch(`${API_URL}/posts/${id}`, {
+                const updateResult = await window.adminRequest(`${API_URL}/posts/${id}`, {
                     method: "PUT",
                     headers: {
                         "Content-Type": "application/json",
@@ -2616,16 +2740,16 @@ const menuItems = [
                     }),
                 });
 
-                if (response.ok) {
+                if (updateResult.ok) {
                     isLoading = false;
                     loadPosts(currentPage);  // 保持当前页码
-                } else if (response.status !== 401) {
+                } else if (updateResult.code !== 401) {
                     // 401 由全局拦截器处理
-                    alert('操作失败');
+                    window.showAdminAlert(updateResult.msg || '操作失败', "error");
                 }
             } catch (err) {
                 console.error("Failed to toggle pin:", err);
-                alert('操作失败');
+                window.showAdminAlert('操作失败', "error");
             }
         };
 
@@ -2798,69 +2922,50 @@ const menuItems = [
         // 恢复文章
         window.restorePost = async function(id) {
             try {
-                const response = await fetch(`${API_URL}/posts/${id}/restore`, {
+                const result = await window.adminRequest(`${API_URL}/posts/${id}/restore`, {
                     method: "POST",
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
                     },
                 });
 
-                if (response.ok) {
-                    if (window.adminAlert) {
-                        await window.adminAlert("文章已恢复", "success");
-                    }
+                if (result.ok) {
+                    await window.showAdminAlert(result.msg || "文章已恢复", "success");
                     isLoading = false;
                     loadPosts(1);
                 } else {
-                    const err = await response.json();
-                    if (window.adminAlert) {
-                        window.adminAlert(err.detail || "恢复失败", "error");
-                    }
+                    window.showAdminAlert(result.msg || "恢复失败", "error");
                 }
             } catch (err) {
                 console.error(err);
-                if (window.adminAlert) {
-                    window.adminAlert("恢复失败", "error");
-                }
+                window.showAdminAlert("恢复失败", "error");
             }
         };
 
         // 永久删除文章
         window.permanentDeletePost = async function(id, title) {
-            let confirmed = false;
-            if (window.adminConfirm) {
-                confirmed = await window.adminConfirm(`确定要永久删除文章 "${title}" 吗？此操作不可恢复！`);
-            } else {
-                confirmed = confirm(`确定要永久删除文章 "${title}" 吗？此操作不可恢复！`);
-            }
+            const confirmed = await window.showAdminConfirm(`确定要永久删除文章 "${title}" 吗？此操作不可恢复！`);
 
             if (!confirmed) return;
 
             try {
-                const response = await fetch(`${API_URL}/posts/${id}?permanent=true`, {
+                const result = await window.adminRequest(`${API_URL}/posts/${id}?permanent=true`, {
                     method: "DELETE",
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
                     },
                 });
 
-                if (response.ok) {
-                    if (window.adminAlert) {
-                        await window.adminAlert("文章已永久删除", "success");
-                    }
+                if (result.ok) {
+                    await window.showAdminAlert(result.msg || "文章已永久删除", "success");
                     isLoading = false;
                     loadPosts(1);
                 } else {
-                    const err = await response.json();
-                    if (window.adminAlert) {
-                        window.adminAlert(err.detail || "删除失败", "error");
-                    }
+                    window.showAdminAlert(result.msg || "删除失败", "error");
                 }
             } catch (err) {
                 console.error(err);
-                if (window.adminAlert) {
-                    window.adminAlert("删除失败", "error");
-                }
+                window.showAdminAlert("删除失败", "error");
             }
         };
 

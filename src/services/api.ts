@@ -1,4 +1,5 @@
 import { getApiUrl } from "@/utils/api-utils";
+import { parseApiResponse } from "@/utils/api-response";
 
 /** API 基础地址（从工具类动态获取） */
 const getBaseUrl = () => getApiUrl();
@@ -64,10 +65,11 @@ export interface FriendLink {
  */
 export async function fetchPosts(): Promise<Post[]> {
     const response = await fetch(`${getBaseUrl()}/posts`);
-    if (!response.ok) {
-        throw new Error('获取文章列表失败');
+    const payload = await parseApiResponse<Post[]>(response);
+    if (!response.ok || payload.code >= 400) {
+        throw new Error(payload.msg || '获取文章列表失败');
     }
-    return response.json();
+    return payload.data || [];
 }
 
 /**
@@ -78,11 +80,12 @@ export async function fetchPosts(): Promise<Post[]> {
 export async function fetchEnabledFriends(): Promise<FriendLink[]> {
     try {
         const response = await fetch(`${getBaseUrl()}/friends`);
-        if (!response.ok) {
+        const payload = await parseApiResponse<FriendLinkAPI[]>(response);
+        if (!response.ok || payload.code >= 400) {
             console.error('获取友链列表失败');
             return [];
         }
-        const data: FriendLinkAPI[] = await response.json();
+        const data: FriendLinkAPI[] = payload.data || [];
 
         // 过滤启用的友链，转换字段格式，按权重排序
         return data
@@ -120,8 +123,9 @@ export async function createPost(postData: any, token: string) {
         },
         body: JSON.stringify(postData),
     });
-    if (!response.ok) {
-        throw new Error('创建文章失败');
+    const payload = await parseApiResponse<any>(response);
+    if (!response.ok || payload.code >= 400) {
+        throw new Error(payload.msg || '创建文章失败');
     }
-    return response.json();
+    return payload.data;
 }

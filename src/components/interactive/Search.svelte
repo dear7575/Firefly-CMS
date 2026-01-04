@@ -9,6 +9,7 @@
 	import { type MeiliSearchConfig, NavBarSearchMethod } from "@/types/config";
 	import { url as formatUrl } from "@/utils/url-utils";
 	import { getApiUrl } from "@/utils/api-utils";
+	import { parseApiResponse } from "@/utils/api-response";
 
 	// --- Props from Astro ---
 	export let searchMethod: NavBarSearchMethod;
@@ -137,10 +138,11 @@
 					const response = await fetch(
 						`${apiUrl}/search/?q=${encodeURIComponent(keyword)}&limit=10`,
 					);
-					if (!response.ok) {
-						throw new Error(`搜索请求失败: ${response.status}`);
+					const payload = await parseApiResponse<SearchResult[]>(response);
+					if (!response.ok || payload.code >= 400) {
+						throw new Error(payload.msg || `搜索请求失败: ${response.status}`);
 					}
-					searchResults = await response.json();
+					searchResults = payload.data || [];
 				}
 
 				result = searchResults;

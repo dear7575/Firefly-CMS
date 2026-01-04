@@ -1,13 +1,18 @@
 ---
-import { commentConfig } from "@/config/commentConfig";
 import { url } from "@/utils/url-utils";
 
 interface Props {
 	path: string;
+	config: {
+		envId: string;
+		region?: string;
+		lang?: string;
+		visitorCount?: boolean;
+	};
 }
 
 const config = {
-	...commentConfig.twikoo,
+	...Astro.props.config,
 	el: "#tcomment",
 	path: Astro.props.path,
 };

@@ -6,6 +6,7 @@ import MainGridLayout from "@/layouts/MainGridLayout.astro";
 import { marked, Renderer } from "marked";
 
 import { getApiUrl } from "@/utils/api-utils";
+import { parseApiResponse } from "@/utils/api-response";
 
 export const prerender = false;
 
@@ -18,8 +19,9 @@ let renderedContent = "";
 try {
     const response = await fetch(`${API_URL}/posts/slug/about`);
     if (response.ok) {
-        const post = await response.json();
-        aboutContent = post.content;
+        const payload = await parseApiResponse(response);
+        const post = payload.data;
+        aboutContent = post?.content || aboutContent;
     }
 } catch (error) {
     console.error("Failed to load about page:", error);

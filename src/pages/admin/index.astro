@@ -174,9 +174,9 @@ const API_URL = getApiUrl();
         if (!totalPostsEl) return; // 不在 dashboard 页面，直接返回
 
         try {
-            const response = await fetch(API_URL + '/dashboard/stats');
-            if (!response.ok) throw new Error('Failed to load stats');
-            const data = await response.json();
+            const result = await window.adminRequest(API_URL + '/dashboard/stats');
+            if (!result.ok) throw new Error(result.msg || 'Failed to load stats');
+            const data = result.data || {};
 
             // Update stats - 添加 null 检查
             var publishedPostsEl = document.getElementById('publishedPosts');

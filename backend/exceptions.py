@@ -26,16 +26,18 @@ class APIException(Exception):
 
     def to_dict(self) -> Dict[str, Any]:
         """转换为字典格式"""
-        result = {
-            "success": False,
-            "error": {
-                "code": self.code,
-                "message": self.message
-            }
-        }
+        data = {}
+        if self.code:
+            data["error_code"] = self.code
         if self.details:
-            result["error"]["details"] = self.details
-        return result
+            data["details"] = self.details
+        if not data:
+            data = None
+        return {
+            "code": self.status_code,
+            "msg": self.message,
+            "data": data
+        }
 
 
 # ============== 认证相关异常 ==============

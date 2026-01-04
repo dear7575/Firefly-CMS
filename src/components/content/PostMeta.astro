@@ -5,6 +5,7 @@ import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
 import { formatDateToYYYYMMDD } from "@/utils/date-utils";
 import { getCategoryUrl, getTagUrl } from "@/utils/url-utils";
+import { fetchSiteSettings } from "@/services/siteSettings";
 
 export interface Props {
 	published: Date;
@@ -41,6 +42,26 @@ const {
 } = Astro.props;
 
 const path = customPath || (id ? `/posts/${id}` : "");
+
+// 获取动态配置
+let dynamicSettings: Record<string, any> = {};
+try {
+	dynamicSettings = await fetchSiteSettings();
+} catch (error) {
+	console.warn("无法获取动态配置，使用静态配置");
+}
+
+const featureComment = dynamicSettings.feature_comment ?? true;
+const commentType = String(
+	dynamicSettings.comment_type ?? commentConfig.type ?? "none",
+).toLowerCase();
+const twikooVisitorCount =
+	dynamicSettings.comment_twikoo_visitor_count ??
+	commentConfig.twikoo?.visitorCount ??
+	false;
+const twikooEnvId = String(
+	dynamicSettings.comment_twikoo_env_id ?? commentConfig.twikoo?.envId ?? "",
+);
 ---
 
 <div
@@ -167,8 +188,10 @@ const path = customPath || (id ? `/posts/${id}` : "");
   <!-- Twikoo访问量统计（首页不显示，且文章访问量统计启用时显示） -->
   {
     !isHome &&
-      commentConfig.type === 'twikoo' &&
-      commentConfig.twikoo?.visitorCount &&
+      featureComment &&
+      commentType === 'twikoo' &&
+      twikooVisitorCount &&
+      twikooEnvId &&
       id && (
         <div class="flex items-center">
           <div class="meta-icon">
@@ -189,7 +212,8 @@ const path = customPath || (id ? `/posts/${id}` : "");
   <!-- Waline访问量统计（首页不显示、仅type为waline时显示） -->
   {
     !isHome &&
-      commentConfig.type === 'waline' &&
+      featureComment &&
+      commentType === 'waline' &&
       commentConfig.waline?.visitorCount &&
       id && (
         <div class="flex items-center">
@@ -206,8 +230,9 @@ const path = customPath || (id ? `/posts/${id}` : "");
     <!-- artalk访问量统计（首页不显示、仅type为artalk时显示） -->
     {
         !isHome &&
-        commentConfig.type === 'artalk' &&
-        commentConfig.waline?.visitorCount &&
+        featureComment &&
+        commentType === 'artalk' &&
+        commentConfig.artalk?.visitorCount &&
         id && (
                     <div class="flex items-center">
                         <div class="meta-icon">

@@ -210,13 +210,13 @@ import { i18n } from "@/i18n/translation";
         async function loadTrashPosts() {
             try {
                 var API_URL = window.API_URL;
-                var response = await fetch(API_URL + "/posts/trash/list?all=true", {
+                var result = await window.adminRequest(API_URL + "/posts/trash/list?all=true", {
                     headers: {
                         "Authorization": "Bearer " + localStorage.getItem("adminToken")
                     }
                 });
-                if (response.ok) {
-                    trashPosts = await response.json();
+                if (result.ok) {
+                    trashPosts = result.data || [];
                 }
             } catch (err) {
                 console.error("Failed to load trash posts:", err);
@@ -239,29 +239,21 @@ import { i18n } from "@/i18n/translation";
         var emptyTrashBtn = document.getElementById('emptyTrashBtn');
         if (emptyTrashBtn) {
             emptyTrashBtn.addEventListener('click', async function() {
-                var confirmed = false;
-                if (window.adminConfirm) {
-                    confirmed = await window.adminConfirm("确定要清空回收站吗？所有文章将被永久删除，此操作不可恢复！");
-                } else {
-                    confirmed = confirm("确定要清空回收站吗？所有文章将被永久删除，此操作不可恢复！");
-                }
+                var confirmed = await window.showAdminConfirm("确定要清空回收站吗？所有文章将被永久删除，此操作不可恢复！");
 
                 if (!confirmed) return;
 
                 try {
                     var API_URL = window.API_URL;
-                    var response = await fetch(API_URL + "/posts/trash/empty", {
+                    var result = await window.adminRequest(API_URL + "/posts/trash/empty", {
                         method: "DELETE",
                         headers: {
                             "Authorization": "Bearer " + localStorage.getItem("adminToken")
                         }
                     });
 
-                    if (response.ok) {
-                        var result = await response.json();
-                        if (window.adminAlert) {
-                            await window.adminAlert(result.message, "success");
-                        }
+                    if (result.ok) {
+                        await window.showAdminAlert(result.msg || "清空成功", "success");
                         // 清空本地回收站数据并重新渲染
                         trashPosts = [];
                         updateCounts(allPosts, trashPosts);
@@ -269,16 +261,11 @@ import { i18n } from "@/i18n/translation";
                             window.adminRenderTrashPosts(trashPosts);
                         }
                     } else {
-                        var err = await response.json();
-                        if (window.adminAlert) {
-                            window.adminAlert(err.detail || "清空失败", "error");
-                        }
+                        window.showAdminAlert(result.msg || "清空失败", "error");
                     }
                 } catch (err) {
                     console.error(err);
-                    if (window.adminAlert) {
-                        window.adminAlert("清空失败", "error");
-                    }
+                    window.showAdminAlert("清空失败", "error");
                 }
             });
         }

@@ -315,9 +315,9 @@ const API_URL = getApiUrl();
             if (!categorySelect) return;
 
             try {
-                const response = await fetch(API_URL + '/categories');
-                if (response.ok) {
-                    const categories = await response.json();
+                const result = await window.adminRequest(API_URL + '/categories');
+                if (result.ok) {
+                    const categories = result.data || [];
                     // 保留第一个占位选项
                     const placeholder = categorySelect.querySelector('option');
                     categorySelect.innerHTML = '';
@@ -350,9 +350,9 @@ const API_URL = getApiUrl();
             if (!tagsContainer) return;
 
             try {
-                const response = await fetch(API_URL + '/tags');
-                if (response.ok) {
-                    allTags = await response.json();
+                const result = await window.adminRequest(API_URL + '/tags');
+                if (result.ok) {
+                    allTags = result.data || [];
                     // 根据标签名称找到对应的ID
                     if (selectedTagNames && selectedTagNames.length > 0) {
                         selectedTagIds = allTags
@@ -502,10 +502,10 @@ const API_URL = getApiUrl();
         }
 
         function loadPostData(postId) {
-            fetch(`${API_URL}/posts/` + postId)
-                .then(function(res) {
-                    if (!res.ok) throw new Error("HTTP " + res.status);
-                    return res.json();
+            window.adminRequest(`${API_URL}/posts/` + postId)
+                .then(function(result) {
+                    if (!result.ok) throw new Error(result.msg || ("HTTP " + result.code));
+                    return result.data;
                 })
                 .then(function(data) {
                     // Fill form fields
@@ -564,7 +564,7 @@ const API_URL = getApiUrl();
                 })
                 .catch(function(err) {
                     console.error("Error loading data:", err);
-                    alert((t.loadFailed || 'Load failed') + ": " + err.message);
+                    window.showAdminAlert((t.loadFailed || 'Load failed') + ": " + err.message, "error");
                 });
         }
 
@@ -672,18 +672,18 @@ const API_URL = getApiUrl();
                 var slug = slugEl ? slugEl.value : '';
 
                 if (!title || !slug) {
-                    alert(t.requiredFields || "Title and slug are required");
+                    window.showAdminAlert(t.requiredFields || "Title and slug are required", "warning");
                     return;
                 }
 
                 if (!vditor) {
-                    alert("Editor not initialized");
+                    window.showAdminAlert("Editor not initialized", "error");
                     return;
                 }
 
                 var content = vditor.getValue();
                 if (!content) {
-                    alert(t.contentEmpty || "Content cannot be empty");
+                    window.showAdminAlert(t.contentEmpty || "Content cannot be empty", "warning");
                     return;
                 }
 
@@ -723,7 +723,7 @@ const API_URL = getApiUrl();
                     saveBtn.innerHTML =
                         '<span class="animate-spin inline-block mr-2">◌</span> ' + (saveBtn.dataset.updatingText || 'Updating...');
 
-                    var response = await fetch(
+                    var result = await window.adminRequest(
                         `${API_URL}/posts/` + postId,
                         {
                             method: "PUT",
@@ -735,32 +735,19 @@ const API_URL = getApiUrl();
                         }
                     );
 
-                    if (response.ok) {
+                    if (result.ok) {
                         // Clear initialization flag for next visit
                         window._editPageInitialized = false;
                         window.location.href = "/admin/posts";
                     } else {
-                        var errData = await response.json();
-                        // Handle different error formats
-                        var errorMsg = "Unknown error";
-                        if (typeof errData.detail === "string") {
-                            errorMsg = errData.detail;
-                        } else if (Array.isArray(errData.detail)) {
-                            // FastAPI validation error format
-                            errorMsg = errData.detail.map(function(e) {
-                                var field = e.loc ? e.loc.join('.') : '';
-                                return field ? field + ": " + e.msg : e.msg;
-                            }).join('\n');
-                        } else if (errData.message) {
-                            errorMsg = errData.message;
-                        }
-                        alert((t.saveFailed || 'Update failed') + ": " + errorMsg);
+                        var errorMsg = result.msg || "Unknown error";
+                        window.showAdminAlert((t.saveFailed || 'Update failed') + ": " + errorMsg, "error");
                         saveBtn.disabled = false;
                         saveBtn.innerHTML = saveBtn.dataset.updateText || "Update Post";
                     }
                 } catch (err) {
                     console.error(err);
-                    alert(t.saveFailed || "An error occurred while updating");
+                    window.showAdminAlert(t.saveFailed || "An error occurred while updating", "error");
                     saveBtn.disabled = false;
                     saveBtn.innerHTML = saveBtn.dataset.updateText || "Update Post";
                 }

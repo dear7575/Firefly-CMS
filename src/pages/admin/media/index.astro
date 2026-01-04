@@ -135,10 +135,10 @@ import { siteConfig } from "@/config";
                 </span>
                 <h3 class="text-lg font-bold text-zinc-900 dark:text-zinc-100">新建文件夹</h3>
             </div>
-            <input type="text" id="folderNameInput" placeholder="输入文件夹名称..." class="w-full px-4 py-3 border border-zinc-200 dark:border-zinc-700 rounded-xl mb-5 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all" />
+            <input type="text" id="folderNameInput" placeholder="输入文件夹名称..." class="w-full px-4 py-3 border border-zinc-200 dark:border-zinc-700 rounded-xl mb-5 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent outline-none transition-all" />
             <div class="flex gap-3 justify-end">
                 <button id="cancelCreateFolder" class="px-5 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-200 font-medium text-zinc-600 dark:text-zinc-400">取消</button>
-                <button id="confirmCreateFolder" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-violet-500 to-purple-600 text-white font-medium hover:from-violet-600 hover:to-purple-700 transition-all duration-200 shadow-lg shadow-violet-500/25">创建</button>
+                <button id="confirmCreateFolder" class="px-5 py-2.5 rounded-xl bg-[var(--primary)] text-white font-medium hover:opacity-90 transition-all duration-200 shadow-lg">创建</button>
             </div>
         </div>
     </div>
@@ -321,20 +321,20 @@ import { siteConfig } from "@/config";
         // 加载完整的文件夹结构
         async function loadFolderStructure() {
             try {
-                var response = await fetch(API_URL + '/upload/folder-tree', {
+                var result = await window.adminRequest(API_URL + '/upload/folder-tree', {
                     headers: {
                         'Authorization': 'Bearer ' + localStorage.getItem('adminToken')
                     }
                 });
 
-                if (!response.ok) {
+                if (!result.ok) {
                     console.warn('文件夹结构加载失败，使用空树');
                     folderStructure = {};
                     renderFolderTree();
                     return;
                 }
 
-                var data = await response.json();
+                var data = result.data || {};
                 // folder-tree API 直接返回树结构
                 folderStructure = convertTreeToObject(data.tree || []);
                 renderFolderTree();
@@ -504,17 +504,11 @@ import { siteConfig } from "@/config";
 
             menu.querySelector('[data-action="delete"]').addEventListener('click', function() {
                 menu.remove();
-                if (window.adminConfirm) {
-                    window.adminConfirm('确定要删除文件夹 "' + folderName + '" 吗？（必须为空）').then(function(confirmed) {
-                        if (confirmed) {
-                            deleteFolder(folderPath);
-                        }
-                    });
-                } else {
-                    if (confirm('确定要删除文件夹 "' + folderName + '" 吗？（必须为空）')) {
+                window.showAdminConfirm('确定要删除文件夹 "' + folderName + '" 吗？（必须为空）').then(function(confirmed) {
+                    if (confirmed) {
                         deleteFolder(folderPath);
                     }
-                }
+                });
             });
 
             // 点击其他地方关闭菜单
@@ -530,14 +524,18 @@ import { siteConfig } from "@/config";
 
         // 重命名文件夹
         async function renameFolder(folderPath, oldName) {
-            var newName = prompt('请输入新的文件夹名称：', oldName);
+            var newName = await window.showAdminPrompt('请输入新的文件夹名称：', {
+                title: "重命名文件夹",
+                defaultValue: oldName,
+                placeholder: "请输入新的文件夹名称"
+            });
             if (!newName || newName === oldName) return;
 
             try {
                 var formData = new FormData();
                 formData.append('new_name', newName);
 
-                var response = await fetch(API_URL + '/upload/folder/' + folderPath, {
+                var result = await window.adminRequest(API_URL + '/upload/folder/' + folderPath, {
                     method: 'PUT',
                     headers: {
                         'Authorization': 'Bearer ' + localStorage.getItem('adminToken')
@@ -545,23 +543,16 @@ import { siteConfig } from "@/config";
                     body: formData
                 });
 
-                if (response.ok) {
-                    if (window.adminAlert) {
-                        await window.adminAlert('重命名成功', 'success');
-                    }
+                if (result.ok) {
+                    await window.showAdminAlert(result.msg || '重命名成功', 'success');
                     loadFolderStructure();
                     loadFiles();
                 } else {
-                    var err = await response.json();
-                    if (window.adminAlert) {
-                        window.adminAlert(err.detail || '重命名失败', 'error');
-                    }
+                    window.showAdminAlert(result.msg || '重命名失败', 'error');
                 }
             } catch (err) {
                 console.error(err);
-                if (window.adminAlert) {
-                    window.adminAlert('重命名失败', 'error');
-                }
+                window.showAdminAlert('重命名失败', 'error');
             }
         }
 
@@ -641,14 +632,14 @@ import { siteConfig } from "@/config";
             if (!storageEl) return;
 
             try {
-                var response = await fetch(API_URL + '/upload/storage-info', {
+                var result = await window.adminRequest(API_URL + '/upload/storage-info', {
                     headers: {
                         'Authorization': 'Bearer ' + localStorage.getItem('adminToken')
                     }
                 });
 
-                if (response.ok) {
-                    var data = await response.json();
+                if (result.ok) {
+                    var data = result.data || {};
                     var sizeText = formatSize(data.total_size);
                     storageEl.textContent = sizeText + ' • ' + data.file_count + ' 个文件 • ' + data.folder_count + ' 个文件夹';
                 } else {
@@ -672,15 +663,15 @@ import { siteConfig } from "@/config";
 
             try {
                 var url = currentPath ? API_URL + '/upload/list/' + currentPath : API_URL + '/upload/list';
-                var response = await fetch(url, {
+                var result = await window.adminRequest(url, {
                     headers: {
                         'Authorization': 'Bearer ' + localStorage.getItem('adminToken')
                     }
                 });
 
-                if (!response.ok) throw new Error('加载失败');
+                if (!result.ok) throw new Error(result.msg || '加载失败');
 
-                var data = await response.json();
+                var data = result.data || {};
                 var files = data.files || [];
 
                 countEl.textContent = files.length + ' 个文件';
@@ -789,83 +780,60 @@ import { siteConfig } from "@/config";
         async function copyToClipboard(text) {
             try {
                 await navigator.clipboard.writeText(text);
-                if (window.adminAlert) {
-                    window.adminAlert('链接已复制', 'success');
-                }
+                window.showAdminAlert('链接已复制', 'success');
             } catch (err) {
-                if (window.adminAlert) {
-                    window.adminAlert('复制失败', 'error');
-                }
+                window.showAdminAlert('复制失败', 'error');
             }
         }
 
         // 删除文件
         async function deleteFile(filename) {
-            var confirmed = false;
-            if (window.adminConfirm) {
-                confirmed = await window.adminConfirm('确定要删除 "' + filename + '" 吗？');
-            } else {
-                confirmed = confirm('确定要删除 "' + filename + '" 吗？');
-            }
+            var confirmed = await window.showAdminConfirm('确定要删除 "' + filename + '" 吗？');
 
             if (!confirmed) return;
 
             try {
                 var url = currentPath ? API_URL + '/upload/' + currentPath + '/' + filename : API_URL + '/upload//' + filename;
-                var response = await fetch(url, {
+                var result = await window.adminRequest(url, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': 'Bearer ' + localStorage.getItem('adminToken')
                     }
                 });
 
-                if (response.ok) {
-                    if (window.adminAlert) {
-                        await window.adminAlert('删除成功', 'success');
-                    }
+                if (result.ok) {
+                    await window.showAdminAlert(result.msg || '删除成功', 'success');
                     loadFiles();
                 } else {
-                    var err = await response.json();
-                    if (window.adminAlert) {
-                        window.adminAlert(err.detail || '删除失败', 'error');
-                    }
+                    window.showAdminAlert(result.msg || '删除失败', 'error');
                 }
             } catch (err) {
                 console.error(err);
-                if (window.adminAlert) {
-                    window.adminAlert('删除失败', 'error');
-                }
+                window.showAdminAlert('删除失败', 'error');
             }
         }
 
         // 删除文件夹
         async function deleteFolder(path) {
             try {
-                var response = await fetch(API_URL + '/upload/folder/' + path, {
+                var result = await window.adminRequest(API_URL + '/upload/folder/' + path, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': 'Bearer ' + localStorage.getItem('adminToken')
                     }
                 });
 
-                if (response.ok) {
-                    if (window.adminAlert) {
-                        await window.adminAlert('删除成功', 'success');
-                    }
+                if (result.ok) {
+                    await window.showAdminAlert(result.msg || '删除成功', 'success');
                     // 重新加载文件夹树和文件列表
                     loadFolderStructure();
                     loadFiles();
                 } else {
-                    var err = await response.json();
-                    if (window.adminAlert) {
-                        window.adminAlert(err.detail || '删除失败', 'error');
-                    }
+                    window.showAdminAlert(result.msg || '删除失败', 'error');
                 }
             } catch (err) {
                 console.error(err);
-                if (window.adminAlert) {
-                    window.adminAlert('删除失败', 'error');
-                }
+                window.showAdminAlert('删除失败', 'error');
             }
         }
 
@@ -881,7 +849,7 @@ import { siteConfig } from "@/config";
             if (currentPath) formData.append('subdir', currentPath);
 
             try {
-                var response = await fetch(API_URL + '/upload/images', {
+                var result = await window.adminRequest(API_URL + '/upload/images', {
                     method: 'POST',
                     headers: {
                         'Authorization': 'Bearer ' + localStorage.getItem('adminToken')
@@ -891,24 +859,17 @@ import { siteConfig } from "@/config";
 
                 dropZone.classList.add('hidden');
 
-                if (response.ok) {
-                    var result = await response.json();
-                    if (window.adminAlert) {
-                        await window.adminAlert('成功上传 ' + result.uploaded + ' 个文件', 'success');
-                    }
+                if (result.ok) {
+                    var uploadCount = result.data ? result.data.uploaded : 0;
+                    await window.showAdminAlert('成功上传 ' + uploadCount + ' 个文件', 'success');
                     loadFiles();
                 } else {
-                    var err = await response.json();
-                    if (window.adminAlert) {
-                        window.adminAlert(err.detail || '上传失败', 'error');
-                    }
+                    window.showAdminAlert(result.msg || '上传失败', 'error');
                 }
             } catch (err) {
                 dropZone.classList.add('hidden');
                 console.error(err);
-                if (window.adminAlert) {
-                    window.adminAlert('上传失败', 'error');
-                }
+                window.showAdminAlert('上传失败', 'error');
             }
         }
 
@@ -985,9 +946,7 @@ import { siteConfig } from "@/config";
         document.getElementById('confirmCreateFolder')?.addEventListener('click', async function() {
             var folderName = document.getElementById('folderNameInput').value.trim();
             if (!folderName) {
-                if (window.adminAlert) {
-                    window.adminAlert('请输入文件夹名称', 'error');
-                }
+                window.showAdminAlert('请输入文件夹名称', 'error');
                 return;
             }
 
@@ -997,7 +956,7 @@ import { siteConfig } from "@/config";
                 var formData = new FormData();
                 formData.append('path', folderPath);
 
-                var response = await fetch(API_URL + '/upload/folder', {
+                var result = await window.adminRequest(API_URL + '/upload/folder', {
                     method: 'POST',
                     headers: {
                         'Authorization': 'Bearer ' + localStorage.getItem('adminToken')
@@ -1005,25 +964,18 @@ import { siteConfig } from "@/config";
                     body: formData
                 });
 
-                if (response.ok) {
-                    if (window.adminAlert) {
-                        await window.adminAlert('文件夹创建成功', 'success');
-                    }
+                if (result.ok) {
+                    await window.showAdminAlert(result.msg || '文件夹创建成功', 'success');
                     document.getElementById('createFolderModal').classList.add('hidden');
                     document.getElementById('createFolderModal').classList.remove('flex');
                     loadFolderStructure(); // 重新加载文件夹树
                     loadFiles();
                 } else {
-                    var err = await response.json();
-                    if (window.adminAlert) {
-                        window.adminAlert(err.detail || '创建失败', 'error');
-                    }
+                    window.showAdminAlert(result.msg || '创建失败', 'error');
                 }
             } catch (err) {
                 console.error(err);
-                if (window.adminAlert) {
-                    window.adminAlert('创建失败', 'error');
-                }
+                window.showAdminAlert('创建失败', 'error');
             }
         });
 
