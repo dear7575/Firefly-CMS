@@ -235,25 +235,42 @@ const API_URL = getApiUrl();
                                     class="admin-input"
                                 />
                             </div>
-                            <!-- 草稿开关 -->
-                            <div
-                                class="flex items-center gap-3 cursor-pointer group"
-                                id="draftToggle"
-                            >
-                                <div
-                                    class="w-10 h-6 bg-zinc-200 dark:bg-zinc-800 rounded-full relative transition-colors duration-300"
-                                    id="toggleTrack"
-                                >
-                                    <div
-                                        class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 shadow-sm"
-                                        id="toggleHandle"
-                                    >
-                                    </div>
+                            <div>
+                                <label class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight">发布状态</label>
+                                <select id="statusSelect" class="admin-input">
+                                    <option value="published">{i18n(I18nKey.adminPostPublish)}</option>
+                                    <option value="draft">保存草稿</option>
+                                    <option value="scheduled">定时发布</option>
+                                </select>
+                                <p class="text-xs text-zinc-400 mt-2">选择文章发布方式，定时发布需要设置具体时间。</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight">自定义发布时间</label>
+                                <input type="datetime-local" id="publishedAt" class="admin-input" />
+                                <p class="text-xs text-zinc-400 mt-2">可选：用于回填历史文章或调整发布时间。</p>
+                            </div>
+                            <div id="scheduledWrapper" class="hidden">
+                                <label class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight">定时发布时间</label>
+                                <input type="datetime-local" id="scheduledAt" class="admin-input" />
+                                <p class="text-xs text-amber-500 mt-2">启用定时发布后系统将在指定时间自动发布。</p>
+                            </div>
+                            <div id="autosaveNotice" class="hidden rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-900/20 p-3 space-y-2 text-xs text-amber-700 dark:text-amber-200">
+                                <div class="font-semibold">检测到未发布的自动保存内容</div>
+                                <div class="flex gap-2">
+                                    <button id="loadAutosaveBtn" type="button" class="px-3 py-1 rounded-lg bg-amber-600 text-white text-xs hover:bg-amber-500 transition">
+                                        恢复内容
+                                    </button>
+                                    <button id="discardAutosaveBtn" type="button" class="px-3 py-1 rounded-lg border border-amber-400 text-amber-600 dark:text-amber-200 text-xs hover:bg-amber-100/50 transition">
+                                        忽略
+                                    </button>
                                 </div>
-                                <span
-                                    class="text-sm font-medium text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 transition-colors"
-                                    >{i18n(I18nKey.adminPostDraftToggle)}</span
-                                >
+                                <p id="autosaveStatus" class="text-[11px] text-amber-600/80"></p>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight">历史版本</label>
+                                <div id="revisionList" class="space-y-3 text-sm text-zinc-500">
+                                    加载中...
+                                </div>
                             </div>
                         </div>
                     </section>
@@ -301,13 +318,309 @@ const API_URL = getApiUrl();
         const API_URL = window.API_URL;
 
         let vditor = null;
-        let isDraft = false;
+        let postStatus = "draft";
         let isPinned = false;
         let initTimer = null;
         let selectedTagIds = []; // 存储选中的标签ID
         let allTags = []; // 存储所有标签数据
         let currentPostCategory = ''; // 存储当前文章的分类
         let currentPostTags = []; // 存储当前文章的标签
+        const statusSelect = document.getElementById("statusSelect");
+        const scheduledAtInput = document.getElementById("scheduledAt");
+        const scheduledWrapper = document.getElementById("scheduledWrapper");
+        const publishedAtInput = document.getElementById("publishedAt");
+        const autosaveNotice = document.getElementById("autosaveNotice");
+        const loadAutosaveBtn = document.getElementById("loadAutosaveBtn");
+        const discardAutosaveBtn = document.getElementById("discardAutosaveBtn");
+        const autosaveStatus = document.getElementById("autosaveStatus");
+        const revisionList = document.getElementById("revisionList");
+        let autosaveTimer = null;
+        const AUTOSAVE_INTERVAL = 30000;
+        let lastAutosaveSignature = "";
+        let cachedAutosavePayload = null;
+        let cachedAutosaveTime = null;
+
+        function convertLocalToISO(value) {
+            if (!value) return null;
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return null;
+            return date.toISOString();
+        }
+
+        function formatDatetimeForInput(value) {
+            if (!value) return "";
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return "";
+            const tzOffset = date.getTimezoneOffset() * 60000;
+            const localISO = new Date(date.getTime() - tzOffset).toISOString();
+            return localISO.slice(0, 16);
+        }
+
+        function updateStatusUI(value) {
+            postStatus = value;
+            if (scheduledWrapper) {
+                if (value === "scheduled") {
+                    scheduledWrapper.classList.remove("hidden");
+                } else {
+                    scheduledWrapper.classList.add("hidden");
+                }
+            }
+        }
+
+        statusSelect?.addEventListener("change", function(event) {
+            updateStatusUI(event.target.value);
+        });
+        if (statusSelect) {
+            statusSelect.value = postStatus;
+        }
+        updateStatusUI(postStatus);
+
+        function updateAutosaveStatus(savedAt) {
+            if (!autosaveStatus) return;
+            if (!savedAt) {
+                autosaveStatus.textContent = "";
+                return;
+            }
+            const date = new Date(savedAt);
+            autosaveStatus.textContent = "最后自动保存：" + date.toLocaleString();
+        }
+
+        function showAutosaveNotice(savedAt) {
+            autosaveNotice?.classList.remove("hidden");
+            updateAutosaveStatus(savedAt || cachedAutosaveTime);
+        }
+
+        function hideAutosaveNotice() {
+            autosaveNotice?.classList.add("hidden");
+            updateAutosaveStatus(null);
+            cachedAutosavePayload = null;
+            cachedAutosaveTime = null;
+        }
+
+        async function fetchAutosaveData(postId) {
+            try {
+                const token = localStorage.getItem("adminToken");
+                if (!token) return;
+                const result = await window.adminRequest(`${API_URL}/posts/${postId}/autosave`, {
+                    headers: {
+                        Authorization: "Bearer " + token
+                    }
+                });
+                if (result.ok && result.data && result.data.data) {
+                    cachedAutosavePayload = result.data.data;
+                    cachedAutosaveTime = result.data.saved_at;
+                    showAutosaveNotice(result.data.saved_at);
+                } else {
+                    hideAutosaveNotice();
+                }
+            } catch (err) {
+                console.error("加载自动保存内容失败:", err);
+            }
+        }
+
+        function applyAutosavePayload(payload) {
+            if (!payload) return;
+            const titleEl = document.getElementById("title");
+            const slugEl = document.getElementById("slug");
+            const descriptionEl = document.getElementById("description");
+            const imageEl = document.getElementById("image");
+            const passwordEl = document.getElementById("password");
+
+            if (titleEl) titleEl.value = payload.title || "";
+            if (slugEl) slugEl.value = payload.slug || "";
+            if (descriptionEl) descriptionEl.value = payload.description || "";
+            if (imageEl) imageEl.value = payload.image || "";
+            if (passwordEl) passwordEl.value = payload.password || "";
+
+            if (payload.category_name) {
+                const categorySelect = document.getElementById("category");
+                if (categorySelect) {
+                    categorySelect.value = payload.category_name;
+                }
+            }
+            if (payload.tags && payload.tags.length) {
+                currentPostTags = payload.tags;
+                loadTags(payload.tags);
+            }
+            if (payload.content && vditor) {
+                vditor.setValue(payload.content);
+            }
+        }
+
+        loadAutosaveBtn?.addEventListener("click", async function() {
+            if (!pageId) return;
+            if (!cachedAutosavePayload) {
+                await fetchAutosaveData(pageId);
+            }
+            if (cachedAutosavePayload) {
+                applyAutosavePayload(cachedAutosavePayload);
+                hideAutosaveNotice();
+                window.showAdminAlert("已恢复自动保存内容", "success");
+            }
+        });
+
+        discardAutosaveBtn?.addEventListener("click", async function() {
+            if (!pageId) return;
+            const token = localStorage.getItem("adminToken");
+            if (!token) return;
+            try {
+                await window.adminRequest(`${API_URL}/posts/${pageId}/autosave`, {
+                    method: "DELETE",
+                    headers: {
+                        Authorization: "Bearer " + token
+                    }
+                });
+            } catch (err) {
+                console.error("清除自动保存失败:", err);
+            } finally {
+                hideAutosaveNotice();
+            }
+        });
+
+        function startAutosaveLoop(postId) {
+            stopAutosaveLoop();
+            if (!postId) return;
+            autosaveTimer = setInterval(function() {
+                autosaveDraft(postId);
+            }, AUTOSAVE_INTERVAL);
+        }
+
+        function stopAutosaveLoop() {
+            if (autosaveTimer) {
+                clearInterval(autosaveTimer);
+                autosaveTimer = null;
+            }
+        }
+
+        async function autosaveDraft(postId) {
+            if (!postId || !vditor) return;
+            const titleEl = document.getElementById("title");
+            const slugEl = document.getElementById("slug");
+            const categoryEl = document.getElementById("category");
+            const selectedTagsEl = document.getElementById("selectedTags");
+            const descriptionEl = document.getElementById("description");
+            const imageEl = document.getElementById("image");
+            const passwordEl = document.getElementById("password");
+            const pinOrderEl = document.getElementById("pinOrder");
+
+            const content = vditor.getValue();
+            if (!content) return;
+
+            const tagsValue = selectedTagsEl ? selectedTagsEl.value : '';
+            const tagsArray = tagsValue ? tagsValue.split(',').map(function(t) { return t.trim(); }).filter(function(t) { return t; }) : [];
+
+            const payload = {
+                title: titleEl ? titleEl.value : "",
+                slug: slugEl ? slugEl.value : "",
+                category_name: categoryEl ? categoryEl.value || "General" : "General",
+                tags: tagsArray,
+                description: descriptionEl ? descriptionEl.value : "",
+                content: content,
+                image: imageEl ? imageEl.value || "" : "",
+                password: passwordEl ? passwordEl.value || "" : "",
+                pinned: isPinned,
+                pin_order: pinOrderEl ? parseInt(pinOrderEl.value) || 0 : 0,
+            };
+
+            const signature = JSON.stringify({
+                title: payload.title,
+                slug: payload.slug,
+                description: payload.description,
+                content: payload.content,
+                category: payload.category_name,
+                tags: payload.tags.join(",")
+            });
+
+            if (signature === lastAutosaveSignature) {
+                return;
+            }
+
+            const token = localStorage.getItem("adminToken");
+            if (!token) return;
+
+            try {
+                const result = await window.adminRequest(`${API_URL}/posts/${postId}/autosave`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: "Bearer " + token
+                    },
+                    body: JSON.stringify(payload)
+                });
+                if (result.ok && result.data) {
+                    lastAutosaveSignature = signature;
+                    cachedAutosaveTime = result.data.saved_at;
+                    showAutosaveNotice(result.data.saved_at);
+                }
+            } catch (err) {
+                console.error("自动保存失败:", err);
+            }
+        }
+
+        async function loadRevisions(postId) {
+            if (!revisionList || !postId) return;
+            try {
+                const token = localStorage.getItem("adminToken");
+                if (!token) return;
+                const result = await window.adminRequest(`${API_URL}/posts/${postId}/revisions`, {
+                    headers: {
+                        Authorization: "Bearer " + token
+                    }
+                });
+                if (result.ok) {
+                    const revisions = result.data || [];
+                    if (!revisions.length) {
+                        revisionList.innerHTML = '<p class="text-xs text-zinc-400">暂无历史版本</p>';
+                        return;
+                    }
+                    revisionList.innerHTML = revisions.map(function(rev) {
+                        const date = new Date(rev.created_at).toLocaleString();
+                        return '<div class="p-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/40 flex items-center justify-between gap-3">' +
+                            '<div>' +
+                                '<p class="font-medium text-zinc-800 dark:text-zinc-100 text-sm">' + rev.title + '</p>' +
+                                '<p class="text-[11px] text-zinc-400">' + date + (rev.editor ? ' · ' + rev.editor : '') + '</p>' +
+                            '</div>' +
+                            '<button type="button" class="px-3 py-1 text-xs rounded-lg border border-indigo-300 text-indigo-600 hover:bg-indigo-50 dark:text-indigo-300" data-revision="' + rev.id + '">恢复</button>' +
+                        '</div>';
+                    }).join('');
+
+                    revisionList.querySelectorAll("[data-revision]").forEach(function(btn) {
+                        btn.addEventListener("click", function() {
+                            restoreRevision(postId, btn.dataset.revision);
+                        });
+                    });
+                } else {
+                    revisionList.innerHTML = '<p class="text-xs text-red-400">加载版本记录失败</p>';
+                }
+            } catch (err) {
+                console.error("加载版本记录失败:", err);
+                revisionList.innerHTML = '<p class="text-xs text-red-400">加载版本记录失败</p>';
+            }
+        }
+
+        async function restoreRevision(postId, revisionId) {
+            if (!postId || !revisionId) return;
+            const token = localStorage.getItem("adminToken");
+            if (!token) return;
+
+            try {
+                const result = await window.adminRequest(`${API_URL}/posts/${postId}/revisions/${revisionId}/restore`, {
+                    method: "POST",
+                    headers: {
+                        Authorization: "Bearer " + token
+                    }
+                });
+                if (result.ok) {
+                    window.showAdminAlert("文章已恢复到选定版本", "success");
+                    loadPostData(postId);
+                } else {
+                    window.showAdminAlert("恢复失败: " + (result.msg || "未知错误"), "error");
+                }
+            } catch (err) {
+                console.error("恢复版本失败:", err);
+                window.showAdminAlert("恢复失败: " + err.message, "error");
+            }
+        }
 
         // 加载分类列表
         async function loadCategories(selectedCategory) {
@@ -532,11 +845,17 @@ const API_URL = getApiUrl();
                         vditor.setValue(data.content);
                     }
 
-                    // Handle draft status
-                    if (data.is_draft) {
-                        isDraft = true;
-                        updateDraftUI();
+                    postStatus = data.status || (data.is_draft ? "draft" : "published");
+                    if (statusSelect) {
+                        statusSelect.value = postStatus;
                     }
+                    if (publishedAtInput) {
+                        publishedAtInput.value = formatDatetimeForInput(data.published_at);
+                    }
+                    if (scheduledAtInput) {
+                        scheduledAtInput.value = formatDatetimeForInput(data.scheduled_at);
+                    }
+                    updateStatusUI(postStatus);
 
                     // Handle pinned status
                     if (data.pinned) {
@@ -560,30 +879,21 @@ const API_URL = getApiUrl();
                         }
                     }
 
+                    if (data.autosave_available) {
+                        showAutosaveNotice();
+                        fetchAutosaveData(postId);
+                    } else {
+                        hideAutosaveNotice();
+                    }
+
+                    loadRevisions(postId);
+                    startAutosaveLoop(postId);
                     console.log("Data loaded successfully");
                 })
                 .catch(function(err) {
                     console.error("Error loading data:", err);
                     window.showAdminAlert((t.loadFailed || 'Load failed') + ": " + err.message, "error");
                 });
-        }
-
-        function updateDraftUI() {
-            var track = document.getElementById("toggleTrack");
-            var handle = document.getElementById("toggleHandle");
-            if (isDraft) {
-                if (track) {
-                    track.classList.add("bg-green-500");
-                    track.classList.remove("bg-zinc-200", "dark:bg-zinc-800");
-                }
-                if (handle) handle.classList.add("translate-x-4");
-            } else {
-                if (track) {
-                    track.classList.remove("bg-green-500");
-                    track.classList.add("bg-zinc-200", "dark:bg-zinc-800");
-                }
-                if (handle) handle.classList.remove("translate-x-4");
-            }
         }
 
         function updatePinnedUI() {
@@ -644,14 +954,6 @@ const API_URL = getApiUrl();
             });
         }
 
-        var draftToggle = document.getElementById("draftToggle");
-        if (draftToggle) {
-            draftToggle.addEventListener("click", function() {
-                isDraft = !isDraft;
-                updateDraftUI();
-            });
-        }
-
         var pinnedToggle = document.getElementById("pinnedToggle");
         if (pinnedToggle) {
             pinnedToggle.addEventListener("click", function() {
@@ -694,6 +996,16 @@ const API_URL = getApiUrl();
                 var passwordEl = document.getElementById("password");
                 var pinOrderEl = document.getElementById("pinOrder");
 
+                var statusValue = statusSelect ? statusSelect.value : postStatus;
+                updateStatusUI(statusValue);
+                var scheduledISO = convertLocalToISO(scheduledAtInput ? scheduledAtInput.value : "");
+                var publishedISO = convertLocalToISO(publishedAtInput ? publishedAtInput.value : "");
+
+                if (statusValue === "scheduled" && !scheduledISO) {
+                    window.showAdminAlert("请设置定时发布时间", "warning");
+                    return;
+                }
+
                 // 获取选中的标签名称
                 var tagsValue = selectedTagsEl ? selectedTagsEl.value : '';
                 var tagsArray = tagsValue ? tagsValue.split(',').map(function(t) { return t.trim(); }).filter(function(t) { return t; }) : [];
@@ -707,9 +1019,12 @@ const API_URL = getApiUrl();
                     content: content,
                     image: imageEl ? imageEl.value || "" : "",
                     password: passwordEl ? passwordEl.value || "" : "",
-                    is_draft: isDraft,
+                    is_draft: statusValue !== "published",
+                    status: statusValue,
                     pinned: isPinned,
                     pin_order: pinOrderEl ? parseInt(pinOrderEl.value) || 0 : 0,
+                    scheduled_at: scheduledISO,
+                    published_at: publishedISO,
                 };
 
                 var token = localStorage.getItem("adminToken");
@@ -757,6 +1072,7 @@ const API_URL = getApiUrl();
         // Clear initialization flag when leaving page
         window.addEventListener("beforeunload", function() {
             window._editPageInitialized = false;
+            stopAutosaveLoop();
             // 销毁 Vditor，防止报错
             if (window._editPageVditor) {
                 try {

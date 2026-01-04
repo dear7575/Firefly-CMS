@@ -17,7 +17,7 @@ export interface Post {
     /** 文章摘要描述 */
     description: string;
     /** 发布时间（ISO 格式） */
-    published_at: string;
+    published_at: string | null;
     /** 所属分类名称 */
     category: string;
     /** 标签列表 */
@@ -26,6 +26,12 @@ export interface Post {
     is_draft: boolean;
     /** 是否有密码保护 */
     has_password: boolean;
+    /** 发布状态 */
+    status: string;
+    /** 定时发布时间 */
+    scheduled_at?: string | null;
+    /** 是否存在自动保存内容 */
+    autosave_available?: boolean;
     /** 文章密码（仅编辑时返回） */
     password?: string;
 }

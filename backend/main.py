@@ -19,7 +19,7 @@ import json
 import auth
 import models
 from database import engine, Base, get_db, SessionLocal, settings as db_settings
-from routes import posts, categories, tags, friends, social, settings, dashboard, logs, search, upload, backup, auth as auth_routes
+from routes import posts, categories, tags, friends, social, settings, dashboard, logs, search, upload, backup, analytics, auth as auth_routes
 from exception_handlers import register_exception_handlers
 from exceptions import RateLimitError
 from logging_config import (
@@ -50,18 +50,35 @@ app = FastAPI(
 # 注册全局异常处理器
 register_exception_handlers(app)
 
-# 解析 CORS 允许的域名
-def get_cors_origins():
-    """从配置获取 CORS 允许的域名列表"""
-    origins = db_settings.CORS_ORIGINS
-    if origins == "*":
-        return ["*"]
-    return [origin.strip() for origin in origins.split(",") if origin.strip()]
+# 解析 CORS 配置
+def get_cors_config():
+    """
+    获取 CORS 中间件需要的配置
+
+    当配置为 "*" 时，FastAPI 无法在 allow_credentials=True 的情况下返回通配符，
+    因此默认放行常见的本地域名并通过正则动态匹配具体来源。
+    """
+    origins = (db_settings.CORS_ORIGINS or "").strip()
+    if not origins or origins == "*":
+        return {
+            "allow_origins": [],
+            "allow_origin_regex": r"https?://(localhost|127\.0\.0\.1)(:\d+)?"
+        }
+
+    parsed_origins = [origin.strip() for origin in origins.split(",") if origin.strip()]
+    return {
+        "allow_origins": parsed_origins,
+        "allow_origin_regex": None
+    }
+
+
+cors_config = get_cors_config()
 
 # 配置 CORS 跨域中间件
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=get_cors_origins(),
+    allow_origins=cors_config["allow_origins"],
+    allow_origin_regex=cors_config.get("allow_origin_regex"),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -288,6 +305,7 @@ api_router.include_router(logs.router)
 api_router.include_router(search.router)
 api_router.include_router(upload.router)
 api_router.include_router(backup.router)
+api_router.include_router(analytics.router)
 
 
 @api_router.post("/token", summary="用户登录", tags=["认证"])

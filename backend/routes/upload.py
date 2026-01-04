@@ -2,7 +2,7 @@
 文件上传路由
 提供图片和文件上传功能
 """
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Header
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Header, Query
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
@@ -11,6 +11,8 @@ import os
 import uuid
 import shutil
 from typing import Optional, List
+
+from sqlalchemy import func, or_
 
 from database import get_db, settings
 import models
@@ -86,10 +88,52 @@ def get_upload_path(subdir: str = "") -> str:
     return path
 
 
+def build_media_url(filename: str, subdir: Optional[str]) -> str:
+    """构建可访问的 URL"""
+    clean_subdir = (subdir or "").strip().replace("\\", "/").strip("/")
+    if clean_subdir:
+        return f"/uploads/{clean_subdir}/{filename}"
+    return f"/uploads/{filename}"
+
+
+def build_media_path(filename: str, subdir: Optional[str]) -> str:
+    """构建相对路径"""
+    clean_subdir = (subdir or "").strip().replace("\\", "/").strip("/")
+    if clean_subdir:
+        return f"{clean_subdir}/{filename}"
+    return filename
+
+
+def record_media_file(
+    db: Session,
+    filename: str,
+    original_name: Optional[str],
+    content_type: Optional[str],
+    size: int,
+    subdir: Optional[str],
+    uploader: Optional[str]
+) -> models.MediaFile:
+    """将上传文件写入媒体库"""
+    media = models.MediaFile(
+        filename=filename,
+        original_name=original_name,
+        mime_type=content_type,
+        size=size,
+        url=build_media_url(filename, subdir),
+        path=build_media_path(filename, subdir),
+        uploader=uploader
+    )
+    db.add(media)
+    db.commit()
+    db.refresh(media)
+    return media
+
+
 @router.post("/image", summary="上传图片")
 async def upload_image(
     file: UploadFile = File(...),
     subdir: Optional[str] = Form(default="images"),
+    db: Session = Depends(get_db),
     current_user: models.Admin = Depends(get_current_user)
 ):
     """
@@ -136,11 +180,21 @@ async def upload_image(
 
     # 返回访问 URL
     url = f"/uploads/{subdir}/{filename}" if subdir else f"/uploads/{filename}"
+    media = record_media_file(
+        db=db,
+        filename=filename,
+        original_name=file.filename,
+        content_type=content_type,
+        size=file_size,
+        subdir=subdir,
+        uploader=current_user.username if current_user else None
+    )
     return {
         "url": url,
         "filename": filename,
         "size": file_size,
-        "content_type": content_type
+        "content_type": content_type,
+        "media_id": media.id
     }
 
 
@@ -148,6 +202,7 @@ async def upload_image(
 async def upload_images(
     files: List[UploadFile] = File(...),
     subdir: Optional[str] = Form(default="images"),
+    db: Session = Depends(get_db),
     current_user: models.Admin = Depends(get_current_user)
 ):
     """
@@ -195,11 +250,21 @@ async def upload_images(
                 shutil.copyfileobj(file.file, buffer)
 
             url = f"/uploads/{subdir}/{filename}" if subdir else f"/uploads/{filename}"
+            media = record_media_file(
+                db=db,
+                filename=filename,
+                original_name=file.filename,
+                content_type=content_type,
+                size=file_size,
+                subdir=subdir,
+                uploader=current_user.username if current_user else None
+            )
             results.append({
                 "url": url,
                 "filename": filename,
                 "original_name": file.filename,
-                "size": file_size
+                "size": file_size,
+                "media_id": media.id
             })
 
         except Exception as e:
@@ -305,6 +370,7 @@ async def rename_folder(
 async def delete_file(
     subdir: str,
     filename: str,
+    db: Session = Depends(get_db),
     current_user: models.Admin = Depends(get_current_user)
 ):
     """
@@ -326,9 +392,103 @@ async def delete_file(
 
     try:
         os.remove(file_path)
+        db.query(models.MediaFile).filter(
+            models.MediaFile.path == build_media_path(filename, subdir)
+        ).delete(synchronize_session=False)
+        db.commit()
         return {"message": "文件删除成功", "filename": filename}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"删除失败: {str(e)}")
+
+
+@router.get("/media", summary="获取媒体文件列表")
+async def get_media_files(
+    page: int = Query(1, ge=1, description="页码"),
+    page_size: int = Query(20, ge=1, le=100, description="每页数量"),
+    keyword: Optional[str] = Query(None, description="搜索关键字"),
+    db: Session = Depends(get_db),
+    current_user: models.Admin = Depends(get_current_user)
+):
+    """分页列出媒体文件"""
+    query = db.query(models.MediaFile)
+    if keyword:
+        like_pattern = f"%{keyword}%"
+        query = query.filter(
+            or_(
+                models.MediaFile.filename.ilike(like_pattern),
+                models.MediaFile.original_name.ilike(like_pattern),
+                models.MediaFile.uploader.ilike(like_pattern)
+            )
+        )
+
+    total = query.count()
+    files = query.order_by(models.MediaFile.created_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
+
+    return {
+        "items": [{
+            "id": media.id,
+            "filename": media.filename,
+            "original_name": media.original_name,
+            "mime_type": media.mime_type,
+            "size": media.size,
+            "url": media.url,
+            "path": media.path,
+            "uploader": media.uploader,
+            "width": media.width,
+            "height": media.height,
+            "usage_count": media.usage_count,
+            "created_at": media.created_at
+        } for media in files],
+        "pagination": {
+            "page": page,
+            "page_size": page_size,
+            "total": total,
+            "total_pages": (total + page_size - 1) // page_size
+        }
+    }
+
+
+@router.get("/media/stats", summary="获取媒体统计信息")
+async def get_media_stats(
+    db: Session = Depends(get_db),
+    current_user: models.Admin = Depends(get_current_user)
+):
+    """获取媒体库统计数据"""
+    total_files = db.query(func.count(models.MediaFile.id)).scalar() or 0
+    total_size = db.query(func.coalesce(func.sum(models.MediaFile.size), 0)).scalar() or 0
+    latest = db.query(models.MediaFile).order_by(models.MediaFile.created_at.desc()).first()
+
+    return {
+        "total_files": total_files,
+        "total_size": total_size,
+        "last_upload": {
+            "filename": latest.filename,
+            "created_at": latest.created_at
+        } if latest else None
+    }
+
+
+@router.delete("/media/{media_id}", summary="删除媒体记录")
+async def delete_media_record(
+    media_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.Admin = Depends(get_current_user)
+):
+    """删除媒体文件记录并移除磁盘文件"""
+    media = db.query(models.MediaFile).filter(models.MediaFile.id == media_id).first()
+    if not media:
+        raise HTTPException(status_code=404, detail="媒体文件不存在")
+
+    file_path = os.path.join(settings.UPLOAD_DIR, media.path.replace("/", os.sep))
+    if os.path.exists(file_path):
+        try:
+            os.remove(file_path)
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail=f"删除文件失败: {exc}")
+
+    db.delete(media)
+    db.commit()
+    return {"message": "媒体文件已删除"}
 
 
 @router.get("/list", summary="列出根目录")

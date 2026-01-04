@@ -2,8 +2,9 @@
 文章路由模块
 提供文章的增删改查 API 接口（含置顶功能）
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
+import json
 
 import models
 import auth
@@ -19,6 +20,7 @@ router = APIRouter(prefix="/posts", tags=["文章管理"])
 
 # OAuth2 密码模式
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+VALID_STATUSES = {"draft", "published", "scheduled"}
 
 
 # ============== 认证依赖 ==============
@@ -75,6 +77,68 @@ async def get_current_user(
     return user
 
 
+def normalize_status(requested_status: Optional[str], is_draft: bool) -> str:
+    """根据请求参数计算最终文章状态"""
+    if requested_status:
+        status = requested_status.lower().strip()
+    else:
+        status = "draft" if is_draft else "published"
+
+    if status not in VALID_STATUSES:
+        raise HTTPException(status_code=400, detail="无效的文章状态")
+    return status
+
+
+def normalize_datetime(value: Optional[datetime]) -> Optional[datetime]:
+    """将日期时间统一为 UTC"""
+    if value is None:
+        return None
+    if value.tzinfo is not None:
+        return value.astimezone(timezone.utc).replace(tzinfo=None)
+    return value
+
+
+def process_scheduled_posts(db: Session) -> None:
+    """检查定时文章并在到点后自动发布"""
+    now = datetime.utcnow()
+    scheduled_posts = db.query(models.Post).filter(
+        models.Post.status == "scheduled",
+        models.Post.scheduled_at != None,
+        models.Post.scheduled_at <= now
+    ).all()
+
+    if not scheduled_posts:
+        return
+
+    for post in scheduled_posts:
+        post.status = "published"
+        post.is_draft = 0
+        post.published_at = post.scheduled_at or now
+        post.scheduled_at = None
+
+    db.commit()
+
+
+def create_revision_snapshot(
+    db: Session,
+    post_obj: models.Post,
+    editor: Optional[models.Admin]
+) -> None:
+    """保存文章历史版本"""
+    if not post_obj:
+        return
+    revision = models.PostRevision(
+        post_id=post_obj.id,
+        title=post_obj.title,
+        slug=post_obj.slug,
+        description=post_obj.description,
+        content=post_obj.content,
+        editor=getattr(editor, "username", None)
+    )
+    db.add(revision)
+    db.commit()
+
+
 # ============== 数据模型 ==============
 
 class TagBase(BaseModel):
@@ -104,6 +168,9 @@ class PostBase(BaseModel):
     is_draft: bool = Field(default=False, description="是否为草稿")
     pinned: bool = Field(default=False, description="是否置顶")
     pin_order: int = Field(default=0, description="置顶排序（数字越小越靠前）")
+    status: Optional[str] = Field(default=None, description="发布状态")
+    scheduled_at: Optional[datetime] = Field(default=None, description="定时发布时间")
+    published_at: Optional[datetime] = Field(default=None, description="自定义发布时间")
 
 
 class PostResponse(BaseModel):
@@ -114,13 +181,45 @@ class PostResponse(BaseModel):
     description: Optional[str] = Field(None, description="文章摘要")
     content: str = Field(..., description="文章内容")
     image: Optional[str] = Field(None, description="封面图片")
-    published_at: datetime = Field(..., description="发布时间")
+    published_at: Optional[datetime] = Field(None, description="发布时间")
     category: Optional[str] = Field(None, description="分类名称")
     tags: List[str] = Field(default=[], description="标签列表")
     is_draft: bool = Field(..., description="是否为草稿")
     pinned: bool = Field(default=False, description="是否置顶")
     pin_order: int = Field(default=0, description="置顶排序")
     has_password: bool = Field(..., description="是否有密码保护")
+    status: str = Field(default="draft", description="发布状态")
+    scheduled_at: Optional[datetime] = Field(default=None, description="定时发布时间")
+    autosave_available: bool = Field(default=False, description="是否存在自动保存内容")
+
+
+class PostAutosaveRequest(BaseModel):
+    """自动保存请求模型"""
+    title: str = Field(default="", description="文章标题")
+    slug: str = Field(default="", description="文章别名")
+    description: Optional[str] = Field(default="", description="摘要")
+    content: str = Field(..., description="正文内容")
+    category_name: Optional[str] = Field(default=None, description="分类名称")
+    tags: List[str] = Field(default=[], description="标签")
+    image: Optional[str] = Field(default=None, description="封面图")
+    password: Optional[str] = Field(default="", description="密码")
+    pinned: Optional[bool] = Field(default=False, description="是否置顶")
+    pin_order: Optional[int] = Field(default=0, description="置顶排序")
+
+
+class AutosaveResponse(BaseModel):
+    """自动保存响应模型"""
+    saved_at: Optional[datetime]
+    data: Optional[dict]
+
+
+class RevisionResponse(BaseModel):
+    """版本记录响应模型"""
+    id: str
+    title: str
+    slug: str
+    editor: Optional[str]
+    created_at: datetime
 
 
 # ============== API 接口 ==============
@@ -148,6 +247,9 @@ def get_posts(
     Returns:
         List[dict]: 文章列表，包含分页信息
     """
+    # 自动发布已到时间的定时文章
+    process_scheduled_posts(db)
+
     # 按置顶优先、置顶排序（数字小的在前）、发布时间倒序排列
     query = db.query(models.Post)
 
@@ -185,6 +287,9 @@ def get_posts(
         "pinned": p.pinned or False,
         "pin_order": p.pin_order or 0,
         "has_password": p.password is not None and p.password != "",
+        "status": p.status or ("draft" if p.is_draft else "published"),
+        "scheduled_at": p.scheduled_at,
+        "autosave_available": bool(p.autosave_data),
         "deleted_at": p.deleted_at,
         "_pagination": {
             "page": page if not all else 1,
@@ -211,6 +316,7 @@ def get_post(post_id: str, db: Session = Depends(get_db)):
     Raises:
         HTTPException: 文章不存在时返回 404
     """
+    process_scheduled_posts(db)
     p = db.query(models.Post).filter(models.Post.id == post_id).first()
     if not p:
         raise HTTPException(status_code=404, detail="文章不存在")
@@ -228,7 +334,10 @@ def get_post(post_id: str, db: Session = Depends(get_db)):
         "is_draft": p.is_draft == 1,
         "pinned": p.pinned or False,
         "pin_order": p.pin_order or 0,
-        "password": p.password
+        "password": p.password,
+        "status": p.status or ("draft" if p.is_draft else "published"),
+        "scheduled_at": p.scheduled_at,
+        "autosave_available": bool(p.autosave_data)
     }
 
 
@@ -248,6 +357,7 @@ def get_post_by_slug(slug: str, db: Session = Depends(get_db)):
     Raises:
         HTTPException: 文章不存在时返回 404
     """
+    process_scheduled_posts(db)
     p = db.query(models.Post).filter(models.Post.slug == slug).first()
     if not p:
         raise HTTPException(status_code=404, detail="文章不存在")
@@ -265,7 +375,10 @@ def get_post_by_slug(slug: str, db: Session = Depends(get_db)):
         "is_draft": p.is_draft == 1,
         "pinned": p.pinned or False,
         "pin_order": p.pin_order or 0,
-        "password": p.password
+        "password": p.password,
+        "status": p.status or ("draft" if p.is_draft else "published"),
+        "scheduled_at": p.scheduled_at,
+        "autosave_available": bool(p.autosave_data)
     }
 
 
@@ -297,6 +410,23 @@ def create_post(
         db.commit()
         db.refresh(db_category)
 
+    status = normalize_status(post.status, post.is_draft)
+    scheduled_at = normalize_datetime(post.scheduled_at)
+    published_at = normalize_datetime(post.published_at)
+
+    if status == "scheduled" and not scheduled_at:
+        raise HTTPException(status_code=400, detail="定时发布必须设置发布时间")
+
+    if status == "published":
+        if not published_at:
+            published_at = datetime.utcnow()
+    elif status == "scheduled":
+        if not published_at:
+            published_at = scheduled_at
+    else:
+        if not published_at:
+            published_at = datetime.utcnow()
+
     # 创建文章
     # 如果设置了密码，进行哈希处理
     hashed_password = auth.get_password_hash(post.password) if post.password else None
@@ -309,7 +439,10 @@ def create_post(
         image=post.image if post.image else None,
         category_id=db_category.id,
         password=hashed_password,
-        is_draft=1 if post.is_draft else 0,
+        is_draft=0 if status == "published" else 1,
+        status=status,
+        scheduled_at=scheduled_at,
+        published_at=published_at,
         pinned=post.pinned,
         pin_order=post.pin_order
     )
@@ -332,6 +465,7 @@ def create_post(
     db.add(db_post)
     db.commit()
     db.refresh(db_post)
+    create_revision_snapshot(db, db_post, current_user)
 
     return {"message": "文章创建成功", "id": db_post.id}
 
@@ -374,6 +508,18 @@ def update_post(
         db.commit()
         db.refresh(db_category)
 
+    status = normalize_status(post.status, post.is_draft)
+    scheduled_at = normalize_datetime(post.scheduled_at)
+    published_at = normalize_datetime(post.published_at)
+
+    if status == "scheduled" and not scheduled_at:
+        raise HTTPException(status_code=400, detail="定时发布必须设置发布时间")
+
+    if status == "published" and not published_at:
+        published_at = datetime.utcnow()
+    elif status == "scheduled" and not published_at:
+        published_at = scheduled_at
+
     # 更新文章字段
     db_post.title = post.title
     db_post.slug = post.slug
@@ -387,9 +533,15 @@ def update_post(
     elif post.password == "":
         db_post.password = None
     # 如果 password 字段未提供（None），保持原密码不变
-    db_post.is_draft = 1 if post.is_draft else 0
+    db_post.is_draft = 0 if status == "published" else 1
     db_post.pinned = post.pinned
     db_post.pin_order = post.pin_order
+    db_post.status = status
+    db_post.scheduled_at = scheduled_at if status == "scheduled" else None
+    if published_at:
+        db_post.published_at = published_at
+    elif db_post.published_at is None:
+        db_post.published_at = datetime.utcnow()
 
     # 更新标签（先清空再添加）
     db_post.tags = []
@@ -407,6 +559,7 @@ def update_post(
         db_post.tags.append(db_tag)
 
     db.commit()
+    create_revision_snapshot(db, db_post, current_user)
     return {"message": "文章更新成功"}
 
 
@@ -561,6 +714,118 @@ def verify_post_password(
         return {"valid": False, "message": "密码错误"}
 
 
+@router.post("/{post_id}/autosave", summary="自动保存文章内容")
+def autosave_post(
+        post_id: str,
+        autosave: PostAutosaveRequest,
+        db: Session = Depends(get_db),
+        current_user: models.Admin = Depends(get_current_user)
+):
+    """自动保存文章草稿，避免内容丢失"""
+    db_post = db.query(models.Post).filter(models.Post.id == post_id).first()
+    if not db_post:
+        raise HTTPException(status_code=404, detail="文章不存在")
+
+    db_post.autosave_data = json.dumps(autosave.model_dump(), ensure_ascii=False)
+    db_post.autosave_at = datetime.utcnow()
+    db.commit()
+    return {
+        "message": "自动保存成功",
+        "saved_at": db_post.autosave_at
+    }
+
+
+@router.get("/{post_id}/autosave", response_model=AutosaveResponse, summary="获取自动保存内容")
+def get_autosave_post(
+        post_id: str,
+        db: Session = Depends(get_db),
+        current_user: models.Admin = Depends(get_current_user)
+):
+    """获取文章的自动保存内容"""
+    db_post = db.query(models.Post).filter(models.Post.id == post_id).first()
+    if not db_post:
+        raise HTTPException(status_code=404, detail="文章不存在")
+
+    if not db_post.autosave_data:
+        return {"saved_at": None, "data": None}
+
+    return {
+        "saved_at": db_post.autosave_at,
+        "data": json.loads(db_post.autosave_data)
+    }
+
+
+@router.delete("/{post_id}/autosave", summary="删除自动保存内容")
+def delete_autosave_post(
+        post_id: str,
+        db: Session = Depends(get_db),
+        current_user: models.Admin = Depends(get_current_user)
+):
+    """清除文章的自动保存内容"""
+    db_post = db.query(models.Post).filter(models.Post.id == post_id).first()
+    if not db_post:
+        raise HTTPException(status_code=404, detail="文章不存在")
+
+    db_post.autosave_data = None
+    db_post.autosave_at = None
+    db.commit()
+    return {"message": "自动保存内容已清除"}
+
+
+@router.get("/{post_id}/revisions", response_model=List[RevisionResponse], summary="获取文章历史版本")
+def get_post_revisions(
+        post_id: str,
+        db: Session = Depends(get_db),
+        current_user: models.Admin = Depends(get_current_user)
+):
+    """列出文章的历史版本"""
+    db_post = db.query(models.Post).filter(models.Post.id == post_id).first()
+    if not db_post:
+        raise HTTPException(status_code=404, detail="文章不存在")
+
+    revisions = db.query(models.PostRevision).filter(
+        models.PostRevision.post_id == post_id
+    ).order_by(models.PostRevision.created_at.desc()).limit(20).all()
+
+    return [{
+        "id": rev.id,
+        "title": rev.title,
+        "slug": rev.slug,
+        "editor": rev.editor,
+        "created_at": rev.created_at
+    } for rev in revisions]
+
+
+@router.post("/{post_id}/revisions/{revision_id}/restore", summary="恢复文章到指定版本")
+def restore_post_revision(
+        post_id: str,
+        revision_id: str,
+        db: Session = Depends(get_db),
+        current_user: models.Admin = Depends(get_current_user)
+):
+    """将文章内容恢复到历史版本"""
+    db_post = db.query(models.Post).filter(models.Post.id == post_id).first()
+    if not db_post:
+        raise HTTPException(status_code=404, detail="文章不存在")
+
+    revision = db.query(models.PostRevision).filter(
+        models.PostRevision.id == revision_id,
+        models.PostRevision.post_id == post_id
+    ).first()
+    if not revision:
+        raise HTTPException(status_code=404, detail="版本不存在")
+
+    db_post.title = revision.title
+    db_post.slug = revision.slug
+    db_post.description = revision.description
+    db_post.content = revision.content
+    db_post.autosave_data = None
+    db_post.autosave_at = None
+    db.commit()
+    create_revision_snapshot(db, db_post, current_user)
+    return {"message": "文章已恢复到指定版本"}
+
+
 # ============== 回收站相关 API ==============
 
 @router.get("/trash/list", response_model=List[dict], summary="获取回收站文章列表")
@@ -584,6 +849,7 @@ def get_trash_posts(
     Returns:
         List[dict]: 回收站文章列表
     """
+    process_scheduled_posts(db)
     # 只查询已删除的文章，按删除时间倒序排列
     query = db.query(models.Post).filter(
         models.Post.deleted_at != None
@@ -610,6 +876,8 @@ def get_trash_posts(
         "category": p.category.name if p.category else None,
         "tags": [t.name for t in p.tags],
         "is_draft": p.is_draft == 1,
+        "status": p.status or ("draft" if p.is_draft else "published"),
+        "scheduled_at": p.scheduled_at,
         "_pagination": {
             "page": page if not all else 1,
             "page_size": page_size if not all else total,
