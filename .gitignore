@@ -48,3 +48,5 @@ __pycache__/
 backend/.env
 /.claude
 /backend/logs/
+/.spec-workflow/
+/.playwright-mcp/
