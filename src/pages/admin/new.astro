@@ -250,25 +250,24 @@ const editorI18n = {
                                     class="admin-input"
                                 />
                             </div>
-                            <!-- 草稿开关 -->
-                            <div
-                                    class="flex items-center gap-3 cursor-pointer group"
-                                    id="draftToggle"
-                            >
-                                <div
-                                        class="w-10 h-6 bg-zinc-200 dark:bg-zinc-800 rounded-full relative transition-colors duration-300"
-                                        id="toggleTrack"
-                                >
-                                    <div
-                                            class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 shadow-sm"
-                                            id="toggleHandle"
-                                    >
-                                    </div>
-                                </div>
-                                <span
-                                        class="text-sm font-medium text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 transition-colors"
-                                >{i18n(I18nKey.adminPostDraftToggle)}</span
-                                >
+                            <div>
+                                <label class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight">发布状态</label>
+                                <select id="statusSelect" class="admin-input">
+                                    <option value="published">{i18n(I18nKey.adminPostPublish)}</option>
+                                    <option value="draft" selected>保存草稿</option>
+                                    <option value="scheduled">定时发布</option>
+                                </select>
+                                <p class="text-xs text-zinc-400 mt-2">选择文章发布方式，定时发布需要设置具体时间。</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight">自定义发布时间</label>
+                                <input type="datetime-local" id="publishedAt" class="admin-input" />
+                                <p class="text-xs text-zinc-400 mt-2">可选：用于回填历史文章或自定义发布时间。</p>
+                            </div>
+                            <div id="scheduledWrapper" class="hidden">
+                                <label class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight">定时发布时间</label>
+                                <input type="datetime-local" id="scheduledAt" class="admin-input" />
+                                <p class="text-xs text-amber-500 mt-2">启用定时发布后将于指定时间自动发布。</p>
                             </div>
                         </div>
                     </section>
@@ -330,13 +329,41 @@ function initNewPage() {
     const API_URL = window.API_URL;
 
     let vditor = null;
-    let isDraft = false;
+    let postStatus = "draft";
     let isPinned = false;
     let initTimer = null; // 跟踪初始化定时器
     let selectedTagIds = []; // 存储选中的标签ID
     let allTags = []; // 存储所有标签数据
     let allCategories = []; // 存储所有分类数据
     let selectedCategory = ''; // 当前选中的分类
+    const statusSelect = document.getElementById("statusSelect");
+    const scheduledAtInput = document.getElementById("scheduledAt");
+    const scheduledWrapper = document.getElementById("scheduledWrapper");
+    const publishedAtInput = document.getElementById("publishedAt");
+
+    function convertLocalToISO(value) {
+        if (!value) return null;
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) {
+            return null;
+        }
+        return date.toISOString();
+    }
+
+    function updateStatusUI(value) {
+        postStatus = value;
+        if (scheduledWrapper) {
+            if (value === "scheduled") {
+                scheduledWrapper.classList.remove("hidden");
+            } else {
+                scheduledWrapper.classList.add("hidden");
+            }
+        }
+    }
+
+    statusSelect?.addEventListener("change", function (event) {
+        updateStatusUI(event.target.value);
+    });
 
     // 加载分类列表
     async function loadCategories() {
@@ -644,21 +671,7 @@ function initNewPage() {
         }
     });
 
-    // Handle Draft Toggle
-    document.getElementById("draftToggle")?.addEventListener("click", function() {
-        isDraft = !isDraft;
-        const track = document.getElementById("toggleTrack");
-        const handle = document.getElementById("toggleHandle");
-        if (isDraft) {
-            track?.classList.add("bg-green-500");
-            track?.classList.remove("bg-zinc-200", "dark:bg-zinc-800");
-            handle?.classList.add("translate-x-4");
-        } else {
-            track?.classList.remove("bg-green-500");
-            track?.classList.add("bg-zinc-200", "dark:bg-zinc-800");
-            handle?.classList.remove("translate-x-4");
-        }
-    });
+    updateStatusUI(postStatus);
 
     // Handle Pinned Toggle
     document.getElementById("pinnedToggle")?.addEventListener("click", function() {
@@ -715,6 +728,16 @@ function initNewPage() {
         const tagsValue = selectedTagsEl ? selectedTagsEl.value : '';
         const tagsArray = tagsValue ? tagsValue.split(',').map(function(t) { return t.trim(); }).filter(function(t) { return t; }) : [];
 
+        const statusValue = statusSelect ? statusSelect.value : postStatus;
+        updateStatusUI(statusValue);
+        const scheduledISO = convertLocalToISO(scheduledAtInput ? scheduledAtInput.value : "");
+        const publishedISO = convertLocalToISO(publishedAtInput ? publishedAtInput.value : "");
+
+        if (statusValue === "scheduled" && !scheduledISO) {
+            window.showAdminAlert("请设置定时发布时间", "warning");
+            return;
+        }
+
         const postData = {
             title,
             slug,
@@ -724,9 +747,12 @@ function initNewPage() {
             content,
             image: imageEl ? imageEl.value || "" : "",
             password: passwordEl ? passwordEl.value || "" : "",
-            is_draft: isDraft,
+            is_draft: statusValue !== "published",
+            status: statusValue,
             pinned: isPinned,
             pin_order: pinOrderEl ? parseInt(pinOrderEl.value) || 0 : 0,
+            scheduled_at: scheduledISO,
+            published_at: publishedISO,
         };
 
         const token = localStorage.getItem("adminToken");

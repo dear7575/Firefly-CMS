@@ -151,12 +151,44 @@ def get_dashboard_stats(db: Session = Depends(get_db)) -> Dict[str, Any]:
 
     login_stats_list = []
     for i in range(7):
-        date = (datetime.utcnow() - timedelta(days=6-i)).strftime('%Y-%m-%d')
+        date_str = (datetime.utcnow() - timedelta(days=6-i)).strftime('%Y-%m-%d')
         login_stats_list.append({
-            "date": date,
-            "success": login_data[date]["success"],
-            "failed": login_data[date]["failed"]
+            "date": date_str,
+            "success": login_data[date_str]["success"],
+            "failed": login_data[date_str]["failed"]
         })
+
+    # 阅读统计
+    total_views = db.query(func.coalesce(func.sum(models.PostViewStat.views), 0)).scalar() or 0
+    view_stats = db.query(
+        models.PostViewStat.date,
+        func.sum(models.PostViewStat.views).label('views')
+    ).filter(
+        models.PostViewStat.date >= (datetime.utcnow().date() - timedelta(days=6))
+    ).group_by(
+        models.PostViewStat.date
+    ).order_by(models.PostViewStat.date.asc()).all()
+
+    daily_view_stats = []
+    stats_map = {record.date: record.views for record in view_stats}
+    for i in range(7):
+        target_date = (datetime.utcnow().date() - timedelta(days=6 - i))
+        daily_view_stats.append({
+            "date": target_date.isoformat(),
+            "views": int(stats_map.get(target_date, 0) or 0)
+        })
+
+    top_view_posts = db.query(
+        models.Post.id,
+        models.Post.title,
+        func.sum(models.PostViewStat.views).label('views')
+    ).join(
+        models.PostViewStat, models.PostViewStat.post_id == models.Post.id
+    ).group_by(
+        models.Post.id
+    ).order_by(
+        func.sum(models.PostViewStat.views).desc()
+    ).limit(5).all()
 
     return {
         "posts": {
@@ -184,5 +216,14 @@ def get_dashboard_stats(db: Session = Depends(get_db)) -> Dict[str, Any]:
             "daily": daily_stats,
             "monthly": monthly_stats,
             "login": login_stats_list
+        },
+        "analytics": {
+            "total_views": total_views,
+            "daily_views": daily_view_stats,
+            "top_posts": [{
+                "id": post.id,
+                "title": post.title,
+                "views": int(post.views or 0)
+            } for post in top_view_posts]
         }
     }
