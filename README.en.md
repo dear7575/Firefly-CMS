@@ -39,10 +39,18 @@
 - **Category Management** - CRUD operations, color tags, enable/disable
 - **Tag Management** - CRUD operations, color tags, enable/disable
 - **Friend Links** - Link management, sorting weight, avatar/description
+- **Media Management** - File uploads, previews, link copy, deletion, and folder management
 - **Announcement Management** - CRUD operations, show/hide, type selection (info/warning/success)
 - **System Settings** - Dynamic management of site info, profile, theme config
 - **Social Links** - Social media link management
+- **Access Analytics** - Views/unique visitors, last 7 days trend, top posts
 - **Access Logs** - Login records, API access statistics, log cleanup
+
+### Admin UI Features
+- **Modern UI** - Glassmorphism inputs, card layout, refined shadows
+- **Dark Mode** - Full dark theme support with system preference sync
+- **Responsive Layout** - Collapsible sidebar and adaptive layout across devices
+- **Multi-tab Mode** - Admin tab bar with refresh/close others and persistent tabs
 
 ### Dynamic Configuration
 - **Site Info** - Title, subtitle, description, keywords
