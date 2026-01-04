@@ -71,6 +71,12 @@ DEFAULT_SITE_SETTINGS = [
     {"key": "feature_archive", "value": "true", "type": "boolean", "group": "feature", "label": "归档页面", "description": "是否启用归档页面", "sort_order": 97},
     {"key": "feature_friends", "value": "true", "type": "boolean", "group": "feature", "label": "友链页面", "description": "是否启用友链页面", "sort_order": 96},
 
+    # 评论设置
+    {"key": "comment_type", "value": "twikoo", "type": "string", "group": "comment", "label": "评论系统类型", "description": "可选: none/twikoo/waline/giscus/disqus/artalk", "sort_order": 100},
+    {"key": "comment_twikoo_env_id", "value": "", "type": "string", "group": "comment", "label": "Twikoo EnvId", "description": "Twikoo 服务地址或环境 ID", "sort_order": 99},
+    {"key": "comment_twikoo_lang", "value": "zh-CN", "type": "string", "group": "comment", "label": "Twikoo 语言", "description": "Twikoo 语言设置", "sort_order": 98},
+    {"key": "comment_twikoo_visitor_count", "value": "true", "type": "boolean", "group": "comment", "label": "访问量统计", "description": "是否启用文章访问量统计", "sort_order": 97},
+
     # 文章设置
     {"key": "post_per_page", "value": "10", "type": "number", "group": "post", "label": "每页文章数", "description": "文章列表每页显示的文章数量", "sort_order": 100},
     {"key": "post_default_layout", "value": "list", "type": "string", "group": "post", "label": "默认布局", "description": "文章列表默认布局: list/grid", "sort_order": 99},

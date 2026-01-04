@@ -4,6 +4,7 @@ import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
 import WidgetLayout from "./WidgetLayout.astro";
 import { getApiUrl } from "@/utils/api-utils";
+import { parseApiResponse } from "@/utils/api-response";
 
 // 从后端API获取公告配置
 const API_URL = getApiUrl();
@@ -22,7 +23,8 @@ let config = {
 try {
   const response = await fetch(`${API_URL}/settings/announcement`);
   if (response.ok) {
-    config = await response.json();
+    const payload = await parseApiResponse(response);
+    config = payload.data || config;
   }
 } catch (error) {
   console.error("Failed to load announcement config:", error);

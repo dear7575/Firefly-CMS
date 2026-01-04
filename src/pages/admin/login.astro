@@ -105,18 +105,17 @@ const loginI18n = {
         formData.append("password", password);
 
         try {
-            const response = await fetch(`${window.API_URL}/token`, {
+            const result = await window.adminRequest(`${window.API_URL}/token`, {
                 method: "POST",
                 body: formData,
             });
 
-            if (response.ok) {
-                const data = await response.json();
-                localStorage.setItem("adminToken", data.access_token);
+            if (result.ok && result.data && result.data.access_token) {
+                localStorage.setItem("adminToken", result.data.access_token);
                 window.location.href = "/admin/";
             } else {
                 if (errorMsg) {
-                    errorMsg.textContent = loginI18n.loginFailed;
+                    errorMsg.textContent = result.msg || loginI18n.loginFailed;
                     errorMsg.classList.remove("hidden");
                 }
                 // Reset button

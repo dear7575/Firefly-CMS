@@ -154,9 +154,9 @@ const API_URL = getApiUrl();
             if (!container) return; // 不在 tags 页面，直接返回
 
             try {
-                var response = await fetch(`${API_URL}/tags`);
-                if (!response.ok) throw new Error("Failed to load");
-                tags = await response.json();
+                var result = await window.adminRequest(`${API_URL}/tags`);
+                if (!result.ok) throw new Error(result.msg || "加载失败");
+                tags = result.data || [];
 
                 if (tags.length === 0) {
                     container.innerHTML =
@@ -299,18 +299,15 @@ const API_URL = getApiUrl();
         };
 
         window.deleteTag = async function (id, name) {
-            if (
-                !confirm(
-                    (t.confirmDeleteTag || 'Delete tag "{name}"?').replace(
-                        "{name}",
-                        name,
-                    ),
-                )
-            )
-                return;
+            var confirmMsg = (t.confirmDeleteTag || 'Delete tag "{name}"?').replace(
+                "{name}",
+                name,
+            );
+            var confirmed = await window.showAdminConfirm(confirmMsg);
+            if (!confirmed) return;
 
             try {
-                var response = await fetch(API_URL + "/tags/" + id, {
+                var result = await window.adminRequest(API_URL + "/tags/" + id, {
                     method: "DELETE",
                     headers: {
                         Authorization:
@@ -318,14 +315,13 @@ const API_URL = getApiUrl();
                     },
                 });
 
-                if (response.ok) {
+                if (result.ok) {
                     loadTags();
                 } else {
-                    var err = await response.json();
-                    alert(err.detail || t.deleteFailed || "Delete failed");
+                    window.showAdminAlert(result.msg || t.deleteFailed || "Delete failed", "error");
                 }
             } catch (err) {
-                alert(t.deleteFailed || "Delete failed");
+                window.showAdminAlert(t.deleteFailed || "Delete failed", "error");
             }
         };
 
@@ -392,7 +388,7 @@ const API_URL = getApiUrl();
                 };
 
                 try {
-                    var response = await fetch(
+                    var result = await window.adminRequest(
                         API_URL + "/tags/" + (id || ""),
                         {
                             method: id ? "PUT" : "POST",
@@ -406,15 +402,14 @@ const API_URL = getApiUrl();
                         },
                     );
 
-                    if (response.ok) {
+                    if (result.ok) {
                         hideModal();
                         loadTags();
                     } else {
-                        var err = await response.json();
-                        alert(err.detail || "Save failed");
+                        window.showAdminAlert(result.msg || "Save failed", "error");
                     }
                 } catch (err) {
-                    alert("Save failed");
+                    window.showAdminAlert("Save failed", "error");
                 }
             });
         }

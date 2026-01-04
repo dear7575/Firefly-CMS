@@ -626,7 +626,8 @@ const jsonLd = {
           return;
         }
 
-        const data = await response.json();
+        const payload = await response.json();
+        const data = payload && payload.data !== undefined ? payload.data : payload;
 
         if (data.valid) {
           // Password correct - store and reveal content
@@ -735,4 +736,49 @@ const jsonLd = {
   } else {
     document.addEventListener('DOMContentLoaded', initDynamicCodeCopy);
   }
+</script>
+
+<script is:inline define:vars={{ analyticsPostId: postId, analyticsPostSlug: slug }}>
+document.addEventListener('astro:page-load', function() {
+    if (!window.API_URL || !analyticsPostId) {
+        return;
+    }
+
+    try {
+        var clientKey = 'firefly_client_id';
+        var clientId = localStorage.getItem(clientKey);
+        if (!clientId) {
+            if (window.crypto && window.crypto.randomUUID) {
+                clientId = crypto.randomUUID();
+            } else {
+                clientId = String(Date.now()) + Math.random().toString(36).slice(2);
+            }
+            localStorage.setItem(clientKey, clientId);
+        }
+
+        var payload = {
+            post_id: analyticsPostId,
+            slug: analyticsPostSlug,
+            client_id: clientId,
+            referrer: document.referrer || ''
+        };
+
+        var endpoint = window.API_URL + '/analytics/view';
+        var body = JSON.stringify(payload);
+        if (navigator.sendBeacon) {
+            navigator.sendBeacon(endpoint, new Blob([body], { type: 'application/json' }));
+        } else {
+            fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body,
+                keepalive: true
+            }).catch(function(err) {
+                console.warn('view log failed', err);
+            });
+        }
+    } catch (err) {
+        console.warn('统计上报失败', err);
+    }
+});
 </script>

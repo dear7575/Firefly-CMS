@@ -241,16 +241,16 @@ const API_URL = getApiUrl();
         // 加载统计数据
         async function loadStats() {
             try {
-                var response = await fetch(`${API_URL}/logs/stats`, {
+                var result = await window.adminRequest(`${API_URL}/logs/stats`, {
                     headers: {
                         Authorization:
                             "Bearer " + localStorage.getItem("adminToken"),
                     },
                 });
                 // 401 由全局拦截器处理，这里直接返回
-                if (!response.ok) return;
+                if (!result.ok) return;
 
-                var stats = await response.json();
+                var stats = result.data || {};
                 var statTotal = document.getElementById("statTotal");
                 var statToday = document.getElementById("statToday");
                 var statLoginSuccess = document.getElementById("statLoginSuccess");
@@ -284,22 +284,22 @@ const API_URL = getApiUrl();
             }
 
             try {
-                var response = await fetch(url, {
+                var result = await window.adminRequest(url, {
                     headers: {
                         Authorization:
                             "Bearer " + localStorage.getItem("adminToken"),
                     },
                 });
 
-                if (!response.ok) {
-                    if (response.status !== 401) {
+                if (!result.ok) {
+                    if (result.code !== 401) {
                         // 401 由全局拦截器处理
                         throw new Error("Failed to load");
                     }
                     return;
                 }
 
-                var logs = await response.json();
+                var logs = result.data || [];
 
                 if (logs.length === 0) {
                     tbody.innerHTML =
@@ -488,14 +488,14 @@ const API_URL = getApiUrl();
 
         // 清理日志
         async function cleanupLogs() {
-            var confirmed = await window.adminConfirm(
+            var confirmed = await window.showAdminConfirm(
                 "确定要清理30天前的日志吗？",
                 "清理旧日志",
             );
             if (!confirmed) return;
 
             try {
-                var response = await fetch(API_URL + "/logs/cleanup?days=30", {
+                var result = await window.adminRequest(API_URL + "/logs/cleanup?days=30", {
                     method: "DELETE",
                     headers: {
                         Authorization:
@@ -503,41 +503,32 @@ const API_URL = getApiUrl();
                     },
                 });
 
-                if (response.ok) {
-                    var result = await response.json();
-                    await window.adminAlert(
-                        result.message || "清理成功",
+                if (result.ok) {
+                    await window.showAdminAlert(
+                        result.msg || "清理成功",
                         "success",
                         "操作成功",
                     );
                     loadLogs();
                     loadStats();
                 } else {
-                    await window.adminAlert(
-                        t.deleteFailed || "清理失败",
-                        "error",
-                        "操作失败",
-                    );
+                    await window.showAdminAlert(t.deleteFailed || "清理失败", "error", "操作失败");
                 }
             } catch (err) {
-                await window.adminAlert(
-                    t.deleteFailed || "清理失败",
-                    "error",
-                    "操作失败",
-                );
+                await window.showAdminAlert(t.deleteFailed || "清理失败", "error", "操作失败");
             }
         }
 
         // 清空所有日志
         async function clearAllLogs() {
-            var confirmed = await window.adminConfirm(
+            var confirmed = await window.showAdminConfirm(
                 "确定要清空所有日志吗？此操作不可恢复！",
                 "清空全部日志",
             );
             if (!confirmed) return;
 
             try {
-                var response = await fetch(API_URL + "/logs/clear-all", {
+                var result = await window.adminRequest(API_URL + "/logs/clear-all", {
                     method: "DELETE",
                     headers: {
                         Authorization:
@@ -545,10 +536,9 @@ const API_URL = getApiUrl();
                     },
                 });
 
-                if (response.ok) {
-                    var result = await response.json();
-                    await window.adminAlert(
-                        result.message || "清空成功",
+                if (result.ok) {
+                    await window.showAdminAlert(
+                        result.msg || "清空成功",
                         "success",
                         "操作成功",
                     );
@@ -556,18 +546,10 @@ const API_URL = getApiUrl();
                     loadLogs();
                     loadStats();
                 } else {
-                    await window.adminAlert(
-                        t.deleteFailed || "清空失败",
-                        "error",
-                        "操作失败",
-                    );
+                    await window.showAdminAlert(t.deleteFailed || "清空失败", "error", "操作失败");
                 }
             } catch (err) {
-                await window.adminAlert(
-                    t.deleteFailed || "清空失败",
-                    "error",
-                    "操作失败",
-                );
+                await window.showAdminAlert(t.deleteFailed || "清空失败", "error", "操作失败");
             }
         }
 

@@ -6,19 +6,33 @@ from fastapi import FastAPI, Depends, HTTPException, status, Request, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from collections import defaultdict
+import logging
 import time
 import os
+import uuid
+import json
 
 import auth
 import models
 from database import engine, Base, get_db, SessionLocal, settings as db_settings
-from routes import posts, categories, tags, friends, social, settings, dashboard, logs, search, upload, backup, auth as auth_routes
+from routes import posts, categories, tags, friends, social, settings, dashboard, logs, search, upload, backup, analytics, auth as auth_routes
 from exception_handlers import register_exception_handlers
 from exceptions import RateLimitError
+from logging_config import (
+    setup_logging,
+    set_request_id,
+    reset_request_id,
+    log_exception,
+    get_logging_config_dict
+)
+from response_utils import build_error, normalize_payload, is_standard_payload
+
+setup_logging()
+logger = logging.getLogger("firefly")
 
 # 创建数据库表（如果不存在）
 Base.metadata.create_all(bind=engine)
@@ -36,18 +50,35 @@ app = FastAPI(
 # 注册全局异常处理器
 register_exception_handlers(app)
 
-# 解析 CORS 允许的域名
-def get_cors_origins():
-    """从配置获取 CORS 允许的域名列表"""
-    origins = db_settings.CORS_ORIGINS
-    if origins == "*":
-        return ["*"]
-    return [origin.strip() for origin in origins.split(",") if origin.strip()]
+# 解析 CORS 配置
+def get_cors_config():
+    """
+    获取 CORS 中间件需要的配置
+
+    当配置为 "*" 时，FastAPI 无法在 allow_credentials=True 的情况下返回通配符，
+    因此默认放行常见的本地域名并通过正则动态匹配具体来源。
+    """
+    origins = (db_settings.CORS_ORIGINS or "").strip()
+    if not origins or origins == "*":
+        return {
+            "allow_origins": [],
+            "allow_origin_regex": r"https?://(localhost|127\.0\.0\.1)(:\d+)?"
+        }
+
+    parsed_origins = [origin.strip() for origin in origins.split(",") if origin.strip()]
+    return {
+        "allow_origins": parsed_origins,
+        "allow_origin_regex": None
+    }
+
+
+cors_config = get_cors_config()
 
 # 配置 CORS 跨域中间件
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=get_cors_origins(),
+    allow_origins=cors_config["allow_origins"],
+    allow_origin_regex=cors_config.get("allow_origin_regex"),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -116,9 +147,49 @@ def save_access_log(
         db.add(log)
         db.commit()
     except Exception as e:
-        print(f"保存日志失败: {e}")
+        log_exception(logger, "保存访问日志失败", e)
     finally:
         db.close()
+
+
+@app.middleware("http")
+async def standard_response_middleware(request: Request, call_next):
+    """统一 API 响应格式为 code/msg/data"""
+    response = await call_next(request)
+
+    if not request.url.path.startswith("/api"):
+        return response
+
+    if response.status_code == status.HTTP_204_NO_CONTENT:
+        return response
+
+    if isinstance(response, StreamingResponse):
+        return response
+
+    content_type = response.headers.get("content-type", "")
+    if "application/json" not in content_type.lower():
+        return response
+
+    body = getattr(response, "body", None)
+    if body is None:
+        return response
+
+    try:
+        payload = json.loads(body)
+    except Exception:
+        return response
+
+    if is_standard_payload(payload):
+        return response
+
+    normalized = normalize_payload(payload, request.method, response.status_code)
+    new_response = JSONResponse(status_code=response.status_code, content=normalized)
+
+    for key, value in response.headers.items():
+        if key.lower() not in ("content-length", "content-type"):
+            new_response.headers[key] = value
+
+    return new_response
 
 
 @app.middleware("http")
@@ -133,13 +204,11 @@ async def rate_limit_middleware(request: Request, call_next):
         # 使用统一的错误响应格式
         return JSONResponse(
             status_code=429,
-            content={
-                "success": False,
-                "error": {
-                    "code": "RATE_LIMIT_EXCEEDED",
-                    "message": "请求过于频繁，请稍后再试"
-                }
-            }
+            content=build_error(
+                429,
+                "请求过于频繁，请稍后再试",
+                error_code="RATE_LIMIT_EXCEEDED"
+            )
         )
     return await call_next(request)
 
@@ -191,6 +260,35 @@ async def log_requests(request: Request, call_next):
     return response
 
 
+@app.middleware("http")
+async def error_response_logger(request: Request, call_next):
+    """记录所有 5xx 响应"""
+    response = await call_next(request)
+    if response.status_code >= 500 and not getattr(request.state, "error_logged", False):
+        logger.error(
+            "5xx 响应: %s %s status=%s",
+            request.method,
+            request.url.path,
+            response.status_code
+        )
+        request.state.error_logged = True
+    return response
+
+
+@app.middleware("http")
+async def request_id_middleware(request: Request, call_next):
+    """为每个请求生成并透传 request_id"""
+    request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+    token = set_request_id(request_id)
+    request.state.request_id = request_id
+    try:
+        response = await call_next(request)
+    finally:
+        reset_request_id(token)
+    response.headers["X-Request-ID"] = request_id
+    return response
+
+
 # 创建 API 路由主入口
 api_router = APIRouter(prefix="/api")
 
@@ -207,6 +305,7 @@ api_router.include_router(logs.router)
 api_router.include_router(search.router)
 api_router.include_router(upload.router)
 api_router.include_router(backup.router)
+api_router.include_router(analytics.router)
 
 
 @api_router.post("/token", summary="用户登录", tags=["认证"])
@@ -255,7 +354,11 @@ async def login(
 
     # 生成访问令牌
     access_token = auth.create_access_token(data={"sub": user.username})
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {
+        "message": "登录成功",
+        "access_token": access_token,
+        "token_type": "bearer"
+    }
 
 
 @api_router.get("/", summary="API 根路径", tags=["系统"])
@@ -274,4 +377,16 @@ app.include_router(api_router)
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    reload_env = os.getenv("APP_RELOAD")
+    reload_enabled = True
+    if reload_env is not None:
+        reload_enabled = reload_env.strip().lower() in ("1", "true", "yes", "y", "on")
+
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=reload_enabled,
+        log_config=get_logging_config_dict(),
+        access_log=True
+    )

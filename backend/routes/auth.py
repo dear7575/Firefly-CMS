@@ -97,7 +97,6 @@ async def change_password(
     db.commit()
     
     return {
-        "success": True,
         "message": "密码修改成功，请使用新密码重新登录"
     }
 
@@ -110,9 +109,6 @@ async def get_current_user_info(current_user: models.Admin = Depends(get_current
     返回用户名等基本信息
     """
     return {
-        "success": True,
-        "data": {
-            "id": current_user.id,
-            "username": current_user.username
-        }
+        "id": current_user.id,
+        "username": current_user.username
     }

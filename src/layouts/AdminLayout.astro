@@ -1,7 +1,7 @@
 ---
 import {siteConfig} from "@/config";
 import "@/styles/layout-styles.css";
-import { ClientRouter } from 'astro:transitions';
+import {ClientRouter} from 'astro:transitions';
 import "@/styles/waves.css";
 import I18nKey from "@/i18n/i18nKey";
 import {i18n} from "@/i18n/translation";
@@ -17,7 +17,8 @@ interface Props {
 }
 
 const {title, activeMenu = "dashboard", hideNav = false} = Astro.props;
-console.log(`[AdminLayout] Rendering with activeMenu: '${activeMenu}'`);
+const pageHeading = title.split(" - ")[0] || title;
+// console.log(`[AdminLayout] Rendering with activeMenu: '${activeMenu}'`);
 
 // 尝试从 API 获取动态配置
 let dynamicSettings: Record<string, any> = {};
@@ -35,7 +36,7 @@ const pageTitle = title.replace(siteConfig.title, adminSiteTitle).replace('Firef
 
 const configHue = dynamicSettings.theme_hue ?? siteConfig.themeColor.hue;
 
-import { getApiUrl } from "@/utils/api-utils";
+import {getApiUrl} from "@/utils/api-utils";
 
 // SSR 使用的 API 地址
 const API_URL = getApiUrl();
@@ -92,6 +93,15 @@ const adminI18n = {
     contentEmpty: i18n(I18nKey.adminContentEmpty),
     delete: i18n(I18nKey.adminDelete),
     sortOrder: i18n(I18nKey.adminSortOrder),
+};
+
+const normalizeMenuPath = (path) => {
+    if (!path) return "/";
+    let normalized = path.split("?")[0].split("#")[0];
+    if (normalized.length > 1 && normalized.endsWith("/")) {
+        normalized = normalized.slice(0, -1);
+    }
+    return normalized || "/";
 };
 
 // Menu items
@@ -151,6 +161,14 @@ const menuItems = [
         href: "/admin/settings"
     },
 ];
+
+const adminMenuMap = Object.fromEntries(
+    menuItems.map((item) => [normalizeMenuPath(item.href), item.label])
+);
+
+const adminMenuIcons = Object.fromEntries(
+    menuItems.map((item) => [normalizeMenuPath(item.href), item.icon])
+);
 ---
 
 <!doctype html>
@@ -160,7 +178,7 @@ const menuItems = [
         style={`--configHue: ${configHue}; --hue: ${configHue}; --primary: oklch(0.70 0.14 ${configHue}); --primary-light: oklch(0.75 0.14 ${configHue}); --primary-dark: oklch(0.65 0.14 ${configHue}); --page-bg: oklch(0.95 0.01 ${configHue}); --page-bg-dark: oklch(0.16 0.014 ${configHue}); --card-bg: white; --card-bg-dark: oklch(0.23 0.015 ${configHue}); --btn-bg: oklch(0.95 0.025 ${configHue}); --btn-bg-hover: oklch(0.9 0.05 ${configHue}); --btn-bg-dark: oklch(0.33 0.035 ${configHue}); --btn-bg-hover-dark: oklch(0.38 0.04 ${configHue}); --sidebar-bg: oklch(0.98 0.008 ${configHue}); --sidebar-bg-dark: oklch(0.18 0.012 ${configHue}); --primary-rgb: 79, 70, 229;`}
 >
 <head>
-    <ClientRouter />
+    <ClientRouter/>
     <!-- 顶部加载进度条 -->
     <style is:inline>
         #page-progress-bar {
@@ -173,14 +191,23 @@ const menuItems = [
             z-index: 99999;
             transition: width 0.2s ease;
         }
+
         #page-progress-bar.loading {
             animation: progress-loading 1.5s ease-in-out infinite;
         }
+
         @keyframes progress-loading {
-            0% { width: 0; }
-            50% { width: 70%; }
-            100% { width: 85%; }
+            0% {
+                width: 0;
+            }
+            50% {
+                width: 70%;
+            }
+            100% {
+                width: 85%;
+            }
         }
+
         #page-progress-bar.done {
             width: 100%;
             opacity: 0;
@@ -189,7 +216,7 @@ const menuItems = [
     </style>
     <script is:inline>
         // 创建进度条元素
-        (function() {
+        (function () {
             if (!document.getElementById('page-progress-bar')) {
                 var bar = document.createElement('div');
                 bar.id = 'page-progress-bar';
@@ -198,7 +225,7 @@ const menuItems = [
         })();
 
         // 监听 Astro 导航事件
-        document.addEventListener('astro:before-preparation', function() {
+        document.addEventListener('astro:before-preparation', function () {
             var bar = document.getElementById('page-progress-bar');
             if (bar) {
                 bar.classList.remove('done');
@@ -208,13 +235,13 @@ const menuItems = [
             }
         });
 
-        document.addEventListener('astro:page-load', function() {
+        document.addEventListener('astro:page-load', function () {
             var bar = document.getElementById('page-progress-bar');
             if (bar) {
                 bar.classList.remove('loading');
                 bar.classList.add('done');
                 // 重置状态 - 等待透明度过渡完成后再重置
-                setTimeout(function() {
+                setTimeout(function () {
                     bar.classList.remove('done');
                     // 临时禁用过渡，避免看到进度条缩回
                     bar.style.transition = 'none';
@@ -228,7 +255,7 @@ const menuItems = [
         });
     </script>
     <script>
-        import { initThemeManager } from "../scripts/theme-manager";
+        import {initThemeManager} from "../scripts/theme-manager";
         // Initial run
         initThemeManager();
         // Run on every SPA navigation
@@ -238,10 +265,52 @@ const menuItems = [
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>{pageTitle}</title>
     <link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon"/>
-<script is:inline define:vars={{ PUBLIC_API_URL, adminI18n }}>
+    <script is:inline define:vars={{PUBLIC_API_URL, adminI18n, adminMenuMap, adminMenuIcons}}>
         window.API_URL = PUBLIC_API_URL;
         window.adminI18n = adminI18n;
+        window.adminMenuMap = adminMenuMap || {};
+        window.adminMenuIcons = adminMenuIcons || {};
 
+        if (!window.adminRequest) {
+            window.safeJson = async function (response) {
+                try {
+                    return await response.json();
+                } catch (e) {
+                    return null;
+                }
+            };
+
+            window.parseApiResponse = async function (response) {
+                const payload = await window.safeJson(response);
+                if (payload && typeof payload === "object" && "code" in payload && "msg" in payload && "data" in payload) {
+                    return {
+                        ok: payload.code >= 200 && payload.code < 300,
+                        code: payload.code,
+                        msg: payload.msg,
+                        data: payload.data,
+                        raw: payload
+                    };
+                }
+
+                const message =
+                    payload && typeof payload === "object"
+                        ? (payload.msg || payload.message || payload.detail)
+                        : null;
+
+                return {
+                    ok: response.ok,
+                    code: response.status,
+                    msg: message || (response.ok ? "操作成功" : "操作失败"),
+                    data: payload,
+                    raw: payload
+                };
+            };
+
+            window.adminRequest = async function (url, options) {
+                const response = await fetch(url, options);
+                return window.parseApiResponse(response);
+            };
+        }
 
 
         // 全局错误处理器，忽略 Vditor 和浏览器扩展相关的错误（尽早注册）
@@ -272,7 +341,7 @@ const menuItems = [
             return false;
         };
     </script>
-    <FontManager />
+    <FontManager/>
     <!-- 核心样式变量已移至 html 标签 style 属性中，确保全局生效 -->
     <style is:global>
         /* 全局隐藏文本光标 */
@@ -289,8 +358,129 @@ const menuItems = [
         html {
             background-color: var(--page-bg);
         }
+
         html.dark {
             background-color: var(--page-bg-dark);
+        }
+
+        .admin-tab-shell {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.2rem 0.1rem;
+            border-radius: 999px;
+            background: transparent;
+            border: none;
+            box-shadow: none;
+        }
+
+        .admin-tab-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.6rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: oklch(0.42 0.01 var(--hue));
+            border: 1px solid transparent;
+            background: transparent;
+            transition: all 0.2s ease;
+        }
+
+        .admin-tab-trigger {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.1rem 0.2rem;
+            border: none;
+            background: transparent;
+            color: inherit;
+            font: inherit;
+            cursor: pointer;
+            min-width: 0;
+        }
+
+        .dark .admin-tab-pill {
+            color: oklch(0.83 0.01 var(--hue));
+        }
+
+        .admin-tab-pill:hover {
+            border-color: rgba(15, 23, 42, 0.2);
+            background: rgba(15, 23, 42, 0.06);
+            color: oklch(0.32 0.01 var(--hue));
+        }
+
+        .dark .admin-tab-pill:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.08);
+            color: oklch(0.95 0.02 var(--hue));
+        }
+
+        .admin-tab-pill-active {
+            color: #fff;
+            background: linear-gradient(120deg, oklch(0.69 0.14 var(--hue)) 0%, oklch(0.62 0.13 var(--hue)) 100%);
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+        }
+
+        .admin-tab-pill-icon {
+            display: inline-flex;
+            width: 1rem;
+            height: 1rem;
+            color: inherit;
+        }
+
+        .admin-tab-pill-icon svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .admin-tab-dot {
+            width: 0.35rem;
+            height: 0.35rem;
+            border-radius: 999px;
+            background: currentColor;
+            opacity: 0.6;
+        }
+
+        .admin-tab-close {
+            width: 1.25rem;
+            height: 1.25rem;
+            border-radius: 0.45rem;
+            border: none;
+            background: transparent;
+            color: inherit;
+            opacity: 0.35;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .admin-tab-pill:hover .admin-tab-close {
+            opacity: 0.75;
+        }
+
+        .dark .admin-tab-pill:hover .admin-tab-close {
+            background: transparent;
+        }
+
+        .admin-tab-pill-active .admin-tab-close {
+            opacity: 0.85;
+        }
+
+        .admin-tab-pill-active .admin-tab-close:hover {
+            background: transparent;
+        }
+
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
         }
 
         /* ============== 全局美化样式 ============== */
@@ -1125,15 +1315,15 @@ const menuItems = [
                     class="w-64 bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 flex flex-col transition-all duration-300 fixed lg:relative h-full z-40 -translate-x-full lg:translate-x-0"
             >
                 <!-- Logo -->
-                <div class="h-16 flex items-center px-6 border-b border-zinc-200 dark:border-zinc-800">
+                <div class="h-14 flex items-center px-6 border-b border-zinc-200 dark:border-zinc-800">
                     <a href="/admin" data-no-swup class="flex items-center gap-3 group sidebar-logo">
                         <div
-                                class="w-9 h-9 rounded-xl bg-[var(--primary)] text-white flex items-center justify-center font-bold shadow-lg group-hover:scale-110 transition-transform flex-shrink-0"
+                                class="w-8 h-8 rounded-xl bg-[var(--primary)] text-white flex items-center justify-center font-bold shadow-lg group-hover:scale-110 transition-transform flex-shrink-0"
                         >
                             {adminSiteTitle.charAt(0).toUpperCase()}
                         </div>
                         <div class="sidebar-text">
-                            <span class="font-bold text-lg tracking-tight">{adminSiteTitle}</span>
+                            <span class="font-bold text-base tracking-tight">{adminSiteTitle}</span>
                         </div>
                     </a>
                 </div>
@@ -1208,13 +1398,13 @@ const menuItems = [
             <!-- Main Content -->
             <div class="flex-1 flex flex-col overflow-hidden">
                 <!-- Top Bar -->
-                <header class="h-16 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between px-6 lg:px-8">
+                <header class="h-14 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between px-4 lg:px-6 relative z-30">
                     <!-- Left: Mobile Menu Button + Page Title -->
                     <div class="flex items-center gap-2">
                         <!-- Mobile Menu Button -->
                         <button
                                 id="menuToggle"
-                                class="lg:hidden p-2 -ml-2 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+                                class="lg:hidden p-2 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                                  stroke="currentColor">
@@ -1223,9 +1413,9 @@ const menuItems = [
                             </svg>
                         </button>
 
-                        <!-- Page Title -->
-                        <h1 class="text-xl font-bold text-zinc-900 dark:text-zinc-100 hidden lg:block">
-                            {title.split(' - ')[0]}
+                        <!-- Page Title (隐藏，防止与页签重复) -->
+                        <h1 class="sr-only">
+                            {pageHeading}
                         </h1>
                     </div>
 
@@ -1239,33 +1429,43 @@ const menuItems = [
                                     title="主题色"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24">
-                                    <path fill="currentColor" d="M12 22C6.49 22 2 17.51 2 12S6.49 2 12 2s10 4.04 10 9c0 3.31-2.69 6-6 6h-1.77c-.28 0-.5.22-.5.5c0 .12.05.23.13.33c.41.47.64 1.06.64 1.67A2.5 2.5 0 0 1 12 22m0-18c-4.41 0-8 3.59-8 8s3.59 8 8 8c.28 0 .5-.22.5-.5a.54.54 0 0 0-.14-.35c-.41-.46-.63-1.05-.63-1.65a2.5 2.5 0 0 1 2.5-2.5H16c2.21 0 4-1.79 4-4c0-3.86-3.59-7-8-7m-5.5 9a1.5 1.5 0 1 1 0-3a1.5 1.5 0 0 1 0 3m3-4a1.5 1.5 0 1 1 0-3a1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3a1.5 1.5 0 0 1 0 3m3 4a1.5 1.5 0 1 1 0-3a1.5 1.5 0 0 1 0 3"/>
+                                    <path fill="currentColor"
+                                            d="M12 22C6.49 22 2 17.51 2 12S6.49 2 12 2s10 4.04 10 9c0 3.31-2.69 6-6 6h-1.77c-.28 0-.5.22-.5.5c0 .12.05.23.13.33c.41.47.64 1.06.64 1.67A2.5 2.5 0 0 1 12 22m0-18c-4.41 0-8 3.59-8 8s3.59 8 8 8c.28 0 .5-.22.5-.5a.54.54 0 0 0-.14-.35c-.41-.46-.63-1.05-.63-1.65a2.5 2.5 0 0 1 2.5-2.5H16c2.21 0 4-1.79 4-4c0-3.86-3.59-7-8-7m-5.5 9a1.5 1.5 0 1 1 0-3a1.5 1.5 0 0 1 0 3m3-4a1.5 1.5 0 1 1 0-3a1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3a1.5 1.5 0 0 1 0 3m3 4a1.5 1.5 0 1 1 0-3a1.5 1.5 0 0 1 0 3"/>
                                 </svg>
                             </button>
                             <!-- Theme Picker Dropdown -->
-                            <div id="themePickerDropdown" class="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-700 p-4 hidden z-50 transform transition-all origin-top-right">
+                            <div id="themePickerDropdown"
+                                 class="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-700 p-4 hidden z-50 transform transition-all origin-top-right">
                                 <div class="flex items-center justify-between mb-4">
                                     <div class="flex items-center gap-2 relative pl-3 before:absolute before:left-0 before:top-1 before:bottom-1 before:w-1 before:bg-[var(--primary)] before:rounded-full">
                                         <span class="font-bold text-zinc-900 dark:text-zinc-100">主题色</span>
-                                        <button id="resetThemeBtn" class="p-1 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors" title="重置">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                        <button id="resetThemeBtn"
+                                                class="p-1 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+                                                title="重置">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                                 viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                                             </svg>
                                         </button>
                                     </div>
-                                    <span id="currentHueDisplay" class="bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 px-2 py-1 rounded text-xs font-mono font-bold">165</span>
+                                    <span id="currentHueDisplay"
+                                          class="bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 px-2 py-1 rounded text-xs font-mono font-bold">165</span>
                                 </div>
                                 <div class="relative h-6 rounded-lg overflow-hidden w-full cursor-pointer group">
-                                    <div class="absolute inset-0" style="background: linear-gradient(to right, oklch(0.75 0.12 0), oklch(0.75 0.12 30), oklch(0.75 0.12 60), oklch(0.75 0.12 90), oklch(0.75 0.12 120), oklch(0.75 0.12 150), oklch(0.75 0.12 180), oklch(0.75 0.12 210), oklch(0.75 0.12 240), oklch(0.75 0.12 270), oklch(0.75 0.12 300), oklch(0.75 0.12 330), oklch(0.75 0.12 360));"></div>
-                                    <input 
-                                        type="range" 
-                                        id="headerHueSlider" 
-                                        min="0" 
-                                        max="360" 
-                                        step="5"
-                                        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                    <div class="absolute inset-0"
+                                         style="background: linear-gradient(to right, oklch(0.75 0.12 0), oklch(0.75 0.12 30), oklch(0.75 0.12 60), oklch(0.75 0.12 90), oklch(0.75 0.12 120), oklch(0.75 0.12 150), oklch(0.75 0.12 180), oklch(0.75 0.12 210), oklch(0.75 0.12 240), oklch(0.75 0.12 270), oklch(0.75 0.12 300), oklch(0.75 0.12 330), oklch(0.75 0.12 360));"></div>
+                                    <input
+                                            type="range"
+                                            id="headerHueSlider"
+                                            min="0"
+                                            max="360"
+                                            step="5"
+                                            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                     />
-                                    <div id="sliderThumb" class="absolute top-0 bottom-0 w-2 bg-white shadow-md pointer-events-none transform -translate-x-1/2 transition-transform duration-75 border border-zinc-200" style="left: 0%;"></div>
+                                    <div id="sliderThumb"
+                                         class="absolute top-0 bottom-0 w-2 bg-white shadow-md pointer-events-none transform -translate-x-1/2 transition-transform duration-75 border border-zinc-200"
+                                         style="left: 0%;"></div>
                                 </div>
                             </div>
                         </div>
@@ -1277,16 +1477,22 @@ const menuItems = [
                                 title="切换主题"
                         >
                             <!-- 亮色模式图标 (太阳) - material-symbols:wb-sunny-outline-rounded -->
-                            <svg id="iconLight" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" viewBox="0 0 24 24">
-                                <path fill="currentColor" d="M12 17q-2.075 0-3.537-1.463T7 12t1.463-3.537T12 7t3.538 1.463T17 12t-1.463 3.538T12 17m0-2q1.25 0 2.125-.875T15 12t-.875-2.125T12 9t-2.125.875T9 12t.875 2.125T12 15m-7-4H1v2h4zm18 0h-4v2h4zM11 1v4h2V1zm0 18v4h2v-4zM6.35 7.75L3.87 5.27l1.41-1.41l2.48 2.48zm12.02 12.02l-2.48-2.48l1.4-1.4l2.49 2.47zM16.25 6.35l2.48-2.48l1.4 1.41l-2.47 2.48zm-12.02 12.02l2.48-2.48l1.4 1.4l-2.47 2.49z"/>
+                            <svg id="iconLight" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden"
+                                 viewBox="0 0 24 24">
+                                <path fill="currentColor"
+                                      d="M12 17q-2.075 0-3.537-1.463T7 12t1.463-3.537T12 7t3.538 1.463T17 12t-1.463 3.538T12 17m0-2q1.25 0 2.125-.875T15 12t-.875-2.125T12 9t-2.125.875T9 12t.875 2.125T12 15m-7-4H1v2h4zm18 0h-4v2h4zM11 1v4h2V1zm0 18v4h2v-4zM6.35 7.75L3.87 5.27l1.41-1.41l2.48 2.48zm12.02 12.02l-2.48-2.48l1.4-1.4l2.49 2.47zM16.25 6.35l2.48-2.48l1.4 1.41l-2.47 2.48zm-12.02 12.02l2.48-2.48l1.4 1.4l-2.47 2.49z"/>
                             </svg>
                             <!-- 暗色模式图标 (月亮) - material-symbols:dark-mode-outline-rounded -->
-                            <svg id="iconDark" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" viewBox="0 0 24 24">
-                                <path fill="currentColor" d="M12 21q-3.75 0-6.375-2.625T3 12t2.625-6.375T12 3q.35 0 .688.025t.662.075q-1.025.725-1.638 1.888T11.1 7.5q0 2.25 1.575 3.825T16.5 12.9q1.375 0 2.525-.613T20.9 10.65q.05.325.075.662T21 12q0 3.75-2.625 6.375T12 21m0-2q2.2 0 3.95-1.213t2.55-3.162q-.5.125-1 .2t-1 .075q-3.075 0-5.238-2.163T9.1 7.5q0-.5.075-1t.2-1q-1.95.8-3.163 2.55T5 12q0 2.9 2.05 4.95T12 19m-.25-6.75"/>
+                            <svg id="iconDark" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden"
+                                 viewBox="0 0 24 24">
+                                <path fill="currentColor"
+                                      d="M12 21q-3.75 0-6.375-2.625T3 12t2.625-6.375T12 3q.35 0 .688.025t.662.075q-1.025.725-1.638 1.888T11.1 7.5q0 2.25 1.575 3.825T16.5 12.9q1.375 0 2.525-.613T20.9 10.65q.05.325.075.662T21 12q0 3.75-2.625 6.375T12 21m0-2q2.2 0 3.95-1.213t2.55-3.162q-.5.125-1 .2t-1 .075q-3.075 0-5.238-2.163T9.1 7.5q0-.5.075-1t.2-1q-1.95.8-3.163 2.55T5 12q0 2.9 2.05 4.95T12 19m-.25-6.75"/>
                             </svg>
                             <!-- 跟随系统图标 (自动) - material-symbols:brightness-auto-outline-rounded -->
-                            <svg id="iconSystem" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" viewBox="0 0 24 24">
-                                <path fill="currentColor" d="M12 9a3 3 0 0 0-3 3a3 3 0 0 0 3 3a3 3 0 0 0 3-3a3 3 0 0 0-3-3m0 8a5 5 0 0 1-5-5a5 5 0 0 1 5-5a5 5 0 0 1 5 5a5 5 0 0 1-5 5m0-15a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1m0 17a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1M5.64 5.64a1 1 0 0 1 1.41 0a1 1 0 0 1 0 1.41l-1.41 1.41a1 1 0 0 1-1.41 0a1 1 0 0 1 0-1.41zM18.36 18.36a1 1 0 0 1 1.41 0a1 1 0 0 1 0 1.41l-1.41 1.41a1 1 0 0 1-1.41 0a1 1 0 0 1 0-1.41zM2 12a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1m17 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1M5.64 18.36l1.41-1.41a1 1 0 0 1 1.41 0a1 1 0 0 1 0 1.41l-1.41 1.41a1 1 0 0 1-1.41 0a1 1 0 0 1 0-1.41M18.36 5.64l1.41-1.41a1 1 0 0 1 1.41 0a1 1 0 0 1 0 1.41l-1.41 1.41a1 1 0 0 1-1.41 0a1 1 0 0 1 0-1.41M12 10l.94 2.06L15 13l-2.06.94L12 16l-.94-2.06L9 13l2.06-.94z"/>
+                            <svg id="iconSystem" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden"
+                                 viewBox="0 0 24 24">
+                                <path fill="currentColor"
+                                      d="M12 9a3 3 0 0 0-3 3a3 3 0 0 0 3 3a3 3 0 0 0 3-3a3 3 0 0 0-3-3m0 8a5 5 0 0 1-5-5a5 5 0 0 1 5-5a5 5 0 0 1 5 5a5 5 0 0 1-5 5m0-15a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1m0 17a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1M5.64 5.64a1 1 0 0 1 1.41 0a1 1 0 0 1 0 1.41l-1.41 1.41a1 1 0 0 1-1.41 0a1 1 0 0 1 0-1.41zM18.36 18.36a1 1 0 0 1 1.41 0a1 1 0 0 1 0 1.41l-1.41 1.41a1 1 0 0 1-1.41 0a1 1 0 0 1 0-1.41zM2 12a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1m17 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1M5.64 18.36l1.41-1.41a1 1 0 0 1 1.41 0a1 1 0 0 1 0 1.41l-1.41 1.41a1 1 0 0 1-1.41 0a1 1 0 0 1 0-1.41M18.36 5.64l1.41-1.41a1 1 0 0 1 1.41 0a1 1 0 0 1 0 1.41l-1.41 1.41a1 1 0 0 1-1.41 0a1 1 0 0 1 0-1.41M12 10l.94 2.06L15 13l-2.06.94L12 16l-.94-2.06L9 13l2.06-.94z"/>
                             </svg>
                         </button>
 
@@ -1298,15 +1504,19 @@ const menuItems = [
                             >
                                 <div id="userAvatarContainer"
                                      class="w-8 h-8 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center overflow-hidden">
-                                    <svg id="defaultAvatarIcon" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-zinc-500"
+                                    <svg id="defaultAvatarIcon" xmlns="http://www.w3.org/2000/svg"
+                                         class="h-4 w-4 text-zinc-500"
                                          fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                               d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                                     </svg>
                                 </div>
-                                <span id="usernameDisplay" class="text-sm font-medium text-zinc-700 dark:text-zinc-300 hidden sm:block">加载中...</span>
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                <span id="usernameDisplay"
+                                      class="text-sm font-medium text-zinc-700 dark:text-zinc-300 hidden sm:block">加载中...</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-zinc-400" fill="none"
+                                     viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M19 9l-7 7-7-7"/>
                                 </svg>
                             </button>
 
@@ -1314,27 +1524,32 @@ const menuItems = [
                             <div id="userDropdownMenu"
                                  class="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-700 py-1 hidden z-50 opacity-0 transform scale-95 transition-all duration-150">
                                 <div class="px-4 py-2 border-b border-zinc-100 dark:border-zinc-800">
-                                    <p id="dropdownUsername" class="text-sm font-medium text-zinc-900 dark:text-zinc-100">管理员</p>
+                                    <p id="dropdownUsername"
+                                       class="text-sm font-medium text-zinc-900 dark:text-zinc-100">管理员</p>
                                     <p class="text-xs text-zinc-500">管理员账户</p>
                                 </div>
                                 <a href="/" target="_blank"
-                                   class="flex items-center gap-2 px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                   class="flex items-center gap-2 px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                         viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                               d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
                                     </svg>
                                     {i18n(I18nKey.home)}
                                 </a>
                                 <button id="changePasswordBtn"
-                                        class="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                        class="w-full flex items-center gap-2 px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                         viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                                     </svg>
                                     修改密码
                                 </button>
                                 <button id="logoutBtn"
-                                        class="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        class="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                         viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                               d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                                     </svg>
@@ -1345,13 +1560,400 @@ const menuItems = [
                     </div>
                 </header>
 
+                {!hideNav && (
+                    <div
+                            id="admin-tab-bar"
+                            class="sticky top-14 z-20 px-4 lg:px-6 py-1 border-b border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 flex items-center gap-3"
+                    >
+                        <div id="admin-tab-list" class="admin-tab-shell overflow-x-auto scrollbar-hide flex-1 min-w-0">
+                            <span class="text-xs text-zinc-400 px-2 whitespace-nowrap">加载标签...</span>
+                        </div>
+                        <script is:inline>
+                            (function () {
+                                try {
+                                    var snap = sessionStorage.getItem('firefly_admin_tab_snapshot');
+                                    if (snap) {
+                                        var list = document.getElementById('admin-tab-list');
+                                        if (list) {
+                                            list.innerHTML = snap;
+                                        }
+                                    }
+                                } catch (err) {}
+                            })();
+                        </script>
+                        <div class="flex items-center gap-2 flex-shrink-0">
+                            <button
+                                    id="admin-tab-refresh"
+                                    class="p-2 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-200/70 dark:hover:bg-zinc-800/70 rounded-full transition"
+                                    title="刷新当前标签"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                </svg>
+                            </button>
+                            <button
+                                    id="admin-tab-close-others"
+                                    class="p-2 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-200/70 dark:hover:bg-zinc-800/70 rounded-full transition"
+                                    title="关闭其他标签"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                )}
+
                 <!-- Page Content -->
-                <main class="flex-1 overflow-y-auto bg-zinc-100 dark:bg-zinc-950" data-no-swup>
+                <main class="flex-1 overflow-y-auto bg-zinc-100 dark:bg-zinc-950" data-no-swup
+                      data-page-title={pageHeading}>
                     <slot/>
                 </main>
             </div>
         </div>
 )}
+
+<script is:inline>
+    (function () {
+        function setupTabBar() {
+            var tabBar = document.getElementById('admin-tab-bar');
+            if (!tabBar) return false;
+
+            function getTabList() {
+                return document.getElementById('admin-tab-list');
+            }
+
+            function bindControlButtons() {
+                var refreshBtnEl = document.getElementById('admin-tab-refresh');
+                if (refreshBtnEl && !refreshBtnEl.dataset.tabBound) {
+                    refreshBtnEl.addEventListener('click', function () {
+                        window.location.reload();
+                    });
+                    refreshBtnEl.dataset.tabBound = "1";
+                }
+
+                var closeOthersBtnEl = document.getElementById('admin-tab-close-others');
+                if (closeOthersBtnEl && !closeOthersBtnEl.dataset.tabBound) {
+                    closeOthersBtnEl.addEventListener('click', function () {
+                        closeOthers();
+                    });
+                    closeOthersBtnEl.dataset.tabBound = "1";
+                }
+            }
+
+            var storageKey = 'firefly_admin_tabs_v1';
+            var maxTabs = 8;
+            var menuMap = window.adminMenuMap || {};
+            var menuIcons = window.adminMenuIcons || {};
+
+            function normalize(path) {
+                if (!path) return '/';
+                var clean = path.split('?')[0].split('#')[0];
+                if (clean.length > 1 && clean.endsWith('/')) {
+                    clean = clean.slice(0, -1);
+                }
+                return clean || '/';
+            }
+
+            function encodePath(path) {
+                return encodeURIComponent(path);
+            }
+
+            function decodePath(value) {
+                try {
+                    return decodeURIComponent(value || '');
+                } catch (err) {
+                    return value || '/';
+                }
+            }
+
+            var defaultPath = normalize('/admin');
+            var defaultTab = {
+                path: defaultPath,
+                title: menuMap[defaultPath] || '仪表盘',
+                closable: false
+            };
+
+            var tabs = [];
+            var activePath = normalize(window.location.pathname);
+
+            function readStorage() {
+                var raw = null;
+                try {
+                    raw = window.localStorage ? localStorage.getItem(storageKey) : null;
+                } catch (err) {
+                    raw = null;
+                }
+
+                if (raw) {
+                    try {
+                        var parsed = JSON.parse(raw);
+                        if (Array.isArray(parsed)) {
+                            tabs = parsed
+                                .filter(function (tab) {
+                                    return tab && tab.path;
+                                })
+                                .map(function (tab) {
+                                    return {
+                                        path: normalize(tab.path),
+                                        title: tab.title || menuMap[normalize(tab.path)] || '页面',
+                                        closable: tab.closable === false ? false : true
+                                    };
+                                });
+                        }
+                    } catch (err) {
+                        tabs = [];
+                    }
+                }
+
+                if (!tabs.length) {
+                    tabs = [defaultTab];
+                }
+
+                if (!tabs.some(function (tab) {
+                    return normalize(tab.path) === defaultTab.path;
+                })) {
+                    tabs.unshift(defaultTab);
+                } else {
+                    tabs = tabs.map(function (tab) {
+                        return normalize(tab.path) === defaultTab.path
+                            ? Object.assign({}, defaultTab)
+                            : tab;
+                    });
+                }
+            }
+
+            function persist() {
+                try {
+                    window.localStorage && localStorage.setItem(storageKey, JSON.stringify(tabs));
+                } catch (err) {
+                    // ignore storage errors
+                }
+            }
+
+            function getPageTitle(explicitTitle) {
+                if (explicitTitle) return explicitTitle;
+                var mainEl = document.querySelector('main[data-page-title]');
+                if (mainEl && mainEl.dataset.pageTitle) {
+                    return mainEl.dataset.pageTitle;
+                }
+                if (document.title) {
+                    var parts = document.title.split(' - ');
+                    if (parts.length) {
+                        return parts[0].trim();
+                    }
+                }
+                return '';
+            }
+
+            function resolveTitle(path, explicitTitle) {
+                var normalized = normalize(path);
+                if (menuMap[normalized]) {
+                    return menuMap[normalized];
+                }
+                var fallback = getPageTitle(explicitTitle);
+                if (fallback) return fallback;
+                var segments = normalized.split('/');
+                return segments[segments.length - 1] || '页面';
+            }
+
+            function limitTabs() {
+                if (tabs.length <= maxTabs) return;
+                var attempts = 0;
+                while (tabs.length > maxTabs && attempts < 20) {
+                    attempts++;
+                    var removableIndex = tabs.findIndex(function (tab) {
+                        var normalized = normalize(tab.path);
+                        return tab.closable !== false && normalized !== activePath;
+                    });
+                    if (removableIndex === -1) {
+                        break;
+                    }
+                    tabs.splice(removableIndex, 1);
+                }
+            }
+
+            function renderTabs() {
+                var tabListEl = getTabList();
+                if (!tabListEl) return;
+                if (!tabs.length) {
+                    tabListEl.innerHTML = '<span class="text-xs text-zinc-400 px-2">暂无标签</span>';
+                    bindControlButtons();
+                    return;
+                }
+
+                var activeEncoded = encodePath(activePath);
+                var html = tabs
+                    .map(function (tab) {
+                        var normalized = normalize(tab.path);
+                        var encoded = encodePath(normalized);
+                        var isActive = normalized === activePath;
+                        var closable = tab.closable !== false;
+                        var pillClass = 'admin-tab-pill' + (isActive ? ' admin-tab-pill-active' : '');
+                        var iconPath = menuIcons[normalized];
+                        var iconHtml = iconPath
+                            ? '<span class="admin-tab-pill-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d=\"' + iconPath + '\" /></svg></span>'
+                            : '<span class="admin-tab-dot"></span>';
+                        var closeBtn = closable
+                            ? '<button type="button" class="admin-tab-close" data-close-path="' + encoded + '" title="关闭标签">' +
+                            '<svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor">' +
+                            '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>' +
+                            '</svg>' +
+                            '</button>'
+                            : '';
+                        return (
+                            '<div class="' + pillClass + '" data-tab-wrapper="' + encoded + '">' +
+                            '<button type="button" class="admin-tab-trigger" data-tab-path="' + encoded + '" title="' + tab.title + '">' +
+                            iconHtml +
+                            '<span class="truncate max-w-[8rem]">' + tab.title + '</span>' +
+                            '</button>' +
+                            closeBtn +
+                            '</div>'
+                        );
+                    })
+                    .join('');
+            tabListEl.innerHTML = html;
+            try {
+                sessionStorage.setItem('firefly_admin_tab_snapshot', html);
+            } catch (err) {
+                // ignore storage
+            }
+
+                tabListEl.querySelectorAll('[data-tab-path]').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        var path = decodePath(btn.getAttribute('data-tab-path'));
+                        if (!path || path === activePath) return;
+                        navigate(path);
+                    });
+                });
+
+                tabListEl.querySelectorAll('[data-close-path]').forEach(function (btn) {
+                    btn.addEventListener('click', function (event) {
+                        event.stopPropagation();
+                        var path = decodePath(btn.getAttribute('data-close-path'));
+                        closeTab(path);
+                    });
+                });
+
+                requestAnimationFrame(function () {
+                    var activeEl = tabListEl.querySelector('[data-tab-path="' + activeEncoded + '"]');
+                    if (activeEl && activeEl.scrollIntoView) {
+                        activeEl.scrollIntoView({behavior: 'smooth', inline: 'center', block: 'nearest'});
+                    }
+                });
+                bindControlButtons();
+            }
+
+            function setActive(path, title) {
+                var normalized = normalize(path);
+                activePath = normalized;
+                var existing = tabs.find(function (tab) {
+                    return normalize(tab.path) === normalized;
+                });
+                var resolvedTitle = resolveTitle(path, title || (existing && existing.title));
+                if (existing) {
+                    existing.title = resolvedTitle;
+                } else {
+                    tabs.push({
+                        path: normalized,
+                        title: resolvedTitle,
+                        closable: normalized !== defaultTab.path
+                    });
+                    limitTabs();
+                }
+                persist();
+                renderTabs();
+            }
+
+            function closeTab(path) {
+                var normalized = normalize(path);
+                var index = tabs.findIndex(function (tab) {
+                    return normalize(tab.path) === normalized;
+                });
+                if (index === -1 || tabs[index].closable === false) return;
+                var closingActive = normalized === activePath;
+                tabs.splice(index, 1);
+                if (!tabs.length) {
+                    tabs = [defaultTab];
+                    activePath = defaultTab.path;
+                }
+                persist();
+                renderTabs();
+
+                if (closingActive) {
+                    var target = tabs[index] || tabs[index - 1] || tabs[0] || defaultTab;
+                    navigate(target.path);
+                }
+            }
+
+            function closeOthers() {
+                tabs = tabs.filter(function (tab) {
+                    var normalized = normalize(tab.path);
+                    return tab.closable === false || normalized === activePath;
+                });
+                if (!tabs.some(function (tab) {
+                    return normalize(tab.path) === activePath;
+                })) {
+                    tabs.push({
+                        path: activePath,
+                        title: resolveTitle(activePath),
+                        closable: activePath !== defaultTab.path
+                    });
+                }
+                persist();
+                renderTabs();
+            }
+
+            function navigate(path, options) {
+                var normalized = normalize(path);
+                activePath = normalized;
+                if (!options || !options.skipRender) {
+                    renderTabs();
+                }
+                if (window.Astro && typeof window.Astro.navigate === 'function') {
+                    window.Astro.navigate(normalized);
+                } else if (window.Astro && window.Astro.router && typeof window.Astro.router.navigate === 'function') {
+                    window.Astro.router.navigate(normalized);
+                } else {
+                    window.location.href = normalized;
+                }
+            }
+
+            readStorage();
+            setActive(window.location.pathname);
+
+            document.addEventListener('astro:page-load', function () {
+                setActive(window.location.pathname);
+            });
+
+            window.__adminTabManager = {
+                close: closeTab,
+                closeOthers: closeOthers,
+                navigate: navigate,
+                refresh: function () {
+                    window.location.reload();
+                }
+            };
+
+            renderTabs();
+            return true;
+        }
+
+        var initialized = setupTabBar();
+        if (!initialized) {
+            var onReady = function () {
+                if (setupTabBar()) {
+                    document.removeEventListener('DOMContentLoaded', onReady);
+                }
+            };
+            document.addEventListener('DOMContentLoaded', onReady);
+        }
+    })();
+</script>
 
 <!-- 全局美化弹框 -->
 <div id="adminModal" class="fixed inset-0 bg-black/50 z-[100] hidden items-center justify-center p-4 backdrop-blur-sm">
@@ -1393,6 +1995,14 @@ const menuItems = [
             <h3 id="adminModalTitle" class="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2"></h3>
             <!-- 消息 -->
             <p id="adminModalMessage" class="text-zinc-600 dark:text-zinc-400 text-sm"></p>
+            <div id="adminModalInputWrapper" class="mt-4 hidden">
+                <input
+                        id="adminModalInput"
+                        type="text"
+                        class="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-[var(--primary)] outline-none"
+                        placeholder=""
+                />
+            </div>
         </div>
         <!-- 按钮区域 -->
         <div id="adminModalButtons" class="px-6 pb-6 flex gap-3 justify-center">
@@ -1409,14 +2019,16 @@ const menuItems = [
 </div>
 
 <!-- 修改密码弹框 -->
-<div id="changePwModal" class="fixed inset-0 bg-black/50 z-[100] hidden items-center justify-center p-4 backdrop-blur-sm">
+<div id="changePwModal"
+     class="fixed inset-0 bg-black/50 z-[100] hidden items-center justify-center p-4 backdrop-blur-sm">
     <div class="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-md shadow-2xl transform transition-all scale-95 opacity-0"
          id="changePwModalContent">
         <div class="p-6 border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center">
             <h3 class="text-lg font-bold text-zinc-900 dark:text-zinc-100">修改密码</h3>
             <button id="closeChangePwBtn" class="text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
             </button>
         </div>
@@ -1424,19 +2036,29 @@ const menuItems = [
             <form id="globalChangePasswordForm" class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">当前密码 *</label>
-                    <input type="password" id="globalCurrentPassword" required class="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-[var(--primary)] outline-none" placeholder="请输入当前密码" />
+                    <input type="password" id="globalCurrentPassword" required
+                           class="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-[var(--primary)] outline-none"
+                           placeholder="请输入当前密码"/>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">新密码 *</label>
-                    <input type="password" id="globalNewPassword" required class="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-[var(--primary)] outline-none" placeholder="请输入新密码（至少6位）" />
+                    <input type="password" id="globalNewPassword" required
+                           class="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-[var(--primary)] outline-none"
+                           placeholder="请输入新密码（至少6位）"/>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">确认新密码 *</label>
-                    <input type="password" id="globalConfirmPassword" required class="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-[var(--primary)] outline-none" placeholder="请再次输入新密码" />
+                    <input type="password" id="globalConfirmPassword" required
+                           class="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-[var(--primary)] outline-none"
+                           placeholder="请再次输入新密码"/>
                 </div>
                 <div class="flex justify-end pt-2">
-                    <button type="button" id="cancelChangePwBtn" class="mr-3 px-4 py-2 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors">取消</button>
-                    <button type="submit" class="px-6 py-2 bg-[var(--primary)] text-white rounded-lg hover:opacity-90 transition-opacity shadow-lg">
+                    <button type="button" id="cancelChangePwBtn"
+                            class="mr-3 px-4 py-2 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors">
+                        取消
+                    </button>
+                    <button type="submit"
+                            class="px-6 py-2 bg-[var(--primary)] text-white rounded-lg hover:opacity-90 transition-opacity shadow-lg">
                         保存修改
                     </button>
                 </div>
@@ -1448,936 +2070,1284 @@ const menuItems = [
 <!-- I will inject the script AFTER the define:vars block instead to be safe. -->
 
 
+<script is:inline>
+    document.addEventListener('astro:page-load', () => {
+        // Head/Theme Picker & Password Change Logic
+        (function () {
+            // Wait for DOM to be ready just in case, though is:inline at bottom is usually fine.
+            // But window.API_URL is set in previous script, so it should be available.
+            var API_URL = window.API_URL;
+
+            // --- Theme Picker ---
+            var btn = document.getElementById('themeColorBtn');
+            var dropdown = document.getElementById('themePickerDropdown');
+            var slider = document.getElementById('headerHueSlider');
+            var thumb = document.getElementById('sliderThumb');
+            var display = document.getElementById('currentHueDisplay');
+            var resetBtn = document.getElementById('resetThemeBtn');
+            var toggleBtn = document.getElementById('themeToggle');
+
+            // Sync with local storage on load (SPA persistence)
+            var stored = localStorage.getItem('hue');
+            if (stored) {
+                updateTheme(stored);
+            }
+
+            if (btn && dropdown) {
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropdown.classList.toggle('hidden');
+
+                    // Init value
+                    var style = getComputedStyle(document.documentElement);
+                    var hue = style.getPropertyValue('--hue').trim() || '200';
+                    if (slider) {
+                        slider.value = hue;
+                        updateThumb(hue);
+                    }
+                });
+
+                // Close on outside click
+                document.addEventListener('click', function (e) {
+                    if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
+                        dropdown.classList.add('hidden');
+                    }
+                });
+
+                dropdown.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                });
+            }
+
+            function updateThumb(val) {
+                if (thumb) thumb.style.left = (val / 360 * 100) + '%';
+                if (display) display.textContent = val;
+            }
+
+            function updateTheme(val) {
+                document.documentElement.style.setProperty('--hue', val);
+                document.documentElement.style.setProperty('--configHue', val);
+                document.documentElement.style.setProperty('--primary', `oklch(0.70 0.14 ${val})`);
+                document.documentElement.style.setProperty('--primary-light', `oklch(0.75 0.14 ${val})`);
+                document.documentElement.style.setProperty('--primary-dark', `oklch(0.65 0.14 ${val})`);
+            }
+
+            var timeout;
+
+            function saveTheme(val) {
+                localStorage.setItem('hue', val);
+                if (timeout) clearTimeout(timeout);
+                timeout = setTimeout(async function () {
+                    try {
+                        var token = localStorage.getItem('adminToken');
+                        if (!token) return;
+
+                        await fetch(API_URL + '/settings/by-key/theme_hue', {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': 'Bearer ' + token
+                            },
+                            body: JSON.stringify({
+                                value: val
+                            })
+                        });
+                    } catch (e) {
+                        console.error("Failed to save theme hue", e);
+                    }
+                }, 500);
+            }
+
+            if (slider) {
+                slider.addEventListener('input', function (e) {
+                    var val = e.target.value;
+                    updateThumb(val);
+                    updateTheme(val);
+                    saveTheme(val);
+                });
+            }
+
+            if (resetBtn) {
+                resetBtn.addEventListener('click', function () {
+                    var val = 200;
+                    if (slider) {
+                        slider.value = val;
+                        updateThumb(val);
+                    }
+                    updateTheme(val);
+                    saveTheme(val);
+                });
+            }
+
+            // --- Dark/Light Mode Toggle ---
+            // 注意：主题切换逻辑已移至页面底部的初始化脚本中统一处理
+
+            // --- Change Password ---
+            var cpBtn = document.getElementById('changePasswordBtn');
+            var cpModal = document.getElementById('changePwModal');
+            var cpContent = document.getElementById('changePwModalContent');
+            var closeCpBtn = document.getElementById('closeChangePwBtn');
+            var cancelCpBtn = document.getElementById('cancelChangePwBtn');
+            var cpForm = document.getElementById('globalChangePasswordForm');
+
+            function openCpModal() {
+                // Close dropdown if open
+                var userMenu = document.getElementById('userDropdownMenu');
+                if (userMenu) userMenu.classList.add('hidden');
+
+                if (cpModal && cpContent) {
+                    cpModal.classList.remove('hidden');
+                    cpModal.classList.add('flex');
+                    setTimeout(() => {
+                        cpContent.classList.remove('scale-95', 'opacity-0');
+                        cpContent.classList.add('scale-100', 'opacity-100');
+                    }, 10);
+                }
+            }
+
+            function closeCpModal() {
+                if (cpModal && cpContent) {
+                    cpContent.classList.remove('scale-100', 'opacity-100');
+                    cpContent.classList.add('scale-95', 'opacity-0');
+                    setTimeout(() => {
+                        cpModal.classList.add('hidden');
+                        cpModal.classList.remove('flex');
+                        if (cpForm) cpForm.reset();
+                    }, 200);
+                }
+            }
+
+            if (cpBtn) cpBtn.addEventListener('click', openCpModal);
+            if (closeCpBtn) closeCpBtn.addEventListener('click', closeCpModal);
+            if (cancelCpBtn) cancelCpBtn.addEventListener('click', closeCpModal);
+            if (cpModal) {
+                cpModal.addEventListener('click', function (e) {
+                    if (e.target === cpModal) closeCpModal();
+                });
+            }
+
+            if (cpForm) {
+                cpForm.addEventListener('submit', async function (e) {
+                    e.preventDefault();
+                    var current = document.getElementById('globalCurrentPassword').value;
+                    var newPw = document.getElementById('globalNewPassword').value;
+                    var confirmPw = document.getElementById('globalConfirmPassword').value;
+
+                    if (newPw.length < 6) {
+                        window.showAdminAlert('新密码长度至少6位', 'warning');
+                        return;
+                    }
+                    if (newPw !== confirmPw) {
+                        window.showAdminAlert('两次输入密码不一致', 'warning');
+                        return;
+                    }
+
+                    try {
+                        var token = localStorage.getItem('adminToken');
+                        var result = await window.adminRequest(API_URL + '/auth/change-password', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': 'Bearer ' + token
+                            },
+                            body: JSON.stringify({
+                                old_password: current,
+                                new_password: newPw,
+                                new_password_confirm: confirmPw
+                            })
+                        });
+
+                        if (result.ok) {
+                            await window.showAdminAlert(result.msg || '密码修改成功，请重新登录', 'success');
+
+                            localStorage.removeItem('adminToken');
+                            window.location.href = '/admin/login';
+                        } else {
+                            window.showAdminAlert(result.msg || '修改失败', 'error');
+                        }
+                    } catch (e) {
+                        console.error(e);
+                        window.showAdminAlert('网络错误', 'error');
+                    }
+                });
+            }
+        })();
+    });
+</script>
 
 <script is:inline>
     document.addEventListener('astro:page-load', () => {
-    // Head/Theme Picker & Password Change Logic
-    (function() {
-        // Wait for DOM to be ready just in case, though is:inline at bottom is usually fine.
-        // But window.API_URL is set in previous script, so it should be available.
-        var API_URL = window.API_URL;
+        // ============== 美化颜色选择器 ==============
+        (function () {
+            // oklch 预设颜色（色相值）
+            var presetHues = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330];
 
-        // --- Theme Picker ---
-        var btn = document.getElementById('themeColorBtn');
-        var dropdown = document.getElementById('themePickerDropdown');
-        var slider = document.getElementById('headerHueSlider');
-        var thumb = document.getElementById('sliderThumb');
-        var display = document.getElementById('currentHueDisplay');
-        var resetBtn = document.getElementById('resetThemeBtn');
-        var toggleBtn = document.getElementById('themeToggle');
+            // 将 oklch 色相转换为 hex 颜色（近似值）
+            function hueToHex(hue) {
+                // 使用 HSL 作为中间转换（oklch 和 HSL 的色相分布不同，这里做近似映射）
+                var h = hue / 360;
+                var s = 0.7;
+                var l = 0.6;
 
-        // Sync with local storage on load (SPA persistence)
-        var stored = localStorage.getItem('hue');
-        if(stored) {
-            updateTheme(stored);
-        }
-
-        if(btn && dropdown) {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                dropdown.classList.toggle('hidden');
-                
-                // Init value
-                var style = getComputedStyle(document.documentElement);
-                var hue = style.getPropertyValue('--hue').trim() || '200';
-                if(slider) {
-                    slider.value = hue;
-                    updateThumb(hue);
+                function hue2rgb(p, q, t) {
+                    if (t < 0) t += 1;
+                    if (t > 1) t -= 1;
+                    if (t < 1 / 6) return p + (q - p) * 6 * t;
+                    if (t < 1 / 2) return q;
+                    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+                    return p;
                 }
-            });
 
-            // Close on outside click
-            document.addEventListener('click', function(e) {
-                if(!dropdown.contains(e.target) && !btn.contains(e.target)) {
-                    dropdown.classList.add('hidden');
-                }
-            });
+                var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                var p = 2 * l - q;
+                var r = Math.round(hue2rgb(p, q, h + 1 / 3) * 255);
+                var g = Math.round(hue2rgb(p, q, h) * 255);
+                var b = Math.round(hue2rgb(p, q, h - 1 / 3) * 255);
 
-            dropdown.addEventListener('click', function(e) {
-                e.stopPropagation();
-            });
-        }
-
-        function updateThumb(val) {
-            if(thumb) thumb.style.left = (val / 360 * 100) + '%';
-            if(display) display.textContent = val;
-        }
-
-        function updateTheme(val) {
-            document.documentElement.style.setProperty('--hue', val);
-            document.documentElement.style.setProperty('--configHue', val);
-            document.documentElement.style.setProperty('--primary', `oklch(0.70 0.14 ${val})`);
-            document.documentElement.style.setProperty('--primary-light', `oklch(0.75 0.14 ${val})`);
-            document.documentElement.style.setProperty('--primary-dark', `oklch(0.65 0.14 ${val})`);
-        }
-
-        var timeout;
-        function saveTheme(val) {
-            localStorage.setItem('hue', val);
-            if(timeout) clearTimeout(timeout);
-            timeout = setTimeout(async function() {
-                try {
-                    var token = localStorage.getItem('adminToken');
-                    if(!token) return;
-
-                    await fetch(API_URL + '/settings/by-key/theme_hue', {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + token
-                        },
-                        body: JSON.stringify({
-                            value: val
-                        })
-                    });
-                } catch(e) {
-                    console.error("Failed to save theme hue", e);
-                }
-            }, 500);
-        }
-
-        if(slider) {
-            slider.addEventListener('input', function(e) {
-                var val = e.target.value;
-                updateThumb(val);
-                updateTheme(val);
-                saveTheme(val);
-            });
-        }
-
-        if(resetBtn) {
-            resetBtn.addEventListener('click', function() {
-                var val = 200;
-                if(slider) {
-                    slider.value = val;
-                    updateThumb(val);
-                }
-                updateTheme(val);
-                saveTheme(val);
-            });
-        }
-
-        // --- Dark/Light Mode Toggle ---
-        // 注意：主题切换逻辑已移至页面底部的初始化脚本中统一处理
-
-        // --- Change Password ---
-        var cpBtn = document.getElementById('changePasswordBtn');
-        var cpModal = document.getElementById('changePwModal');
-        var cpContent = document.getElementById('changePwModalContent');
-        var closeCpBtn = document.getElementById('closeChangePwBtn');
-        var cancelCpBtn = document.getElementById('cancelChangePwBtn');
-        var cpForm = document.getElementById('globalChangePasswordForm');
-
-        function openCpModal() {
-            // Close dropdown if open
-            var userMenu = document.getElementById('userDropdownMenu');
-            if(userMenu) userMenu.classList.add('hidden');
-            
-            if(cpModal && cpContent) {
-                cpModal.classList.remove('hidden');
-                cpModal.classList.add('flex');
-                setTimeout(() => {
-                    cpContent.classList.remove('scale-95', 'opacity-0');
-                    cpContent.classList.add('scale-100', 'opacity-100');
-                }, 10);
+                return '#' + [r, g, b].map(function (x) {
+                    var hex = x.toString(16);
+                    return hex.length === 1 ? '0' + hex : hex;
+                }).join('');
             }
-        }
 
-        function closeCpModal() {
-            if(cpModal && cpContent) {
-                cpContent.classList.remove('scale-100', 'opacity-100');
-                cpContent.classList.add('scale-95', 'opacity-0');
-                setTimeout(() => {
-                    cpModal.classList.add('hidden');
-                    cpModal.classList.remove('flex');
-                    if(cpForm) cpForm.reset();
+            // 将 hex 转换为色相值（近似）
+            function hexToHue(hex) {
+                hex = hex.replace('#', '');
+                var r = parseInt(hex.substr(0, 2), 16) / 255;
+                var g = parseInt(hex.substr(2, 2), 16) / 255;
+                var b = parseInt(hex.substr(4, 2), 16) / 255;
+
+                var max = Math.max(r, g, b);
+                var min = Math.min(r, g, b);
+                var h = 0;
+
+                if (max !== min) {
+                    var d = max - min;
+                    switch (max) {
+                        case r:
+                            h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+                            break;
+                        case g:
+                            h = ((b - r) / d + 2) / 6;
+                            break;
+                        case b:
+                            h = ((r - g) / d + 4) / 6;
+                            break;
+                    }
+                }
+
+                return Math.round(h * 360);
+            }
+
+            // 初始化所有颜色选择器
+            function initColorPickers() {
+                var colorInputs = document.querySelectorAll('input[type="color"]');
+
+                colorInputs.forEach(function (input) {
+                    // 跳过已经初始化的
+                    if (input.dataset.colorPickerInit) return;
+                    input.dataset.colorPickerInit = 'true';
+
+                    // 隐藏原始 input
+                    input.style.display = 'none';
+
+                    // 创建包装器
+                    var wrapper = document.createElement('div');
+                    wrapper.className = 'color-picker-wrapper';
+                    input.parentNode.insertBefore(wrapper, input);
+                    wrapper.appendChild(input);
+
+                    // 创建预览按钮
+                    var preview = document.createElement('div');
+                    preview.className = 'color-picker-preview';
+                    preview.innerHTML = '<div class="color-picker-swatch" style="background-color: ' + input.value + '"></div>' +
+                        '<span class="color-picker-value">' + input.value.toUpperCase() + '</span>';
+                    wrapper.appendChild(preview);
+
+                    // 创建下拉面板
+                    var dropdown = document.createElement('div');
+                    dropdown.className = 'color-picker-dropdown';
+
+                    // 滑块容器
+                    var sliderContainer = document.createElement('div');
+                    sliderContainer.className = 'color-picker-slider-container';
+                    sliderContainer.innerHTML = '<div class="color-picker-gradient"></div>' +
+                        '<input type="range" class="color-picker-slider" min="0" max="360" step="5" value="' + hexToHue(input.value) + '">' +
+                        '<div class="color-picker-thumb" style="left: ' + (hexToHue(input.value) / 360 * 100) + '%"></div>';
+                    dropdown.appendChild(sliderContainer);
+
+                    // 预设颜色
+                    var presetsDiv = document.createElement('div');
+                    presetsDiv.className = 'color-picker-presets';
+                    presetHues.forEach(function (hue) {
+                        var preset = document.createElement('div');
+                        preset.className = 'color-picker-preset';
+                        preset.style.backgroundColor = hueToHex(hue);
+                        preset.dataset.hue = hue;
+                        presetsDiv.appendChild(preset);
+                    });
+                    dropdown.appendChild(presetsDiv);
+
+                    wrapper.appendChild(dropdown);
+
+                    // 事件处理
+                    var swatch = preview.querySelector('.color-picker-swatch');
+                    var valueDisplay = preview.querySelector('.color-picker-value');
+                    var slider = dropdown.querySelector('.color-picker-slider');
+                    var thumb = dropdown.querySelector('.color-picker-thumb');
+
+                    function updateColor(hue) {
+                        var hex = hueToHex(hue);
+                        input.value = hex;
+                        swatch.style.backgroundColor = hex;
+                        valueDisplay.textContent = hex.toUpperCase();
+                        thumb.style.left = (hue / 360 * 100) + '%';
+                        slider.value = hue;
+
+                        // 触发 change 事件
+                        var event = new Event('change', {bubbles: true});
+                        input.dispatchEvent(event);
+                    }
+
+                    preview.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        dropdown.classList.toggle('open');
+                    });
+
+                    slider.addEventListener('input', function (e) {
+                        updateColor(parseInt(e.target.value));
+                    });
+
+                    presetsDiv.addEventListener('click', function (e) {
+                        if (e.target.classList.contains('color-picker-preset')) {
+                            updateColor(parseInt(e.target.dataset.hue));
+                        }
+                    });
+
+                    // 点击外部关闭
+                    document.addEventListener('click', function (e) {
+                        if (!wrapper.contains(e.target)) {
+                            dropdown.classList.remove('open');
+                        }
+                    });
+                });
+            }
+
+            // 初始化
+            initColorPickers();
+
+            // 暴露给全局，以便动态添加的颜色选择器也能初始化
+            window.initColorPickers = initColorPickers;
+        })();
+    });
+</script>
+
+<script is:inline>
+    document.addEventListener('astro:page-load', () => {
+        // ============== 全局美化弹框函数 ==============
+        (function () {
+            if (window._adminModalInitialized) return;
+            window._adminModalInitialized = true;
+            var modal = document.getElementById('adminModal');
+            var modalContent = document.getElementById('adminModalContent');
+            var modalTitle = document.getElementById('adminModalTitle');
+            var modalMessage = document.getElementById('adminModalMessage');
+            var modalIcon = document.getElementById('adminModalIcon');
+            var modalInputWrapper = document.getElementById('adminModalInputWrapper');
+            var modalInput = document.getElementById('adminModalInput');
+            var confirmBtn = document.getElementById('adminModalConfirm');
+            var cancelBtn = document.getElementById('adminModalCancel');
+            var resolveCallback = null;
+            var currentMode = "alert";
+
+            var icons = {
+                success: {el: document.getElementById('iconSuccess'), bg: 'bg-green-100 dark:bg-green-900/30'},
+                error: {el: document.getElementById('iconError'), bg: 'bg-red-100 dark:bg-red-900/30'},
+                warning: {el: document.getElementById('iconWarning'), bg: 'bg-orange-100 dark:bg-orange-900/30'},
+                info: {el: document.getElementById('iconInfo'), bg: 'bg-blue-100 dark:bg-blue-900/30'},
+                confirm: {el: document.getElementById('iconConfirm'), bg: 'bg-indigo-100 dark:bg-indigo-900/30'}
+            };
+
+            function showModal(options) {
+                var type = options.type || 'info';
+                var title = options.title || '';
+                var message = options.message || '';
+                var showCancel = options.showCancel || false;
+                var confirmText = options.confirmText || '确定';
+                var cancelText = options.cancelText || '取消';
+                var inputOptions = options.input || null;
+                currentMode = options.mode || (inputOptions ? "prompt" : (showCancel ? "confirm" : "alert"));
+
+                // 设置内容
+                modalTitle.textContent = title;
+                modalMessage.textContent = message;
+                confirmBtn.textContent = confirmText;
+                cancelBtn.textContent = cancelText;
+
+                // 显示/隐藏取消按钮
+                if (showCancel) {
+                    cancelBtn.classList.remove('hidden');
+                } else {
+                    cancelBtn.classList.add('hidden');
+                }
+
+                if (inputOptions && modalInputWrapper && modalInput) {
+                    modalInputWrapper.classList.remove('hidden');
+                    modalInput.type = inputOptions.type || "text";
+                    modalInput.placeholder = inputOptions.placeholder || "";
+                    modalInput.value = inputOptions.value || "";
+                } else if (modalInputWrapper && modalInput) {
+                    modalInputWrapper.classList.add('hidden');
+                    modalInput.value = "";
+                }
+
+                // 设置图标
+                Object.keys(icons).forEach(function (key) {
+                    icons[key].el.classList.add('hidden');
+                });
+                if (icons[type]) {
+                    icons[type].el.classList.remove('hidden');
+                    modalIcon.className = 'w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ' + icons[type].bg;
+                }
+
+                // 显示弹框
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+
+                // 动画
+                setTimeout(function () {
+                    modalContent.classList.remove('scale-95', 'opacity-0');
+                    modalContent.classList.add('scale-100', 'opacity-100');
+                    if (inputOptions && modalInput) {
+                        modalInput.focus();
+                        modalInput.select();
+                    }
+                }, 10);
+
+                return new Promise(function (resolve) {
+                    resolveCallback = resolve;
+                });
+            }
+
+            function hideModal(result) {
+                modalContent.classList.remove('scale-100', 'opacity-100');
+                modalContent.classList.add('scale-95', 'opacity-0');
+
+                setTimeout(function () {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                    if (resolveCallback) {
+                        var finalResult = result;
+                        if (currentMode === "prompt") {
+                            finalResult = result ? (modalInput ? modalInput.value : "") : null;
+                        }
+                        resolveCallback(finalResult);
+                        resolveCallback = null;
+                    }
+                    currentMode = "alert";
                 }, 200);
             }
-        }
 
-        if(cpBtn) cpBtn.addEventListener('click', openCpModal);
-        if(closeCpBtn) closeCpBtn.addEventListener('click', closeCpModal);
-        if(cancelCpBtn) cancelCpBtn.addEventListener('click', closeCpModal);
-        if(cpModal) {
-            cpModal.addEventListener('click', function(e) {
-                if(e.target === cpModal) closeCpModal();
-            });
-        }
-
-        if(cpForm) {
-            cpForm.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                var current = document.getElementById('globalCurrentPassword').value;
-                var newPw = document.getElementById('globalNewPassword').value;
-                var confirmPw = document.getElementById('globalConfirmPassword').value;
-
-                if(newPw.length < 6) {
-                    if(window.adminAlert) window.adminAlert('新密码长度至少6位', 'warning');
-                    else alert('新密码长度至少6位');
-                    return;
-                }
-                if(newPw !== confirmPw) {
-                    if(window.adminAlert) window.adminAlert('两次输入密码不一致', 'warning');
-                    else alert('两次输入密码不一致');
-                    return;
-                }
-
-                try {
-                    var token = localStorage.getItem('adminToken');
-                    var res = await fetch(API_URL + '/auth/change-password', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + token
-                        },
-                        body: JSON.stringify({
-                            old_password: current,
-                            new_password: newPw,
-                            new_password_confirm: confirmPw
-                        })
-                    });
-
-                    if(res.ok) {
-                        if(window.adminAlert) await window.adminAlert('密码修改成功，请重新登录', 'success');
-                        else alert('密码修改成功，请重新登录');
-                        
-                        localStorage.removeItem('adminToken');
-                        window.location.href = '/admin/login';
-                    } else {
-                        var err = await res.json();
-                        var msg = err.detail || '修改失败';
-                        if(window.adminAlert) window.adminAlert(msg, 'error');
-                        else alert(msg);
-                    }
-                } catch(e) {
-                    console.error(e);
-                    if(window.adminAlert) window.adminAlert('网络错误', 'error');
-                    else alert('网络错误');
-                }
-            });
-        }
-    })();
-    });
-</script>
-
-<script is:inline>
-    document.addEventListener('astro:page-load', () => {
-    // ============== 美化颜色选择器 ==============
-    (function() {
-        // oklch 预设颜色（色相值）
-        var presetHues = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330];
-
-        // 将 oklch 色相转换为 hex 颜色（近似值）
-        function hueToHex(hue) {
-            // 使用 HSL 作为中间转换（oklch 和 HSL 的色相分布不同，这里做近似映射）
-            var h = hue / 360;
-            var s = 0.7;
-            var l = 0.6;
-
-            function hue2rgb(p, q, t) {
-                if (t < 0) t += 1;
-                if (t > 1) t -= 1;
-                if (t < 1/6) return p + (q - p) * 6 * t;
-                if (t < 1/2) return q;
-                if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
-                return p;
+            // 事件绑定
+            if (confirmBtn) {
+                confirmBtn.addEventListener('click', function () {
+                    hideModal(true);
+                });
             }
 
-            var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-            var p = 2 * l - q;
-            var r = Math.round(hue2rgb(p, q, h + 1/3) * 255);
-            var g = Math.round(hue2rgb(p, q, h) * 255);
-            var b = Math.round(hue2rgb(p, q, h - 1/3) * 255);
-
-            return '#' + [r, g, b].map(function(x) {
-                var hex = x.toString(16);
-                return hex.length === 1 ? '0' + hex : hex;
-            }).join('');
-        }
-
-        // 将 hex 转换为色相值（近似）
-        function hexToHue(hex) {
-            hex = hex.replace('#', '');
-            var r = parseInt(hex.substr(0, 2), 16) / 255;
-            var g = parseInt(hex.substr(2, 2), 16) / 255;
-            var b = parseInt(hex.substr(4, 2), 16) / 255;
-
-            var max = Math.max(r, g, b);
-            var min = Math.min(r, g, b);
-            var h = 0;
-
-            if (max !== min) {
-                var d = max - min;
-                switch (max) {
-                    case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
-                    case g: h = ((b - r) / d + 2) / 6; break;
-                    case b: h = ((r - g) / d + 4) / 6; break;
-                }
-            }
-
-            return Math.round(h * 360);
-        }
-
-        // 初始化所有颜色选择器
-        function initColorPickers() {
-            var colorInputs = document.querySelectorAll('input[type="color"]');
-
-            colorInputs.forEach(function(input) {
-                // 跳过已经初始化的
-                if (input.dataset.colorPickerInit) return;
-                input.dataset.colorPickerInit = 'true';
-
-                // 隐藏原始 input
-                input.style.display = 'none';
-
-                // 创建包装器
-                var wrapper = document.createElement('div');
-                wrapper.className = 'color-picker-wrapper';
-                input.parentNode.insertBefore(wrapper, input);
-                wrapper.appendChild(input);
-
-                // 创建预览按钮
-                var preview = document.createElement('div');
-                preview.className = 'color-picker-preview';
-                preview.innerHTML = '<div class="color-picker-swatch" style="background-color: ' + input.value + '"></div>' +
-                    '<span class="color-picker-value">' + input.value.toUpperCase() + '</span>';
-                wrapper.appendChild(preview);
-
-                // 创建下拉面板
-                var dropdown = document.createElement('div');
-                dropdown.className = 'color-picker-dropdown';
-
-                // 滑块容器
-                var sliderContainer = document.createElement('div');
-                sliderContainer.className = 'color-picker-slider-container';
-                sliderContainer.innerHTML = '<div class="color-picker-gradient"></div>' +
-                    '<input type="range" class="color-picker-slider" min="0" max="360" step="5" value="' + hexToHue(input.value) + '">' +
-                    '<div class="color-picker-thumb" style="left: ' + (hexToHue(input.value) / 360 * 100) + '%"></div>';
-                dropdown.appendChild(sliderContainer);
-
-                // 预设颜色
-                var presetsDiv = document.createElement('div');
-                presetsDiv.className = 'color-picker-presets';
-                presetHues.forEach(function(hue) {
-                    var preset = document.createElement('div');
-                    preset.className = 'color-picker-preset';
-                    preset.style.backgroundColor = hueToHex(hue);
-                    preset.dataset.hue = hue;
-                    presetsDiv.appendChild(preset);
-                });
-                dropdown.appendChild(presetsDiv);
-
-                wrapper.appendChild(dropdown);
-
-                // 事件处理
-                var swatch = preview.querySelector('.color-picker-swatch');
-                var valueDisplay = preview.querySelector('.color-picker-value');
-                var slider = dropdown.querySelector('.color-picker-slider');
-                var thumb = dropdown.querySelector('.color-picker-thumb');
-
-                function updateColor(hue) {
-                    var hex = hueToHex(hue);
-                    input.value = hex;
-                    swatch.style.backgroundColor = hex;
-                    valueDisplay.textContent = hex.toUpperCase();
-                    thumb.style.left = (hue / 360 * 100) + '%';
-                    slider.value = hue;
-
-                    // 触发 change 事件
-                    var event = new Event('change', { bubbles: true });
-                    input.dispatchEvent(event);
-                }
-
-                preview.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    dropdown.classList.toggle('open');
-                });
-
-                slider.addEventListener('input', function(e) {
-                    updateColor(parseInt(e.target.value));
-                });
-
-                presetsDiv.addEventListener('click', function(e) {
-                    if (e.target.classList.contains('color-picker-preset')) {
-                        updateColor(parseInt(e.target.dataset.hue));
-                    }
-                });
-
-                // 点击外部关闭
-                document.addEventListener('click', function(e) {
-                    if (!wrapper.contains(e.target)) {
-                        dropdown.classList.remove('open');
-                    }
-                });
-            });
-        }
-
-        // 初始化
-        initColorPickers();
-
-        // 暴露给全局，以便动态添加的颜色选择器也能初始化
-        window.initColorPickers = initColorPickers;
-    })();
-    });
-</script>
-
-<script is:inline>
-    document.addEventListener('astro:page-load', () => {
-    // ============== 全局美化弹框函数 ==============
-    (function () {
-        var modal = document.getElementById('adminModal');
-        var modalContent = document.getElementById('adminModalContent');
-        var modalTitle = document.getElementById('adminModalTitle');
-        var modalMessage = document.getElementById('adminModalMessage');
-        var modalIcon = document.getElementById('adminModalIcon');
-        var confirmBtn = document.getElementById('adminModalConfirm');
-        var cancelBtn = document.getElementById('adminModalCancel');
-        var resolveCallback = null;
-
-        var icons = {
-            success: {el: document.getElementById('iconSuccess'), bg: 'bg-green-100 dark:bg-green-900/30'},
-            error: {el: document.getElementById('iconError'), bg: 'bg-red-100 dark:bg-red-900/30'},
-            warning: {el: document.getElementById('iconWarning'), bg: 'bg-orange-100 dark:bg-orange-900/30'},
-            info: {el: document.getElementById('iconInfo'), bg: 'bg-blue-100 dark:bg-blue-900/30'},
-            confirm: {el: document.getElementById('iconConfirm'), bg: 'bg-indigo-100 dark:bg-indigo-900/30'}
-        };
-
-        function showModal(options) {
-            var type = options.type || 'info';
-            var title = options.title || '';
-            var message = options.message || '';
-            var showCancel = options.showCancel || false;
-            var confirmText = options.confirmText || '确定';
-            var cancelText = options.cancelText || '取消';
-
-            // 设置内容
-            modalTitle.textContent = title;
-            modalMessage.textContent = message;
-            confirmBtn.textContent = confirmText;
-            cancelBtn.textContent = cancelText;
-
-            // 显示/隐藏取消按钮
-            if (showCancel) {
-                cancelBtn.classList.remove('hidden');
-            } else {
-                cancelBtn.classList.add('hidden');
-            }
-
-            // 设置图标
-            Object.keys(icons).forEach(function (key) {
-                icons[key].el.classList.add('hidden');
-            });
-            if (icons[type]) {
-                icons[type].el.classList.remove('hidden');
-                modalIcon.className = 'w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ' + icons[type].bg;
-            }
-
-            // 显示弹框
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-
-            // 动画
-            setTimeout(function () {
-                modalContent.classList.remove('scale-95', 'opacity-0');
-                modalContent.classList.add('scale-100', 'opacity-100');
-            }, 10);
-
-            return new Promise(function (resolve) {
-                resolveCallback = resolve;
-            });
-        }
-
-        function hideModal(result) {
-            modalContent.classList.remove('scale-100', 'opacity-100');
-            modalContent.classList.add('scale-95', 'opacity-0');
-
-            setTimeout(function () {
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-                if (resolveCallback) {
-                    resolveCallback(result);
-                    resolveCallback = null;
-                }
-            }, 200);
-        }
-
-        // 事件绑定
-        if (confirmBtn) {
-            confirmBtn.addEventListener('click', function () {
-                hideModal(true);
-            });
-        }
-
-        if (cancelBtn) {
-            cancelBtn.addEventListener('click', function () {
-                hideModal(false);
-            });
-        }
-
-        if (modal) {
-            modal.addEventListener('click', function (e) {
-                if (e.target === modal) {
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', function () {
                     hideModal(false);
-                }
-            });
-        }
-
-        // 全局函数
-        window.adminAlert = function (message, type, title) {
-            return showModal({
-                type: type || 'info',
-                title: title || (type === 'success' ? '成功' : type === 'error' ? '错误' : '提示'),
-                message: message,
-                showCancel: false
-            });
-        };
-
-        window.adminConfirm = function (message, title) {
-            return showModal({
-                type: 'confirm',
-                title: title || '确认操作',
-                message: message,
-                showCancel: true,
-                confirmText: '确定',
-                cancelText: '取消'
-            });
-        };
-    })();
-    });
-</script>
-
-<script is:inline>
-    document.addEventListener('astro:page-load', () => {
-    /**
-     * Admin panel core script
-     */
-    (function () {
-        // ============== 清理之前的 Vditor 实例和定时器 ==============
-        // 先重置初始化标志，阻止正在进行的初始化
-        window._newPageVditorInitialized = false;
-        window._editPageInitialized = false;
-
-        // 清理定时器
-        if (window._newPageInitTimer) {
-            clearTimeout(window._newPageInitTimer);
-            window._newPageInitTimer = null;
-        }
-        if (window._editPageInitTimer) {
-            clearTimeout(window._editPageInitTimer);
-            window._editPageInitTimer = null;
-        }
-
-        // 清理 Vditor 实例（只在容器存在时）
-        var vditorContainer = document.getElementById('vditor');
-        if (vditorContainer) {
-            if (window._newPageVditor) {
-                try {
-                    window._newPageVditor.destroy();
-                } catch (e) {
-                    // 忽略错误
-                }
-            }
-            if (window._editPageVditor) {
-                try {
-                    window._editPageVditor.destroy();
-                } catch (e) {
-                    // 忽略错误
-                }
-            }
-        }
-        window._newPageVditor = null;
-        window._editPageVditor = null;
-
-        // API base URL（从全局变量获取）
-        const API_URL = window.API_URL;
-
-        // Get i18n translations
-        const t = window.adminI18n || {};
-
-        // ============== Theme initialization ==============
-        const LIGHT_MODE = 'LIGHT_MODE';
-        const DARK_MODE = 'DARK_MODE';
-        const SYSTEM_MODE = 'SYSTEM_MODE';
-
-        const iconLight = document.getElementById('iconLight');
-        const iconDark = document.getElementById('iconDark');
-        const iconSystem = document.getElementById('iconSystem');
-
-        function updateThemeIcon(mode) {
-            // 隐藏所有图标
-            iconLight?.classList.add('hidden');
-            iconDark?.classList.add('hidden');
-            iconSystem?.classList.add('hidden');
-
-            // 显示对应图标
-            if (mode === LIGHT_MODE) {
-                iconLight?.classList.remove('hidden');
-            } else if (mode === DARK_MODE) {
-                iconDark?.classList.remove('hidden');
-            } else {
-                iconSystem?.classList.remove('hidden');
-            }
-        }
-
-        function applyTheme(isDark) {
-            if (isDark) {
-                document.documentElement.classList.add("dark");
-                document.documentElement.setAttribute('data-theme', 'github-dark');
-            } else {
-                document.documentElement.classList.remove("dark");
-                document.documentElement.setAttribute('data-theme', 'github-light');
-            }
-        }
-
-        function getSystemPreference() {
-            return window.matchMedia("(prefers-color-scheme: dark)").matches;
-        }
-
-        // 初始化主题
-        const savedTheme = localStorage.getItem("theme") || SYSTEM_MODE;
-        if (savedTheme === DARK_MODE) {
-            applyTheme(true);
-        } else if (savedTheme === LIGHT_MODE) {
-            applyTheme(false);
-        } else {
-            // 跟随系统
-            applyTheme(getSystemPreference());
-        }
-        updateThemeIcon(savedTheme);
-
-        // 监听系统主题变化
-        window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
-            const currentTheme = localStorage.getItem("theme");
-            if (!currentTheme || currentTheme === SYSTEM_MODE) {
-                applyTheme(e.matches);
-            }
-        });
-
-        // Theme toggle - 循环切换
-        document.getElementById("themeToggle")?.addEventListener("click", () => {
-            const currentTheme = localStorage.getItem("theme") || SYSTEM_MODE;
-            let newTheme;
-            let isDark;
-
-            if (currentTheme === LIGHT_MODE) {
-                newTheme = DARK_MODE;
-                isDark = true;
-            } else if (currentTheme === DARK_MODE) {
-                newTheme = SYSTEM_MODE;
-                isDark = getSystemPreference();
-            } else {
-                newTheme = LIGHT_MODE;
-                isDark = false;
+                });
             }
 
-            localStorage.setItem("theme", newTheme);
-            applyTheme(isDark);
-            updateThemeIcon(newTheme);
-        });
-
-        // ============== Sidebar toggle (Mobile) ==============
-        const sidebar = document.getElementById("sidebar");
-        const overlay = document.getElementById("sidebarOverlay");
-        const menuToggle = document.getElementById("menuToggle");
-
-        function openSidebar() {
-            sidebar?.classList.remove("-translate-x-full");
-            overlay?.classList.remove("hidden");
-        }
-
-        function closeSidebar() {
-            sidebar?.classList.add("-translate-x-full");
-            overlay?.classList.add("hidden");
-        }
-
-        menuToggle?.addEventListener("click", openSidebar);
-        overlay?.addEventListener("click", closeSidebar);
-
-        // ============== Sidebar collapse toggle (Desktop) ==============
-        const collapseBtn = document.getElementById("sidebarCollapseBtn");
-        const collapseIconLeft = collapseBtn?.querySelector(".collapse-icon-left");
-        const collapseIconRight = collapseBtn?.querySelector(".collapse-icon-right");
-
-        // 更新图标显示状态
-        function updateCollapseIcon(isCollapsed) {
-            if (isCollapsed) {
-                collapseIconLeft?.classList.add("hidden");
-                collapseIconRight?.classList.remove("hidden");
-            } else {
-                collapseIconLeft?.classList.remove("hidden");
-                collapseIconRight?.classList.add("hidden");
-            }
-        }
-
-        // 初始化折叠状态
-        const savedCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
-        if (savedCollapsed && sidebar) {
-            sidebar.classList.add("collapsed");
-            updateCollapseIcon(true);
-        }
-
-        function toggleSidebarCollapse() {
-            if (!sidebar) return;
-            sidebar.classList.toggle("collapsed");
-            const isCollapsed = sidebar.classList.contains("collapsed");
-            localStorage.setItem("sidebarCollapsed", isCollapsed.toString());
-            updateCollapseIcon(isCollapsed);
-        }
-
-        collapseBtn?.addEventListener("click", toggleSidebarCollapse);
-
-        // ============== User Dropdown ==============
-        const userDropdownBtn = document.getElementById("userDropdownBtn");
-        const userDropdownMenu = document.getElementById("userDropdownMenu");
-
-        function openDropdown() {
-            if (!userDropdownMenu) return;
-            userDropdownMenu.classList.remove("hidden");
-            // 触发动画
-            setTimeout(() => {
-                userDropdownMenu.classList.remove("opacity-0", "scale-95");
-                userDropdownMenu.classList.add("opacity-100", "scale-100");
-            }, 10);
-        }
-
-        function closeDropdown() {
-            if (!userDropdownMenu) return;
-            userDropdownMenu.classList.remove("opacity-100", "scale-100");
-            userDropdownMenu.classList.add("opacity-0", "scale-95");
-            setTimeout(() => {
-                userDropdownMenu.classList.add("hidden");
-            }, 150);
-        }
-
-        userDropdownBtn?.addEventListener("click", (e) => {
-            e.stopPropagation();
-            if (userDropdownMenu?.classList.contains("hidden")) {
-                openDropdown();
-            } else {
-                closeDropdown();
-            }
-        });
-
-        // 点击外部关闭下拉菜单
-        document.addEventListener("click", (e) => {
-            const container = document.getElementById("userDropdownContainer");
-            if (container && !container.contains(e.target)) {
-                closeDropdown();
-            }
-        });
-
-        // ============== Logout button event ==============
-        document
-            .getElementById("logoutBtn")
-            ?.addEventListener("click", () => {
-                localStorage.removeItem("adminToken");
-                window.location.href = "/admin/login";
-            });
-
-        // ============== Authentication check ==============
-        if (
-            !localStorage.getItem("adminToken") &&
-            !window.location.pathname.includes("/admin/login")
-        ) {
-            window.location.href = "/admin/login";
-        }
-
-        // ============== 全局 fetch 拦截器 - 统一处理 401 ==============
-        (function() {
-            const originalFetch = window.fetch;
-            window.fetch = async function(...args) {
-                const response = await originalFetch.apply(this, args);
-
-                // 检查是否是 API 请求且返回 401
-                if (response.status === 401) {
-                    const url = typeof args[0] === 'string' ? args[0] : args[0]?.url || '';
-                    // 只处理后台 API 请求的 401
-                    if (url.includes('/api/') || url.includes(API_URL)) {
-                        // 避免重复跳转
-                        if (!window._isRedirectingToLogin) {
-                            window._isRedirectingToLogin = true;
-                            localStorage.removeItem("adminToken");
-                            localStorage.removeItem("admin_username");
-                            localStorage.removeItem("admin_avatar");
-
-                            // 使用美化弹框提示
-                            if (window.adminAlert) {
-                                await window.adminAlert(t.loginExpired || '登录已过期，请重新登录', 'warning', '登录过期');
-                            }
-                            window.location.href = "/admin/login";
-                        }
+            if (modal) {
+                modal.addEventListener('click', function (e) {
+                    if (e.target === modal) {
+                        hideModal(false);
                     }
+                });
+            }
+
+            if (modalInput) {
+                modalInput.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        hideModal(true);
+                    }
+                });
+            }
+
+            // 全局函数
+            window.adminAlert = function (message, type, title) {
+                return showModal({
+                    type: type || 'info',
+                    title: title || (type === 'success' ? '成功' : type === 'error' ? '错误' : '提示'),
+                    message: message,
+                    showCancel: false,
+                    mode: "alert"
+                });
+            };
+
+            window.adminConfirm = function (message, title) {
+                return showModal({
+                    type: 'confirm',
+                    title: title || '确认操作',
+                    message: message,
+                    showCancel: true,
+                    confirmText: '确定',
+                    cancelText: '取消',
+                    mode: "confirm"
+                });
+            };
+
+            window.adminPrompt = function (message, options) {
+                var opts = options || {};
+                return showModal({
+                    type: opts.type || 'info',
+                    title: opts.title || '请输入',
+                    message: message || '',
+                    showCancel: true,
+                    confirmText: opts.confirmText || '确定',
+                    cancelText: opts.cancelText || '取消',
+                    mode: "prompt",
+                    input: {
+                        type: opts.inputType || "text",
+                        placeholder: opts.placeholder || "",
+                        value: opts.defaultValue || ""
+                    }
+                });
+            };
+
+            window.showAdminAlert = function (message, type, title) {
+                if (window.adminAlert) {
+                    return window.adminAlert(message, type, title);
                 }
-                return response;
+                console.warn(message);
+                return Promise.resolve();
+            };
+
+            window.showAdminConfirm = function (message, title) {
+                if (window.adminConfirm) {
+                    return window.adminConfirm(message, title);
+                }
+                console.warn(message);
+                return Promise.resolve(false);
+            };
+
+            window.showAdminPrompt = function (message, options) {
+                if (window.adminPrompt) {
+                    return window.adminPrompt(message, options);
+                }
+                console.warn(message);
+                return Promise.resolve(null);
             };
         })();
+    });
+</script>
 
-        // ============== Token 过期时间检查 ==============
-        function checkTokenExpiry() {
-            const token = localStorage.getItem("adminToken");
-            if (!token || window.location.pathname.includes("/admin/login")) return;
+<script is:inline>
+    document.addEventListener('astro:page-load', () => {
+        /**
+         * Admin panel core script
+         */
+        (function () {
+            // ============== 清理之前的 Vditor 实例和定时器 ==============
+            // 先重置初始化标志，阻止正在进行的初始化
+            window._newPageVditorInitialized = false;
+            window._editPageInitialized = false;
 
-            try {
-                // 解析 JWT payload
-                const payload = token.split('.')[1];
-                if (payload) {
-                    const decoded = JSON.parse(atob(payload));
-                    const exp = decoded.exp;
-                    if (exp) {
-                        const now = Math.floor(Date.now() / 1000);
-                        // 如果 token 已过期或将在 5 分钟内过期
-                        if (exp < now) {
-                            localStorage.removeItem("adminToken");
-                            localStorage.removeItem("admin_username");
-                            localStorage.removeItem("admin_avatar");
-                            if (window.adminAlert) {
-                                window.adminAlert(t.loginExpired || '登录已过期，请重新登录', 'warning', '登录过期').then(() => {
-                                    window.location.href = "/admin/login";
-                                });
-                            } else {
-                                // 等待 adminAlert 初始化后再提示
-                                setTimeout(() => {
-                                    if (window.adminAlert) {
-                                        window.adminAlert(t.loginExpired || '登录已过期，请重新登录', 'warning', '登录过期').then(() => {
-                                            window.location.href = "/admin/login";
-                                        });
-                                    } else {
-                                        window.location.href = "/admin/login";
-                                    }
-                                }, 100);
+            // 清理定时器
+            if (window._newPageInitTimer) {
+                clearTimeout(window._newPageInitTimer);
+                window._newPageInitTimer = null;
+            }
+            if (window._editPageInitTimer) {
+                clearTimeout(window._editPageInitTimer);
+                window._editPageInitTimer = null;
+            }
+
+            // 清理 Vditor 实例（只在容器存在时）
+            var vditorContainer = document.getElementById('vditor');
+            if (vditorContainer) {
+                if (window._newPageVditor) {
+                    try {
+                        window._newPageVditor.destroy();
+                    } catch (e) {
+                        // 忽略错误
+                    }
+                }
+                if (window._editPageVditor) {
+                    try {
+                        window._editPageVditor.destroy();
+                    } catch (e) {
+                        // 忽略错误
+                    }
+                }
+            }
+            window._newPageVditor = null;
+            window._editPageVditor = null;
+
+            // API base URL（从全局变量获取）
+            const API_URL = window.API_URL;
+
+            // Get i18n translations
+            const t = window.adminI18n || {};
+
+            // ============== Theme initialization ==============
+            const LIGHT_MODE = 'LIGHT_MODE';
+            const DARK_MODE = 'DARK_MODE';
+            const SYSTEM_MODE = 'SYSTEM_MODE';
+
+            const iconLight = document.getElementById('iconLight');
+            const iconDark = document.getElementById('iconDark');
+            const iconSystem = document.getElementById('iconSystem');
+
+            function updateThemeIcon(mode) {
+                // 隐藏所有图标
+                iconLight?.classList.add('hidden');
+                iconDark?.classList.add('hidden');
+                iconSystem?.classList.add('hidden');
+
+                // 显示对应图标
+                if (mode === LIGHT_MODE) {
+                    iconLight?.classList.remove('hidden');
+                } else if (mode === DARK_MODE) {
+                    iconDark?.classList.remove('hidden');
+                } else {
+                    iconSystem?.classList.remove('hidden');
+                }
+            }
+
+            function applyTheme(isDark) {
+                if (isDark) {
+                    document.documentElement.classList.add("dark");
+                    document.documentElement.setAttribute('data-theme', 'github-dark');
+                } else {
+                    document.documentElement.classList.remove("dark");
+                    document.documentElement.setAttribute('data-theme', 'github-light');
+                }
+            }
+
+            function getSystemPreference() {
+                return window.matchMedia("(prefers-color-scheme: dark)").matches;
+            }
+
+            // 初始化主题
+            const savedTheme = localStorage.getItem("theme") || SYSTEM_MODE;
+            if (savedTheme === DARK_MODE) {
+                applyTheme(true);
+            } else if (savedTheme === LIGHT_MODE) {
+                applyTheme(false);
+            } else {
+                // 跟随系统
+                applyTheme(getSystemPreference());
+            }
+            updateThemeIcon(savedTheme);
+
+            // 监听系统主题变化
+            window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
+                const currentTheme = localStorage.getItem("theme");
+                if (!currentTheme || currentTheme === SYSTEM_MODE) {
+                    applyTheme(e.matches);
+                }
+            });
+
+            // Theme toggle - 循环切换
+            document.getElementById("themeToggle")?.addEventListener("click", () => {
+                const currentTheme = localStorage.getItem("theme") || SYSTEM_MODE;
+                let newTheme;
+                let isDark;
+
+                if (currentTheme === LIGHT_MODE) {
+                    newTheme = DARK_MODE;
+                    isDark = true;
+                } else if (currentTheme === DARK_MODE) {
+                    newTheme = SYSTEM_MODE;
+                    isDark = getSystemPreference();
+                } else {
+                    newTheme = LIGHT_MODE;
+                    isDark = false;
+                }
+
+                localStorage.setItem("theme", newTheme);
+                applyTheme(isDark);
+                updateThemeIcon(newTheme);
+            });
+
+            // ============== Sidebar toggle (Mobile) ==============
+            const sidebar = document.getElementById("sidebar");
+            const overlay = document.getElementById("sidebarOverlay");
+            const menuToggle = document.getElementById("menuToggle");
+
+            function openSidebar() {
+                sidebar?.classList.remove("-translate-x-full");
+                overlay?.classList.remove("hidden");
+            }
+
+            function closeSidebar() {
+                sidebar?.classList.add("-translate-x-full");
+                overlay?.classList.add("hidden");
+            }
+
+            menuToggle?.addEventListener("click", openSidebar);
+            overlay?.addEventListener("click", closeSidebar);
+
+            // ============== Sidebar collapse toggle (Desktop) ==============
+            const collapseBtn = document.getElementById("sidebarCollapseBtn");
+            const collapseIconLeft = collapseBtn?.querySelector(".collapse-icon-left");
+            const collapseIconRight = collapseBtn?.querySelector(".collapse-icon-right");
+
+            // 更新图标显示状态
+            function updateCollapseIcon(isCollapsed) {
+                if (isCollapsed) {
+                    collapseIconLeft?.classList.add("hidden");
+                    collapseIconRight?.classList.remove("hidden");
+                } else {
+                    collapseIconLeft?.classList.remove("hidden");
+                    collapseIconRight?.classList.add("hidden");
+                }
+            }
+
+            // 初始化折叠状态
+            const savedCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
+            if (savedCollapsed && sidebar) {
+                sidebar.classList.add("collapsed");
+                updateCollapseIcon(true);
+            }
+
+            function toggleSidebarCollapse() {
+                if (!sidebar) return;
+                sidebar.classList.toggle("collapsed");
+                const isCollapsed = sidebar.classList.contains("collapsed");
+                localStorage.setItem("sidebarCollapsed", isCollapsed.toString());
+                updateCollapseIcon(isCollapsed);
+            }
+
+            collapseBtn?.addEventListener("click", toggleSidebarCollapse);
+
+            // ============== User Dropdown ==============
+            const userDropdownBtn = document.getElementById("userDropdownBtn");
+            const userDropdownMenu = document.getElementById("userDropdownMenu");
+
+            function openDropdown() {
+                if (!userDropdownMenu) return;
+                userDropdownMenu.classList.remove("hidden");
+                // 触发动画
+                setTimeout(() => {
+                    userDropdownMenu.classList.remove("opacity-0", "scale-95");
+                    userDropdownMenu.classList.add("opacity-100", "scale-100");
+                }, 10);
+            }
+
+            function closeDropdown() {
+                if (!userDropdownMenu) return;
+                userDropdownMenu.classList.remove("opacity-100", "scale-100");
+                userDropdownMenu.classList.add("opacity-0", "scale-95");
+                setTimeout(() => {
+                    userDropdownMenu.classList.add("hidden");
+                }, 150);
+            }
+
+            userDropdownBtn?.addEventListener("click", (e) => {
+                e.stopPropagation();
+                if (userDropdownMenu?.classList.contains("hidden")) {
+                    openDropdown();
+                } else {
+                    closeDropdown();
+                }
+            });
+
+            // 点击外部关闭下拉菜单
+            document.addEventListener("click", (e) => {
+                const container = document.getElementById("userDropdownContainer");
+                if (container && !container.contains(e.target)) {
+                    closeDropdown();
+                }
+            });
+
+            // ============== Logout button event ==============
+            document
+                .getElementById("logoutBtn")
+                ?.addEventListener("click", () => {
+                    localStorage.removeItem("adminToken");
+                    window.location.href = "/admin/login";
+                });
+
+            // ============== Authentication check ==============
+            if (
+                !localStorage.getItem("adminToken") &&
+                !window.location.pathname.includes("/admin/login")
+            ) {
+                window.location.href = "/admin/login";
+            }
+
+            // ============== 全局 fetch 拦截器 - 统一处理 401 ==============
+            (function () {
+                const originalFetch = window.fetch;
+                window.fetch = async function (...args) {
+                    const response = await originalFetch.apply(this, args);
+
+                    // 检查是否是 API 请求且返回 401
+                    if (response.status === 401) {
+                        const url = typeof args[0] === 'string' ? args[0] : args[0]?.url || '';
+                        // 只处理后台 API 请求的 401
+                        if (url.includes('/api/') || url.includes(API_URL)) {
+                            // 避免重复跳转
+                            if (!window._isRedirectingToLogin) {
+                                window._isRedirectingToLogin = true;
+                                localStorage.removeItem("adminToken");
+                                localStorage.removeItem("admin_username");
+                                localStorage.removeItem("admin_avatar");
+
+                                // 使用美化弹框提示
+                                if (window.adminAlert) {
+                                    await window.adminAlert(t.loginExpired || '登录已过期，请重新登录', 'warning', '登录过期');
+                                }
+                                window.location.href = "/admin/login";
                             }
                         }
                     }
-                }
-            } catch (e) {
-                console.error("Token 解析失败:", e);
-            }
-        }
+                    return response;
+                };
+            })();
 
-        // 页面加载时检查 token 过期
-        checkTokenExpiry();
+            // ============== Token 过期时间检查 ==============
+            function checkTokenExpiry() {
+                const token = localStorage.getItem("adminToken");
+                if (!token || window.location.pathname.includes("/admin/login")) return;
 
-        // ============== 加载用户信息 ==============
-        function loadUserInfo() {
-            const token = localStorage.getItem("adminToken");
-            const usernameDisplay = document.getElementById("usernameDisplay");
-            const dropdownUsername = document.getElementById("dropdownUsername");
-            const avatarContainer = document.getElementById("userAvatarContainer");
-            const defaultIcon = document.getElementById("defaultAvatarIcon");
-
-            // Anti-flash: Restore from local storage immediately
-            const cachedName = localStorage.getItem('admin_username');
-            const cachedAvatar = localStorage.getItem('admin_avatar');
-            
-            if(cachedName) {
-                if(usernameDisplay) usernameDisplay.textContent = cachedName;
-                if(dropdownUsername) dropdownUsername.textContent = cachedName;
-            }
-            // Use a flag to avoid flickering if we already have an avatar
-            let hasCachedAvatar = false;
-            if(cachedAvatar && avatarContainer && defaultIcon) {
-                 // Prevent duplicate images if function runs multiple times (though page-load usually resets DOM)
-                 // But strictly speaking, ClientRouter might keep some DOM if persistent? No, it's Astro.
-                 if(avatarContainer.getElementsByTagName('img').length === 0) {
-                     const img = document.createElement('img');
-                     img.src = cachedAvatar;
-                     img.className = "w-full h-full object-cover";
-                     defaultIcon.style.display = 'none';
-                     avatarContainer.appendChild(img);
-                     hasCachedAvatar = true;
-                 }
-            }
-
-            if (!token) return;
-
-            try {
-                // 解析 JWT token 获取用户名
-                const payload = token.split('.')[1];
-                if (payload) {
-                    const decoded = JSON.parse(atob(payload));
-                    const username = decoded.sub || "管理员";
-                    if (usernameDisplay) usernameDisplay.textContent = username;
-                    if (dropdownUsername) dropdownUsername.textContent = username;
-                    localStorage.setItem('admin_username', username);
-                }
-            } catch (e) {
-                console.error("解析 token 失败:", e);
-                // Only reset if we don't have a cache or if we want to enforce error state?
-                // Better to leave cache or set default.
-                if(!cachedName) {
-                     if (usernameDisplay) usernameDisplay.textContent = "管理员";
-                     if (dropdownUsername) dropdownUsername.textContent = "管理员";
-                }
-            }
-
-            // 尝试加载个人资料头像
-            fetch(`${API_URL}/settings`)
-                .then(res => res.ok ? res.json() : Promise.reject())
-                .then(settings => {
-                    // 查找头像设置（profile_avatar 或 avatar）
-                    const avatarSetting = settings.find(s =>
-                        s.key === 'profile_avatar' || s.key === 'avatar' || s.key === 'site_avatar'
-                    );
-                    if (avatarSetting && avatarSetting.value && avatarContainer && defaultIcon) {
-                        // If same as cached, do nothing?
-                        if(hasCachedAvatar && cachedAvatar === avatarSetting.value) return;
-
-                        const img = document.createElement('img');
-                        img.src = avatarSetting.value;
-                        img.alt = "用户头像";
-                        img.className = "w-full h-full object-cover";
-                        img.onerror = function () {
-                            // 加载失败时保留默认图标
-                        };
-                        img.onload = function () {
-                            defaultIcon.style.display = 'none';
-                            // Remove old img if any
-                             const oldImg = avatarContainer.querySelector('img');
-                             if(oldImg) oldImg.remove();
-                             
-                            avatarContainer.appendChild(img);
-                            localStorage.setItem('admin_avatar', avatarSetting.value);
-                        };
+                try {
+                    // 解析 JWT payload
+                    const payload = token.split('.')[1];
+                    if (payload) {
+                        const decoded = JSON.parse(atob(payload));
+                        const exp = decoded.exp;
+                        if (exp) {
+                            const now = Math.floor(Date.now() / 1000);
+                            // 如果 token 已过期或将在 5 分钟内过期
+                            if (exp < now) {
+                                localStorage.removeItem("adminToken");
+                                localStorage.removeItem("admin_username");
+                                localStorage.removeItem("admin_avatar");
+                                if (window.adminAlert) {
+                                    window.adminAlert(t.loginExpired || '登录已过期，请重新登录', 'warning', '登录过期').then(() => {
+                                        window.location.href = "/admin/login";
+                                    });
+                                } else {
+                                    // 等待 adminAlert 初始化后再提示
+                                    setTimeout(() => {
+                                        if (window.adminAlert) {
+                                            window.adminAlert(t.loginExpired || '登录已过期，请重新登录', 'warning', '登录过期').then(() => {
+                                                window.location.href = "/admin/login";
+                                            });
+                                        } else {
+                                            window.location.href = "/admin/login";
+                                        }
+                                    }, 100);
+                                }
+                            }
+                        }
                     }
-                })
-                .catch(() => {
-                    // 忽略错误，保持默认图标
-                });
-        }
-
-        loadUserInfo();
-
-        // ============== Posts list loading (for posts page) ==============
-        let isLoading = false;
-        let loadDebounceTimer = null;
-        let currentPage = 1;
-        let pageSize = 10;
-        let totalPages = 1;
-        let totalPosts = 0;
-
-        async function loadPosts(page = 1) {
-            const tableBody = document.getElementById("postsTableBody");
-            if (!tableBody) return;
-
-            if (isLoading) return;
-            isLoading = true;
-            currentPage = page;
-
-            try {
-                // 获取所有文章用于筛选计数
-                const response = await fetch(`${API_URL}/posts?all=true`);
-                if (!response.ok) throw new Error('Failed to get post list');
-                let posts = await response.json();
-
-                // 更新筛选计数并应用筛选
-                if (typeof window.postsFilterUpdate === 'function') {
-                    posts = window.postsFilterUpdate(posts);
+                } catch (e) {
+                    console.error("Token 解析失败:", e);
                 }
+            }
+
+            // 页面加载时检查 token 过期
+            checkTokenExpiry();
+
+            // ============== 加载用户信息 ==============
+            function loadUserInfo() {
+                const token = localStorage.getItem("adminToken");
+                const usernameDisplay = document.getElementById("usernameDisplay");
+                const dropdownUsername = document.getElementById("dropdownUsername");
+                const avatarContainer = document.getElementById("userAvatarContainer");
+                const defaultIcon = document.getElementById("defaultAvatarIcon");
+
+                // Anti-flash: Restore from local storage immediately
+                const cachedName = localStorage.getItem('admin_username');
+                const cachedAvatar = localStorage.getItem('admin_avatar');
+
+                if (cachedName) {
+                    if (usernameDisplay) usernameDisplay.textContent = cachedName;
+                    if (dropdownUsername) dropdownUsername.textContent = cachedName;
+                }
+                // Use a flag to avoid flickering if we already have an avatar
+                let hasCachedAvatar = false;
+                if (cachedAvatar && avatarContainer && defaultIcon) {
+                    // Prevent duplicate images if function runs multiple times (though page-load usually resets DOM)
+                    // But strictly speaking, ClientRouter might keep some DOM if persistent? No, it's Astro.
+                    if (avatarContainer.getElementsByTagName('img').length === 0) {
+                        const img = document.createElement('img');
+                        img.src = cachedAvatar;
+                        img.className = "w-full h-full object-cover";
+                        defaultIcon.style.display = 'none';
+                        avatarContainer.appendChild(img);
+                        hasCachedAvatar = true;
+                    }
+                }
+
+                if (!token) return;
+
+                try {
+                    // 解析 JWT token 获取用户名
+                    const payload = token.split('.')[1];
+                    if (payload) {
+                        const decoded = JSON.parse(atob(payload));
+                        const username = decoded.sub || "管理员";
+                        if (usernameDisplay) usernameDisplay.textContent = username;
+                        if (dropdownUsername) dropdownUsername.textContent = username;
+                        localStorage.setItem('admin_username', username);
+                    }
+                } catch (e) {
+                    console.error("解析 token 失败:", e);
+                    // Only reset if we don't have a cache or if we want to enforce error state?
+                    // Better to leave cache or set default.
+                    if (!cachedName) {
+                        if (usernameDisplay) usernameDisplay.textContent = "管理员";
+                        if (dropdownUsername) dropdownUsername.textContent = "管理员";
+                    }
+                }
+
+                // 尝试加载个人资料头像
+                window.adminRequest(`${API_URL}/settings`)
+                    .then(result => {
+                        if (!result.ok) {
+                            throw new Error(result.msg || "加载设置失败");
+                        }
+                        const settings = result.data || [];
+                        // 查找头像设置（profile_avatar 或 avatar）
+                        const avatarSetting = settings.find(s =>
+                            s.key === 'profile_avatar' || s.key === 'avatar' || s.key === 'site_avatar'
+                        );
+                        if (avatarSetting && avatarSetting.value && avatarContainer && defaultIcon) {
+                            // If same as cached, do nothing?
+                            if (hasCachedAvatar && cachedAvatar === avatarSetting.value) return;
+
+                            const img = document.createElement('img');
+                            img.src = avatarSetting.value;
+                            img.alt = "用户头像";
+                            img.className = "w-full h-full object-cover";
+                            img.onerror = function () {
+                                // 加载失败时保留默认图标
+                            };
+                            img.onload = function () {
+                                defaultIcon.style.display = 'none';
+                                // Remove old img if any
+                                const oldImg = avatarContainer.querySelector('img');
+                                if (oldImg) oldImg.remove();
+
+                                avatarContainer.appendChild(img);
+                                localStorage.setItem('admin_avatar', avatarSetting.value);
+                            };
+                        }
+                    })
+                    .catch(() => {
+                        // 忽略错误，保持默认图标
+                    });
+            }
+
+            loadUserInfo();
+
+            // ============== Posts list loading (for posts page) ==============
+            let isLoading = false;
+            let loadDebounceTimer = null;
+            let currentPage = 1;
+            let pageSize = 10;
+            let totalPages = 1;
+            let totalPosts = 0;
+
+            async function loadPosts(page = 1) {
+                const tableBody = document.getElementById("postsTableBody");
+                if (!tableBody) return;
+
+                if (isLoading) return;
+                isLoading = true;
+                currentPage = page;
+
+                try {
+                    // 获取所有文章用于筛选计数
+                    const result = await window.adminRequest(`${API_URL}/posts?all=true`);
+                    if (!result.ok) throw new Error(result.msg || '获取文章列表失败');
+                    let posts = result.data || [];
+
+                    // 更新筛选计数并应用筛选
+                    if (typeof window.postsFilterUpdate === 'function') {
+                        posts = window.postsFilterUpdate(posts);
+                    }
+
+                    // 计算分页
+                    totalPosts = posts.length;
+                    totalPages = Math.ceil(totalPosts / pageSize) || 1;
+
+                    // 手动分页
+                    const startIndex = (currentPage - 1) * pageSize;
+                    const pagedPosts = posts.slice(startIndex, startIndex + pageSize);
+
+                    if (pagedPosts.length === 0) {
+                        tableBody.innerHTML =
+                            '<tr><td colspan="5" class="px-6 py-12 text-center text-zinc-500">' + t.empty + '</td></tr>';
+                    } else {
+                        tableBody.innerHTML = pagedPosts
+                            .map(function (post) {
+                                const statusBadges = [];
+                                // 置顶标签
+                                if (post.pinned)
+                                    statusBadges.push(
+                                        '<span class="px-2 py-0.5 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 text-[10px] font-bold rounded uppercase tracking-wider">' + t.pinned + '</span>',
+                                    );
+                                if (post.is_draft)
+                                    statusBadges.push(
+                                        '<span class="px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-[10px] font-bold rounded uppercase tracking-wider">' + t.draft + '</span>',
+                                    );
+                                if (post.has_password)
+                                    statusBadges.push(
+                                        '<span class="px-2 py-0.5 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 text-[10px] font-bold rounded uppercase tracking-wider">' + t.protected + '</span>',
+                                    );
+                                if (!post.is_draft && !post.has_password)
+                                    statusBadges.push(
+                                        '<span class="px-2 py-0.5 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 text-[10px] font-bold rounded uppercase tracking-wider">' + t.public + '</span>',
+                                    );
+
+                                // 置顶按钮图标
+                                const pinIcon = post.pinned
+                                    ? '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg>'
+                                    : '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg>';
+
+                                return `
+                                        <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors ${post.pinned ? 'pinned-row' : ''}">
+                                            <td class="px-6 py-4">
+                                                <div class="font-medium text-zinc-900 dark:text-zinc-100">${post.title}</div>
+                                                <div class="text-xs text-zinc-400 font-mono mt-1">${post.slug}</div>
+                                            </td>
+                                            <td class="px-6 py-4 text-center">
+                                                <div class="flex flex-wrap gap-1 justify-center">${statusBadges.join("")}</div>
+                                            </td>
+                                            <td class="px-6 py-4 text-center">
+                                                <span class="px-2 py-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-xs rounded">
+                                                    ${post.category || t.uncategorized}
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 text-sm text-zinc-500 text-center">
+                                                ${new Date(post.published_at).toLocaleDateString()}
+                                            </td>
+                                            <td class="px-6 py-4 text-center">
+                                                <div class="flex items-center gap-1 justify-center">
+                                                    <button onclick="togglePin('${post.id}')" class="p-2 ${post.pinned ? 'text-[var(--primary)]' : 'text-zinc-400'} hover:bg-[var(--primary)]/10 rounded-lg transition-colors" title="${post.pinned ? '取消置顶' : '置顶'}">
+                                                        ${pinIcon}
+                                                    </button>
+                                                    <a href="/admin/edit/${post.id}" class="p-2 text-[var(--primary)] hover:bg-[var(--primary)]/10 rounded-lg transition-colors" title="编辑">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                        </svg>
+                                                    </a>
+                                                    <button onclick="deletePost('${post.id}')" class="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors" title="删除">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    `;
+                            })
+                            .join("");
+                    }
+
+                    // 渲染分页控件
+                    renderPagination();
+                } catch (err) {
+                    console.error("Failed to load post list:", err);
+                    tableBody.innerHTML =
+                        '<tr><td colspan="5" class="px-6 py-12 text-center text-zinc-500">' + t.loadFailed + '</td></tr>';
+                } finally {
+                    isLoading = false;
+                }
+            }
+
+            // 渲染分页控件
+            function renderPagination() {
+                let paginationContainer = document.getElementById("paginationContainer");
+                if (!paginationContainer) return;
+
+                // 格式化分页信息文本
+                const pageInfo = t.paginationInfo
+                    .replace('{page}', currentPage)
+                    .replace('{total}', totalPages);
+
+                paginationContainer.innerHTML = `
+                        <div class="flex items-center justify-between px-6 py-4 bg-zinc-50 dark:bg-zinc-800/50 border-t border-zinc-200 dark:border-zinc-800">
+                            <div class="text-sm text-zinc-500">
+                                ${pageInfo} (${totalPosts} 条记录)
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button
+                                    onclick="goToPage(${currentPage - 1})"
+                                    ${currentPage <= 1 ? 'disabled' : ''}
+                                    class="px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${currentPage <= 1 ? 'text-zinc-300 dark:text-zinc-600 cursor-not-allowed' : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700'}"
+                                >
+                                    ${t.paginationPrev}
+                                </button>
+                                <div class="flex items-center gap-1">
+                                    ${generatePageButtons()}
+                                </div>
+                                <button
+                                    onclick="goToPage(${currentPage + 1})"
+                                    ${currentPage >= totalPages ? 'disabled' : ''}
+                                    class="px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${currentPage >= totalPages ? 'text-zinc-300 dark:text-zinc-600 cursor-not-allowed' : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700'}"
+                                >
+                                    ${t.paginationNext}
+                                </button>
+                            </div>
+                        </div>
+                    `;
+            }
+
+            // 生成页码按钮
+            function generatePageButtons() {
+                if (totalPages <= 1) return '';
+
+                const buttons = [];
+                const maxVisible = 5;
+                let start = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+                let end = Math.min(totalPages, start + maxVisible - 1);
+
+                if (end - start + 1 < maxVisible) {
+                    start = Math.max(1, end - maxVisible + 1);
+                }
+
+                // 首页
+                if (start > 1) {
+                    buttons.push(`<button onclick="goToPage(1)" class="w-8 h-8 text-sm font-medium rounded-lg text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700">1</button>`);
+                    if (start > 2) {
+                        buttons.push(`<span class="px-1 text-zinc-400">...</span>`);
+                    }
+                }
+
+                // 中间页码
+                for (let i = start; i <= end; i++) {
+                    if (i === currentPage) {
+                        buttons.push(`<button class="w-8 h-8 text-sm font-medium rounded-lg bg-[var(--primary)] text-white">${i}</button>`);
+                    } else {
+                        buttons.push(`<button onclick="goToPage(${i})" class="w-8 h-8 text-sm font-medium rounded-lg text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700">${i}</button>`);
+                    }
+                }
+
+                // 尾页
+                if (end < totalPages) {
+                    if (end < totalPages - 1) {
+                        buttons.push(`<span class="px-1 text-zinc-400">...</span>`);
+                    }
+                    buttons.push(`<button onclick="goToPage(${totalPages})" class="w-8 h-8 text-sm font-medium rounded-lg text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700">${totalPages}</button>`);
+                }
+
+                return buttons.join('');
+            }
+
+            // 跳转到指定页
+            window.goToPage = function (page) {
+                if (page < 1 || page > totalPages || page === currentPage) return;
+                isLoading = false; // 重置加载状态
+                loadPosts(page);
+            };
+
+            // Delete post function
+            window.deletePost = async function (id) {
+                const confirmed = await window.showAdminConfirm(t.confirmDelete);
+                if (!confirmed) return;
+
+                try {
+                    const result = await window.adminRequest(`${API_URL}/posts/${id}`, {
+                        method: "DELETE",
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+                        },
+                    });
+
+                    if (result.ok) {
+                        isLoading = false;
+                        loadPosts(currentPage);  // 保持当前页码
+                    } else if (result.code !== 401) {
+                        // 401 由全局拦截器处理
+                        window.showAdminAlert(result.msg || t.deleteFailed, "error");
+                    }
+                } catch (err) {
+                    console.error("Failed to delete post:", err);
+                    window.showAdminAlert(t.deleteFailed, "error");
+                }
+            };
+
+            // Toggle pin function - 使用 PUT 接口更新置顶状态
+            window.togglePin = async function (id) {
+                try {
+                    // 先获取文章当前数据
+                    const getResult = await window.adminRequest(`${API_URL}/posts/${id}`, {
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+                        },
+                    });
+
+                    if (!getResult.ok) {
+                        if (getResult.code !== 401) {
+                            // 401 由全局拦截器处理
+                            window.showAdminAlert(getResult.msg || '获取文章信息失败', "error");
+                        }
+                        return;
+                    }
+
+                    const post = getResult.data;
+
+                    // 使用 PUT 接口更新置顶状态
+                    const updateResult = await window.adminRequest(`${API_URL}/posts/${id}`, {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+                        },
+                        body: JSON.stringify({
+                            title: post.title,
+                            slug: post.slug,
+                            description: post.description || "",
+                            content: post.content,
+                            image: post.image || "",
+                            category_name: post.category || "",
+                            tags: post.tags || [],
+                            password: post.password || "",
+                            is_draft: post.is_draft || false,
+                            pinned: !post.pinned  // 切换置顶状态
+                        }),
+                    });
+
+                    if (updateResult.ok) {
+                        isLoading = false;
+                        loadPosts(currentPage);  // 保持当前页码
+                    } else if (updateResult.code !== 401) {
+                        // 401 由全局拦截器处理
+                        window.showAdminAlert(updateResult.msg || '操作失败', "error");
+                    }
+                } catch (err) {
+                    console.error("Failed to toggle pin:", err);
+                    window.showAdminAlert('操作失败', "error");
+                }
+            };
+
+            window.adminLoadPosts = loadPosts;
+
+            // 渲染文章列表（供筛选功能调用）
+            function renderPosts(posts) {
+                const tableBody = document.getElementById("postsTableBody");
+                if (!tableBody) return;
 
                 // 计算分页
                 totalPosts = posts.length;
                 totalPages = Math.ceil(totalPosts / pageSize) || 1;
+
+                // 如果当前页超出范围，重置到第一页
+                if (currentPage > totalPages) {
+                    currentPage = 1;
+                }
 
                 // 手动分页
                 const startIndex = (currentPage - 1) * pageSize;
@@ -2414,272 +3384,6 @@ const menuItems = [
                                 : '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg>';
 
                             return `
-                                        <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors ${post.pinned ? 'pinned-row' : ''}">
-                                            <td class="px-6 py-4">
-                                                <div class="font-medium text-zinc-900 dark:text-zinc-100">${post.title}</div>
-                                                <div class="text-xs text-zinc-400 font-mono mt-1">${post.slug}</div>
-                                            </td>
-                                            <td class="px-6 py-4 text-center">
-                                                <div class="flex flex-wrap gap-1 justify-center">${statusBadges.join("")}</div>
-                                            </td>
-                                            <td class="px-6 py-4 text-center">
-                                                <span class="px-2 py-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-xs rounded">
-                                                    ${post.category || t.uncategorized}
-                                                </span>
-                                            </td>
-                                            <td class="px-6 py-4 text-sm text-zinc-500 text-center">
-                                                ${new Date(post.published_at).toLocaleDateString()}
-                                            </td>
-                                            <td class="px-6 py-4 text-center">
-                                                <div class="flex items-center gap-1 justify-center">
-                                                    <button onclick="togglePin('${post.id}')" class="p-2 ${post.pinned ? 'text-[var(--primary)]' : 'text-zinc-400'} hover:bg-[var(--primary)]/10 rounded-lg transition-colors" title="${post.pinned ? '取消置顶' : '置顶'}">
-                                                        ${pinIcon}
-                                                    </button>
-                                                    <a href="/admin/edit/${post.id}" class="p-2 text-[var(--primary)] hover:bg-[var(--primary)]/10 rounded-lg transition-colors" title="编辑">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                        </svg>
-                                                    </a>
-                                                    <button onclick="deletePost('${post.id}')" class="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors" title="删除">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                        </svg>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    `;
-                        })
-                        .join("");
-                }
-
-                // 渲染分页控件
-                renderPagination();
-            } catch (err) {
-                console.error("Failed to load post list:", err);
-                tableBody.innerHTML =
-                    '<tr><td colspan="5" class="px-6 py-12 text-center text-zinc-500">' + t.loadFailed + '</td></tr>';
-            } finally {
-                isLoading = false;
-            }
-        }
-
-        // 渲染分页控件
-        function renderPagination() {
-            let paginationContainer = document.getElementById("paginationContainer");
-            if (!paginationContainer) return;
-
-            // 格式化分页信息文本
-            const pageInfo = t.paginationInfo
-                .replace('{page}', currentPage)
-                .replace('{total}', totalPages);
-
-            paginationContainer.innerHTML = `
-                        <div class="flex items-center justify-between px-6 py-4 bg-zinc-50 dark:bg-zinc-800/50 border-t border-zinc-200 dark:border-zinc-800">
-                            <div class="text-sm text-zinc-500">
-                                ${pageInfo} (${totalPosts} 条记录)
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <button
-                                    onclick="goToPage(${currentPage - 1})"
-                                    ${currentPage <= 1 ? 'disabled' : ''}
-                                    class="px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${currentPage <= 1 ? 'text-zinc-300 dark:text-zinc-600 cursor-not-allowed' : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700'}"
-                                >
-                                    ${t.paginationPrev}
-                                </button>
-                                <div class="flex items-center gap-1">
-                                    ${generatePageButtons()}
-                                </div>
-                                <button
-                                    onclick="goToPage(${currentPage + 1})"
-                                    ${currentPage >= totalPages ? 'disabled' : ''}
-                                    class="px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${currentPage >= totalPages ? 'text-zinc-300 dark:text-zinc-600 cursor-not-allowed' : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700'}"
-                                >
-                                    ${t.paginationNext}
-                                </button>
-                            </div>
-                        </div>
-                    `;
-        }
-
-        // 生成页码按钮
-        function generatePageButtons() {
-            if (totalPages <= 1) return '';
-
-            const buttons = [];
-            const maxVisible = 5;
-            let start = Math.max(1, currentPage - Math.floor(maxVisible / 2));
-            let end = Math.min(totalPages, start + maxVisible - 1);
-
-            if (end - start + 1 < maxVisible) {
-                start = Math.max(1, end - maxVisible + 1);
-            }
-
-            // 首页
-            if (start > 1) {
-                buttons.push(`<button onclick="goToPage(1)" class="w-8 h-8 text-sm font-medium rounded-lg text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700">1</button>`);
-                if (start > 2) {
-                    buttons.push(`<span class="px-1 text-zinc-400">...</span>`);
-                }
-            }
-
-            // 中间页码
-            for (let i = start; i <= end; i++) {
-                if (i === currentPage) {
-                    buttons.push(`<button class="w-8 h-8 text-sm font-medium rounded-lg bg-[var(--primary)] text-white">${i}</button>`);
-                } else {
-                    buttons.push(`<button onclick="goToPage(${i})" class="w-8 h-8 text-sm font-medium rounded-lg text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700">${i}</button>`);
-                }
-            }
-
-            // 尾页
-            if (end < totalPages) {
-                if (end < totalPages - 1) {
-                    buttons.push(`<span class="px-1 text-zinc-400">...</span>`);
-                }
-                buttons.push(`<button onclick="goToPage(${totalPages})" class="w-8 h-8 text-sm font-medium rounded-lg text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700">${totalPages}</button>`);
-            }
-
-            return buttons.join('');
-        }
-
-        // 跳转到指定页
-        window.goToPage = function (page) {
-            if (page < 1 || page > totalPages || page === currentPage) return;
-            isLoading = false; // 重置加载状态
-            loadPosts(page);
-        };
-
-        // Delete post function
-        window.deletePost = async function (id) {
-            if (!confirm(t.confirmDelete)) return;
-
-            try {
-                const response = await fetch(`${API_URL}/posts/${id}`, {
-                    method: "DELETE",
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-                    },
-                });
-
-                if (response.ok) {
-                    isLoading = false;
-                    loadPosts(currentPage);  // 保持当前页码
-                } else if (response.status !== 401) {
-                    // 401 由全局拦截器处理
-                    alert(t.deleteFailed);
-                }
-            } catch (err) {
-                console.error("Failed to delete post:", err);
-                alert(t.deleteFailed);
-            }
-        };
-
-        // Toggle pin function - 使用 PUT 接口更新置顶状态
-        window.togglePin = async function (id) {
-            try {
-                // 先获取文章当前数据
-                const getResponse = await fetch(`${API_URL}/posts/${id}`, {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-                    },
-                });
-
-                if (!getResponse.ok) {
-                    if (getResponse.status !== 401) {
-                        // 401 由全局拦截器处理
-                        alert('获取文章信息失败');
-                    }
-                    return;
-                }
-
-                const post = await getResponse.json();
-
-                // 使用 PUT 接口更新置顶状态
-                const response = await fetch(`${API_URL}/posts/${id}`, {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-                    },
-                    body: JSON.stringify({
-                        title: post.title,
-                        slug: post.slug,
-                        description: post.description || "",
-                        content: post.content,
-                        image: post.image || "",
-                        category_name: post.category || "",
-                        tags: post.tags || [],
-                        password: post.password || "",
-                        is_draft: post.is_draft || false,
-                        pinned: !post.pinned  // 切换置顶状态
-                    }),
-                });
-
-                if (response.ok) {
-                    isLoading = false;
-                    loadPosts(currentPage);  // 保持当前页码
-                } else if (response.status !== 401) {
-                    // 401 由全局拦截器处理
-                    alert('操作失败');
-                }
-            } catch (err) {
-                console.error("Failed to toggle pin:", err);
-                alert('操作失败');
-            }
-        };
-
-        window.adminLoadPosts = loadPosts;
-
-        // 渲染文章列表（供筛选功能调用）
-        function renderPosts(posts) {
-            const tableBody = document.getElementById("postsTableBody");
-            if (!tableBody) return;
-
-            // 计算分页
-            totalPosts = posts.length;
-            totalPages = Math.ceil(totalPosts / pageSize) || 1;
-
-            // 如果当前页超出范围，重置到第一页
-            if (currentPage > totalPages) {
-                currentPage = 1;
-            }
-
-            // 手动分页
-            const startIndex = (currentPage - 1) * pageSize;
-            const pagedPosts = posts.slice(startIndex, startIndex + pageSize);
-
-            if (pagedPosts.length === 0) {
-                tableBody.innerHTML =
-                    '<tr><td colspan="5" class="px-6 py-12 text-center text-zinc-500">' + t.empty + '</td></tr>';
-            } else {
-                tableBody.innerHTML = pagedPosts
-                    .map(function (post) {
-                        const statusBadges = [];
-                        // 置顶标签
-                        if (post.pinned)
-                            statusBadges.push(
-                                '<span class="px-2 py-0.5 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 text-[10px] font-bold rounded uppercase tracking-wider">' + t.pinned + '</span>',
-                            );
-                        if (post.is_draft)
-                            statusBadges.push(
-                                '<span class="px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-[10px] font-bold rounded uppercase tracking-wider">' + t.draft + '</span>',
-                            );
-                        if (post.has_password)
-                            statusBadges.push(
-                                '<span class="px-2 py-0.5 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 text-[10px] font-bold rounded uppercase tracking-wider">' + t.protected + '</span>',
-                            );
-                        if (!post.is_draft && !post.has_password)
-                            statusBadges.push(
-                                '<span class="px-2 py-0.5 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 text-[10px] font-bold rounded uppercase tracking-wider">' + t.public + '</span>',
-                            );
-
-                        // 置顶按钮图标
-                        const pinIcon = post.pinned
-                            ? '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg>'
-                            : '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg>';
-
-                        return `
                             <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors ${post.pinned ? 'pinned-row' : ''}">
                                 <td class="px-6 py-4">
                                     <div class="font-medium text-zinc-900 dark:text-zinc-100">${post.title}</div>
@@ -2715,44 +3419,44 @@ const menuItems = [
                                 </td>
                             </tr>
                         `;
-                    })
-                    .join("");
+                        })
+                        .join("");
+                }
+
+                // 渲染分页控件
+                renderPagination();
             }
 
-            // 渲染分页控件
-            renderPagination();
-        }
+            window.adminRenderPosts = renderPosts;
 
-        window.adminRenderPosts = renderPosts;
+            // 渲染回收站文章列表
+            function renderTrashPosts(posts) {
+                const tableBody = document.getElementById("postsTableBody");
+                if (!tableBody) return;
 
-        // 渲染回收站文章列表
-        function renderTrashPosts(posts) {
-            const tableBody = document.getElementById("postsTableBody");
-            if (!tableBody) return;
+                // 计算分页
+                totalPosts = posts.length;
+                totalPages = Math.ceil(totalPosts / pageSize) || 1;
 
-            // 计算分页
-            totalPosts = posts.length;
-            totalPages = Math.ceil(totalPosts / pageSize) || 1;
+                // 如果当前页超出范围，重置到第一页
+                if (currentPage > totalPages) {
+                    currentPage = 1;
+                }
 
-            // 如果当前页超出范围，重置到第一页
-            if (currentPage > totalPages) {
-                currentPage = 1;
-            }
+                // 手动分页
+                const startIndex = (currentPage - 1) * pageSize;
+                const pagedPosts = posts.slice(startIndex, startIndex + pageSize);
 
-            // 手动分页
-            const startIndex = (currentPage - 1) * pageSize;
-            const pagedPosts = posts.slice(startIndex, startIndex + pageSize);
+                if (pagedPosts.length === 0) {
+                    tableBody.innerHTML =
+                        '<tr><td colspan="5" class="px-6 py-12 text-center text-zinc-500">回收站为空</td></tr>';
+                } else {
+                    tableBody.innerHTML = pagedPosts
+                        .map(function (post) {
+                            const deletedDate = post.deleted_at ? new Date(post.deleted_at).toLocaleString() : '-';
+                            const titleEscaped = post.title.replace(/'/g, "\\'");
 
-            if (pagedPosts.length === 0) {
-                tableBody.innerHTML =
-                    '<tr><td colspan="5" class="px-6 py-12 text-center text-zinc-500">回收站为空</td></tr>';
-            } else {
-                tableBody.innerHTML = pagedPosts
-                    .map(function (post) {
-                        const deletedDate = post.deleted_at ? new Date(post.deleted_at).toLocaleString() : '-';
-                        const titleEscaped = post.title.replace(/'/g, "\\'");
-
-                        return `
+                            return `
                             <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
                                 <td class="px-6 py-4">
                                     <div class="font-medium text-zinc-900 dark:text-zinc-100">${post.title}</div>
@@ -2785,103 +3489,84 @@ const menuItems = [
                                 </td>
                             </tr>
                         `;
-                    })
-                    .join("");
+                        })
+                        .join("");
+                }
+
+                // 渲染分页控件
+                renderPagination();
             }
 
-            // 渲染分页控件
-            renderPagination();
-        }
+            window.adminRenderTrashPosts = renderTrashPosts;
 
-        window.adminRenderTrashPosts = renderTrashPosts;
+            // 恢复文章
+            window.restorePost = async function (id) {
+                try {
+                    const result = await window.adminRequest(`${API_URL}/posts/${id}/restore`, {
+                        method: "POST",
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+                        },
+                    });
 
-        // 恢复文章
-        window.restorePost = async function(id) {
-            try {
-                const response = await fetch(`${API_URL}/posts/${id}/restore`, {
-                    method: "POST",
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-                    },
-                });
-
-                if (response.ok) {
-                    if (window.adminAlert) {
-                        await window.adminAlert("文章已恢复", "success");
+                    if (result.ok) {
+                        await window.showAdminAlert(result.msg || "文章已恢复", "success");
+                        isLoading = false;
+                        loadPosts(1);
+                    } else {
+                        window.showAdminAlert(result.msg || "恢复失败", "error");
                     }
-                    isLoading = false;
-                    loadPosts(1);
-                } else {
-                    const err = await response.json();
-                    if (window.adminAlert) {
-                        window.adminAlert(err.detail || "恢复失败", "error");
+                } catch (err) {
+                    console.error(err);
+                    window.showAdminAlert("恢复失败", "error");
+                }
+            };
+
+            // 永久删除文章
+            window.permanentDeletePost = async function (id, title) {
+                const confirmed = await window.showAdminConfirm(`确定要永久删除文章 "${title}" 吗？此操作不可恢复！`);
+
+                if (!confirmed) return;
+
+                try {
+                    const result = await window.adminRequest(`${API_URL}/posts/${id}?permanent=true`, {
+                        method: "DELETE",
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+                        },
+                    });
+
+                    if (result.ok) {
+                        await window.showAdminAlert(result.msg || "文章已永久删除", "success");
+                        isLoading = false;
+                        loadPosts(1);
+                    } else {
+                        window.showAdminAlert(result.msg || "删除失败", "error");
                     }
+                } catch (err) {
+                    console.error(err);
+                    window.showAdminAlert("删除失败", "error");
                 }
-            } catch (err) {
-                console.error(err);
-                if (window.adminAlert) {
-                    window.adminAlert("恢复失败", "error");
-                }
-            }
-        };
+            };
 
-        // 永久删除文章
-        window.permanentDeletePost = async function(id, title) {
-            let confirmed = false;
-            if (window.adminConfirm) {
-                confirmed = await window.adminConfirm(`确定要永久删除文章 "${title}" 吗？此操作不可恢复！`);
-            } else {
-                confirmed = confirm(`确定要永久删除文章 "${title}" 吗？此操作不可恢复！`);
-            }
-
-            if (!confirmed) return;
-
-            try {
-                const response = await fetch(`${API_URL}/posts/${id}?permanent=true`, {
-                    method: "DELETE",
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-                    },
-                });
-
-                if (response.ok) {
-                    if (window.adminAlert) {
-                        await window.adminAlert("文章已永久删除", "success");
+            // Initialize posts page
+            function initPostsPage() {
+                const path = window.location.pathname;
+                if (path === "/admin/posts/" || path === "/admin/posts") {
+                    const newPostBtn = document.getElementById("newPostBtn");
+                    if (newPostBtn) {
+                        newPostBtn.onclick = function () {
+                            window.location.href = "/admin/new";
+                        };
                     }
-                    isLoading = false;
-                    loadPosts(1);
-                } else {
-                    const err = await response.json();
-                    if (window.adminAlert) {
-                        window.adminAlert(err.detail || "删除失败", "error");
-                    }
-                }
-            } catch (err) {
-                console.error(err);
-                if (window.adminAlert) {
-                    window.adminAlert("删除失败", "error");
+
+                    if (loadDebounceTimer) clearTimeout(loadDebounceTimer);
+                    loadDebounceTimer = setTimeout(loadPosts, 50);
                 }
             }
-        };
 
-        // Initialize posts page
-        function initPostsPage() {
-            const path = window.location.pathname;
-            if (path === "/admin/posts/" || path === "/admin/posts") {
-                const newPostBtn = document.getElementById("newPostBtn");
-                if (newPostBtn) {
-                    newPostBtn.onclick = function () {
-                        window.location.href = "/admin/new";
-                    };
-                }
-
-                if (loadDebounceTimer) clearTimeout(loadDebounceTimer);
-                loadDebounceTimer = setTimeout(loadPosts, 50);
-            }
-        }
-
-        initPostsPage();
-    })();
+            initPostsPage();
+        })();
     });
 </script>
 </body>

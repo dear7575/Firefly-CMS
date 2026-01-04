@@ -1,4 +1,5 @@
 import { getApiUrl } from "@/utils/api-utils";
+import { parseApiResponse } from "@/utils/api-response";
 
 // API 基础地址（从环境变量读取）
 const API_URL = getApiUrl();
@@ -25,7 +26,8 @@ async function fetchSettings(): Promise<Record<string, any>> {
             throw new Error(`HTTP ${response.status}`);
         }
 
-        const data = await response.json();
+        const payload = await parseApiResponse<Record<string, any>>(response);
+        const data = payload.data || {};
         configCache = data;
         console.log('[DynamicConfig] 成功从 API 加载配置');
         return data;

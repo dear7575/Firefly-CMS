@@ -15,6 +15,7 @@ const groupLabels: Record<string, string> = {
     theme: "主题设置",
     footer: "页脚设置",
     feature: "功能开关",
+    comment: "评论设置",
     post: "文章设置",
     general: "通用设置",
     bangumi: "番组计划",
@@ -34,6 +35,8 @@ const groupIcons: Record<string, string> = {
     footer: "M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z",
     feature:
         "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z",
+    comment:
+        "M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z",
     post: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z",
     general:
         "M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4",
@@ -321,9 +324,9 @@ const groupIcons: Record<string, string> = {
                 if (!container) return;
 
                 try {
-                    var response = await fetch(`${API_URL}/settings`);
-                    if (!response.ok) throw new Error("Failed to load");
-                    settings = await response.json();
+                    var result = await window.adminRequest(`${API_URL}/settings`);
+                    if (!result.ok) throw new Error(result.msg || "加载失败");
+                    settings = result.data || [];
 
                     // 过滤掉 announcement (已有专门页面) 分组
                     settings = settings.filter(function (s) {
@@ -363,6 +366,7 @@ const groupIcons: Record<string, string> = {
                     "theme",
                     "footer",
                     "feature",
+                    "comment",
                     "post",
                     "api",
                     "general",
@@ -903,17 +907,14 @@ const groupIcons: Record<string, string> = {
 
 
             window.deleteSetting = async function (id, key) {
-                if (
-                    !confirm(
-                        (
-                            t.confirmDelete || '确定要删除配置 "{key}" 吗？'
-                        ).replace("{key}", key),
-                    )
-                )
-                    return;
+                var confirmMsg = (
+                    t.confirmDelete || '确定要删除配置 "{key}" 吗？'
+                ).replace("{key}", key);
+                var confirmed = await window.showAdminConfirm(confirmMsg);
+                if (!confirmed) return;
 
                 try {
-                    var response = await fetch(API_URL + "/settings/" + id, {
+                    var result = await window.adminRequest(API_URL + "/settings/" + id, {
                         method: "DELETE",
                         headers: {
                             Authorization:
@@ -921,14 +922,13 @@ const groupIcons: Record<string, string> = {
                         },
                     });
 
-                    if (response.ok) {
+                    if (result.ok) {
                         loadSettings();
                     } else {
-                        var err = await response.json();
-                        alert(err.detail || t.deleteFailed || "删除失败");
+                        window.showAdminAlert(result.msg || t.deleteFailed || "删除失败", "error");
                     }
                 } catch (err) {
-                    alert(t.deleteFailed || "删除失败");
+                    window.showAdminAlert(t.deleteFailed || "删除失败", "error");
                 }
             };
 
@@ -936,16 +936,14 @@ const groupIcons: Record<string, string> = {
             var initSettingsBtn = document.getElementById("initSettingsBtn");
             if (initSettingsBtn) {
                 initSettingsBtn.addEventListener("click", async function () {
-                    if (
-                        !confirm(
-                            t.confirmDelete ||
-                                "确定要初始化默认配置吗？这不会覆盖已存在的配置项。",
-                        )
-                    )
-                        return;
+                    var confirmed = await window.showAdminConfirm(
+                        t.confirmDelete ||
+                            "确定要初始化默认配置吗？这不会覆盖已存在的配置项。",
+                    );
+                    if (!confirmed) return;
 
                     try {
-                        var response = await fetch(API_URL + "/settings/init", {
+                        var result = await window.adminRequest(API_URL + "/settings/init", {
                             method: "POST",
                             headers: {
                                 Authorization:
@@ -954,16 +952,14 @@ const groupIcons: Record<string, string> = {
                             },
                         });
 
-                        if (response.ok) {
-                            var result = await response.json();
-                            alert(result.message);
+                        if (result.ok) {
+                            await window.showAdminAlert(result.msg || "初始化成功", "success");
                             loadSettings();
                         } else {
-                            var err = await response.json();
-                            alert(err.detail || t.saveFailed || "初始化失败");
+                            window.showAdminAlert(result.msg || t.saveFailed || "初始化失败", "error");
                         }
                     } catch (err) {
-                        alert(t.saveFailed || "初始化失败");
+                        window.showAdminAlert(t.saveFailed || "初始化失败", "error");
                     }
                 });
             }
@@ -1021,7 +1017,7 @@ const groupIcons: Record<string, string> = {
                     };
 
                     try {
-                        var response = await fetch(
+                        var result = await window.adminRequest(
                             API_URL + "/settings/" + (id || ""),
                             {
                                 method: id ? "PUT" : "POST",
@@ -1035,15 +1031,14 @@ const groupIcons: Record<string, string> = {
                             },
                         );
 
-                        if (response.ok) {
+                        if (result.ok) {
                             hideModal();
                             loadSettings();
                         } else {
-                            var err = await response.json();
-                            alert(err.detail || t.saveFailed || "保存失败");
+                            window.showAdminAlert(result.msg || t.saveFailed || "保存失败", "error");
                         }
                     } catch (err) {
-                        alert(t.saveFailed || "保存失败");
+                        window.showAdminAlert(t.saveFailed || "保存失败", "error");
                     }
                 });
             }
