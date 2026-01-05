@@ -586,7 +586,7 @@ const jsonLd = {
   </div>
 
   <!-- 评论 -->
-  {entry.data.comment && <Comment post={entry} />}
+  {((entry.data as any).comment ?? true) && <Comment post={entry} />}
 </MainGridLayout>
 
 <style>
