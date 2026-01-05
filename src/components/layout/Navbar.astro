@@ -34,7 +34,10 @@ try {
 }
 
 // 检查是否允许切换壁纸模式（动态配置优先）
-const isWallpaperSwitchable = dynamicSettings.wallpaper_switchable ?? siteConfig.backgroundWallpaper.switchable ?? true;
+const isWallpaperSwitchable =
+	dynamicSettings.wallpaper_switchable ??
+	backgroundWallpaper.switchable ??
+	true;
 
 // 检查是否允许切换布局（动态配置优先）
 const allowLayoutSwitch = dynamicSettings.post_allow_switch_layout ?? siteConfig.postListLayout?.allowSwitch ?? true;
@@ -50,11 +53,17 @@ const navbarTransparentMode =
 	backgroundWallpaper.banner?.navbar?.transparentMode || "semi";
 
 // 获取导航栏标题：brand_navbar_title 优先（如果有设置），否则使用 site_title
-const navbarTitle = dynamicSettings.brand_navbar_title || dynamicSettings.site_title || siteConfig.navbarTitle || siteConfig.title;
+const navbarTitle =
+	dynamicSettings.brand_navbar_title ||
+	dynamicSettings.site_title ||
+	siteConfig.navbar?.title ||
+	siteConfig.title;
 
 // 获取导航栏 Logo 配置，动态配置优先
-const navbarLogoType = dynamicSettings.brand_logo_type || siteConfig.navbarLogo?.type || "icon";
-const navbarLogoValue = dynamicSettings.brand_logo || siteConfig.navbarLogo?.value || "";
+const navbarLogoType =
+	dynamicSettings.brand_logo_type || siteConfig.navbar?.logo?.type || "icon";
+const navbarLogoValue =
+	dynamicSettings.brand_logo || siteConfig.navbar?.logo?.value || "";
 
 // 导航栏是否跟随主题色（动态配置优先）
 const navbarFollowTheme = dynamicSettings.brand_navbar_follow_theme ?? siteConfig.navbar?.followTheme ?? false;

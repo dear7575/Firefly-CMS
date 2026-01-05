@@ -1,5 +1,5 @@
 ---
-import {siteConfig} from "@/config";
+import {backgroundWallpaper, siteConfig} from "@/config";
 import "@/styles/layout-styles.css";
 import {ClientRouter} from 'astro:transitions';
 import "@/styles/waves.css";
@@ -29,7 +29,11 @@ try {
 }
 
 // 获取站点标题（动态配置优先）
-const adminSiteTitle = dynamicSettings.brand_navbar_title || dynamicSettings.site_title || siteConfig.navbarTitle || siteConfig.title;
+const adminSiteTitle =
+    dynamicSettings.brand_navbar_title ||
+    dynamicSettings.site_title ||
+    siteConfig.navbar?.title ||
+    siteConfig.title;
 
 // 处理页面标题：将静态的 siteConfig.title 替换为动态标题
 const pageTitle = title.replace(siteConfig.title, adminSiteTitle).replace('Firefly', adminSiteTitle);
@@ -47,10 +51,10 @@ const PUBLIC_API_URL = import.meta.env.PUBLIC_API_URL;
 const backgroundImages = getBackgroundImages();
 
 // 获取波浪效果配置
-const wavesConfig = siteConfig.backgroundWallpaper.banner?.waves?.enable;
+const wavesConfig = backgroundWallpaper.banner?.waves?.enable;
 const wavesEnabledOnDesktop = typeof wavesConfig === "object" ? wavesConfig.desktop : wavesConfig;
 const wavesEnabledOnMobile = typeof wavesConfig === "object" ? wavesConfig.mobile : wavesConfig;
-const performanceConfig = siteConfig.backgroundWallpaper.banner?.waves?.performance;
+const performanceConfig = backgroundWallpaper.banner?.waves?.performance;
 const waveQuality = performanceConfig?.quality || "high";
 const hardwareAcceleration = performanceConfig?.hardwareAcceleration ?? true;
 
@@ -1234,14 +1238,14 @@ const adminMenuIcons = Object.fromEntries(
                         alt="Mobile background"
                         class="block lg:hidden object-cover h-full w-full"
                         src={typeof backgroundImages.mobile === 'string' ? backgroundImages.mobile : (typeof backgroundImages.desktop === 'string' ? backgroundImages.desktop : '')}
-                        position={siteConfig.backgroundWallpaper.banner?.position}
+                        position={backgroundWallpaper.banner?.position}
                 />
                 <!-- Desktop background -->
                 <ImageWrapper
                         alt="Desktop background"
                         class="hidden lg:block object-cover h-full w-full"
                         src={typeof backgroundImages.desktop === 'string' ? backgroundImages.desktop : (typeof backgroundImages.mobile === 'string' ? backgroundImages.mobile : '')}
-                        position={siteConfig.backgroundWallpaper.banner?.position}
+                        position={backgroundWallpaper.banner?.position}
                 />
                 <!-- 暗色遮罩层 -->
                 <div class="absolute inset-0 bg-black/30 dark:bg-black/50"></div>

@@ -349,7 +349,7 @@ INSERT INTO `site_settings` VALUES ('4b0569c6-2469-4a9f-b14b-bbb731c50343', 'sit
 INSERT INTO `site_settings` VALUES ('4beded86-68ba-4efc-bf2c-dc8fb4d1c9f0', 'banner_credit_mobile_text', 'Pixiv - KiraraShss', 'string', 'banner', '移动端来源文本', '移动端图片来源文本', 87, '2025-12-26 02:02:09');
 INSERT INTO `site_settings` VALUES ('4f11164a-7af8-44bb-b909-682426888a49', 'brand_favicon', '/assets/images/favicon.ico', 'string', 'brand', '网站图标', '浏览器标签页图标', 98, '2025-12-26 02:02:09');
 INSERT INTO `site_settings` VALUES ('50521eb4-5fc3-466a-a590-504597df55c3', 'site_url', 'https://firefly.cuteleaf.cn', 'string', 'basic', '站点URL', '网站的完整URL地址', 98, '2025-12-26 02:02:09');
-INSERT INTO `site_settings` VALUES ('67e0c4e2-bb1c-40d9-af7a-d335a95a268e', 'wallpaper_mobile', '/assets/images/m3.webp', 'string', 'wallpaper', '移动壁纸', '移动端背景图片', 97, '2025-12-26 02:02:09');
+INSERT INTO `site_settings` VALUES ('67e0c4e2-bb1c-40d9-af7a-d335a95a268e', 'wallpaper_mobile', '/assets/images/m1.webp', 'string', 'wallpaper', '移动壁纸', '移动端背景图片', 97, '2025-12-26 02:02:09');
 INSERT INTO `site_settings` VALUES ('6e9ae577-bd02-4a8c-ac78-e5e7f4a58374', 'bangumi_user_id', '1163581', 'string', 'bangumi', 'Bangumi用户ID', 'Bangumi用户ID', 100, '2025-12-26 02:02:09');
 INSERT INTO `site_settings` VALUES ('72e09a1b-9f5a-4884-bfe4-680ceee921c7', 'wallpaper_desktop', '/assets/images/d1.webp', 'string', 'wallpaper', '桌面壁纸', '桌面端背景图片', 98, '2025-12-26 02:02:09');
 INSERT INTO `site_settings` VALUES ('8233287f-4057-4dff-8c9d-66e5497f294e', 'announcement_content', '欢迎来到我的博客！这是一则示例公告。', 'string', 'announcement', 'Content', NULL, 0, '2025-12-27 09:50:08');

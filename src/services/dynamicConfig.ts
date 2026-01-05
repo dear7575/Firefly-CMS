@@ -72,14 +72,17 @@ export async function getDynamicSiteConfig(staticConfig: any): Promise<any> {
         },
 
         // 导航栏设置
-        navbarTitle: apiSettings.brand_navbar_title || staticConfig.navbarTitle,
-        navbarLogo: apiSettings.brand_logo
-            ? {
-                type: apiSettings.brand_logo_type || 'image',
-                value: apiSettings.brand_logo,
-                alt: staticConfig.navbarLogo?.alt || 'Logo',
-            }
-            : staticConfig.navbarLogo,
+        navbar: {
+            ...staticConfig.navbar,
+            title: apiSettings.brand_navbar_title || staticConfig.navbar?.title || staticConfig.title,
+            logo: apiSettings.brand_logo
+                ? {
+                    type: apiSettings.brand_logo_type || 'image',
+                    value: apiSettings.brand_logo,
+                    alt: staticConfig.navbar?.logo?.alt || 'Logo',
+                }
+                : staticConfig.navbar?.logo,
+        },
 
         // Favicon
         favicon: apiSettings.brand_favicon
