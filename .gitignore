@@ -50,3 +50,4 @@ backend/.env
 /backend/logs/
 /.spec-workflow/
 /.playwright-mcp/
+*.pyc
