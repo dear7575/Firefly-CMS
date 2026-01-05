@@ -691,6 +691,19 @@ function disableAnimation() {
       return null;
     }
 
+    const messages = {
+      required:
+        overlay.dataset.msgRequired || "Please enter a password",
+      invalid:
+        overlay.dataset.msgInvalid || "Incorrect password",
+      verifyFailed:
+        overlay.dataset.msgVerifyFailed ||
+        "Failed to verify password. Please try again later.",
+      error:
+        overlay.dataset.msgError ||
+        "An error occurred. Please try again later.",
+    };
+
     return {
       overlay,
       postContainer,
@@ -699,6 +712,7 @@ function disableAnimation() {
       postId,
       storageKey: `post-access-${postId}`,
       legacyKey: `post-password-${postId}`,
+      messages,
     };
   }
 
@@ -788,7 +802,7 @@ function disableAnimation() {
       const apiUrl = (window as any).API_URL;
       if (!apiUrl) {
         if (!silent) {
-          showError(context, "验证失败，请稍后再试 / Failed to verify password");
+          showError(context, context.messages.verifyFailed);
         }
         return;
       }
@@ -804,7 +818,7 @@ function disableAnimation() {
 
       if (!response.ok) {
         if (!silent) {
-          showError(context, "验证失败，请稍后再试 / Failed to verify password");
+          showError(context, context.messages.verifyFailed);
         }
         return;
       }
@@ -817,17 +831,17 @@ function disableAnimation() {
         unlockContent(context);
       } else if (data?.valid === false) {
         if (!silent) {
-          showError(context, "密码错误 / Incorrect password");
+          showError(context, context.messages.invalid);
         }
         localStorage.removeItem(context.storageKey);
         localStorage.removeItem(context.legacyKey);
       } else if (!silent) {
-        showError(context, "验证失败，请稍后再试 / Failed to verify password");
+        showError(context, context.messages.verifyFailed);
       }
     } catch (err) {
       console.error("Password validation error:", err);
       if (!silent) {
-        showError(context, "发生错误，请稍后再试 / An error occurred");
+        showError(context, context.messages.error);
       }
     }
   }
@@ -854,7 +868,7 @@ function disableAnimation() {
 
     const password = context.passwordInput.value;
     if (!password) {
-      showError(context, "请输入密码 / Please enter a password");
+      showError(context, context.messages.required);
       return;
     }
 

@@ -258,6 +258,10 @@ const jsonLd = {
         <div
           id="password-overlay"
           data-post-id={postId}
+          data-msg-required={i18n(I18nKey.postPasswordRequired)}
+          data-msg-invalid={i18n(I18nKey.postPasswordInvalid)}
+          data-msg-verify-failed={i18n(I18nKey.postPasswordVerifyFailed)}
+          data-msg-error={i18n(I18nKey.postPasswordError)}
           class="absolute inset-0 z-50 bg-white/95 dark:bg-black/95 backdrop-blur-md flex items-center justify-center"
         >
           <div class="card-base p-8 max-w-md w-full mx-4">
@@ -276,10 +280,10 @@ const jsonLd = {
                 </svg>
               </div>
               <h2 class="text-2xl font-bold text-black/90 dark:text-white/90 mb-2">
-                受保护的帖子
+                {i18n(I18nKey.postPasswordTitle)}
               </h2>
               <p class="text-sm text-black/60 dark:text-white/60">
-                请输入密码才能查看此内容
+                {i18n(I18nKey.postPasswordDescription)}
               </p>
             </div>
             <div id="password-form" class="space-y-4">
@@ -287,7 +291,7 @@ const jsonLd = {
                 <input
                   type="password"
                   id="post-password"
-                  placeholder="密码 / Password"
+                  placeholder={i18n(I18nKey.postPasswordPlaceholder)}
                   class="w-full px-4 py-3 rounded-lg border border-black/10 dark:border-white/10 bg-white dark:bg-black/50 text-black/90 dark:text-white/90 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all"
                   autocomplete="off"
                 />
@@ -298,7 +302,7 @@ const jsonLd = {
                 id="password-submit"
                 class="w-full px-6 py-3 bg-[var(--primary)] text-white dark:text-black/70 rounded-lg font-medium hover:opacity-90 active:scale-95 transition-all"
               >
-                解锁
+                {i18n(I18nKey.postPasswordUnlock)}
               </button>
             </div>
           </div>
@@ -583,337 +587,11 @@ const jsonLd = {
   <Comment post={entry} />
 </MainGridLayout>
 
-<script>
-  const PASSWORD_TTL_MS = 24 * 60 * 60 * 1000;
-
-  function getPasswordContext() {
-    const overlay = document.getElementById("password-overlay");
-    const postContainer = document.getElementById("post-container");
-    const errorDiv = document.getElementById("password-error");
-    const passwordInput = document.getElementById("post-password");
-
-    if (!overlay || !passwordInput) {
-      return null;
-    }
-
-    const postId = overlay.dataset.postId;
-    if (!postId) {
-      return null;
-    }
-
-    return {
-      overlay,
-      postContainer,
-      errorDiv,
-      passwordInput,
-      postId,
-      storageKey: `post-access-${postId}`,
-      legacyKey: `post-password-${postId}`,
-    };
-  }
-
-  function readStoredAccess(context) {
-    try {
-      const raw = localStorage.getItem(context.storageKey);
-      if (raw) {
-        const payload = JSON.parse(raw);
-        if (payload && typeof payload === "object") {
-          const verified = payload.verified === true;
-          const expiresAt = Number(payload.expiresAt);
-          if (verified && expiresAt && Date.now() <= expiresAt) {
-            return true;
-          }
-        }
-        localStorage.removeItem(context.storageKey);
-      }
-
-      const legacyRaw = localStorage.getItem(context.legacyKey);
-      if (!legacyRaw) {
-        return false;
-      }
-      const legacyPayload = JSON.parse(legacyRaw);
-      if (!legacyPayload || typeof legacyPayload !== "object") {
-        localStorage.removeItem(context.legacyKey);
-        return false;
-      }
-      const expiresAt = Number(legacyPayload.expiresAt);
-      if (!expiresAt || Date.now() > expiresAt) {
-        localStorage.removeItem(context.legacyKey);
-        return false;
-      }
-      storeAccess(context);
-      localStorage.removeItem(context.legacyKey);
-      return true;
-    } catch (err) {
-      localStorage.removeItem(context.storageKey);
-      localStorage.removeItem(context.legacyKey);
-      return false;
-    }
-  }
-
-  function storeAccess(context) {
-    const expiresAt = Date.now() + PASSWORD_TTL_MS;
-    localStorage.setItem(
-      context.storageKey,
-      JSON.stringify({ verified: true, expiresAt }),
-    );
-  }
-
-  function unlockContent(context) {
-    context.overlay?.classList.add("opacity-0", "pointer-events-none");
-    context.postContainer?.classList.remove("blur-sm", "pointer-events-none");
-    setTimeout(() => context.overlay?.remove(), 300);
-  }
-
-  function showError(context, message) {
-    if (context.errorDiv) {
-      context.errorDiv.textContent = message;
-      context.errorDiv.classList.remove("hidden");
-      setTimeout(() => context.errorDiv.classList.add("hidden"), 3000);
-    }
-  }
-
-  async function validatePassword(context, password, silent) {
-    try {
-      const response = await fetch(
-        `${(window as any).API_URL}/posts/${context.postId}/verify-password`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ password }),
-        },
-      );
-
-      if (!response.ok) {
-        if (!silent) showError(context, "验证失败，请稍后再试 / Failed to verify password");
-        return;
-      }
-
-      const payload = await response.json();
-      const data = payload && payload.data !== undefined ? payload.data : payload;
-
-      if (data?.valid === true) {
-        storeAccess(context);
-        unlockContent(context);
-      } else if (data?.valid === false) {
-        if (!silent) showError(context, "密码错误 / Incorrect password");
-        localStorage.removeItem(context.storageKey);
-        localStorage.removeItem(context.legacyKey);
-      } else if (!silent) {
-        showError(context, "验证失败，请稍后再试 / Failed to verify password");
-      }
-    } catch (err) {
-      console.error("Password validation error:", err);
-      if (!silent) showError(context, "发生错误，请稍后再试 / An error occurred");
-    }
-  }
-
-  function initPasswordOverlay() {
-    const context = getPasswordContext();
-    if (!context) {
-      return;
-    }
-    if (readStoredAccess(context)) {
-      unlockContent(context);
-    }
-  }
-
-  function handlePasswordSubmit(event) {
-    const context = getPasswordContext();
-    if (!context) {
-      return;
-    }
-
-    event.preventDefault();
-    event.stopPropagation();
-
-    const password = context.passwordInput.value;
-    if (!password) {
-      showError(context, "请输入密码 / Please enter a password");
-      return;
-    }
-
-    validatePassword(context, password, false);
-  }
-
-  function getEventElement(target) {
-    if (!target) {
-      return null;
-    }
-    if (target.nodeType === 3) {
-      return target.parentElement;
-    }
-    return target;
-  }
-
-  document.addEventListener("astro:page-load", initPasswordOverlay);
-  if (document.readyState === "complete" || document.readyState === "interactive") {
-    initPasswordOverlay();
-  } else {
-    document.addEventListener("DOMContentLoaded", initPasswordOverlay);
-  }
-
-  if (!window.__passwordOverlayHandlersBound) {
-    window.__passwordOverlayHandlersBound = true;
-
-    document.addEventListener(
-      "click",
-      (event) => {
-        const target = getEventElement(event.target);
-        if (target && target.closest && target.closest("#password-submit")) {
-          handlePasswordSubmit(event);
-        }
-      },
-      true,
-    );
-
-    document.addEventListener(
-      "keydown",
-      (event) => {
-        if (event.key !== "Enter") {
-          return;
-        }
-        const target = getEventElement(event.target);
-        if (target && target.id === "post-password") {
-          handlePasswordSubmit(event);
-        }
-      },
-      true,
-    );
-  }
-</script>
-
 <style>
   #password-overlay {
     transition: opacity 0.3s ease;
   }
 </style>
-
-<script>
-  // 动态代码块复制按钮事件
-  function initDynamicCodeCopy() {
-    document.querySelectorAll('.expressive-code-dynamic .copy-btn').forEach(btn => {
-      // 避免重复绑定
-      if (btn.dataset.copyBound) return;
-      btn.dataset.copyBound = 'true';
-
-      btn.addEventListener('click', async function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-
-        const figure = this.closest('.expressive-code-dynamic');
-        const codeEl = figure?.querySelector('code');
-
-        if (codeEl) {
-          const code = codeEl.textContent || '';
-
-          try {
-            // 优先使用 clipboard API
-            if (navigator.clipboard && window.isSecureContext) {
-              await navigator.clipboard.writeText(code);
-            } else {
-              // fallback: 使用 textarea
-              const textarea = document.createElement('textarea');
-              textarea.value = code;
-              textarea.style.position = 'fixed';
-              textarea.style.left = '-9999px';
-              document.body.appendChild(textarea);
-              textarea.select();
-              document.execCommand('copy');
-              document.body.removeChild(textarea);
-            }
-
-            // 切换图标 - 使用 success 类（与静态页面一致）
-            this.classList.add('success');
-
-            setTimeout(() => {
-              this.classList.remove('success');
-            }, 2000);
-          } catch (err) {
-            console.error('复制失败:', err);
-            // 最后的 fallback
-            const textarea = document.createElement('textarea');
-            textarea.value = code;
-            textarea.style.position = 'fixed';
-            textarea.style.left = '-9999px';
-            document.body.appendChild(textarea);
-            textarea.select();
-            try {
-              document.execCommand('copy');
-              this.classList.add('success');
-              setTimeout(() => {
-                this.classList.remove('success');
-              }, 2000);
-            } catch (e2) {
-              console.error('execCommand 复制也失败:', e2);
-            }
-            document.body.removeChild(textarea);
-          }
-        }
-      });
-    });
-  }
-
-  // 页面加载时初始化
-  document.addEventListener('astro:page-load', initDynamicCodeCopy);
-  // 首次加载也执行
-  if (document.readyState === 'complete') {
-    initDynamicCodeCopy();
-  } else {
-    document.addEventListener('DOMContentLoaded', initDynamicCodeCopy);
-  }
-</script>
-
-<script>
-  function loadHighlightScript() {
-    if (window.hljs) {
-      return Promise.resolve(window.hljs);
-    }
-
-    const existing = document.querySelector('script[data-hljs-script="true"]');
-    if (existing) {
-      return new Promise((resolve, reject) => {
-        existing.addEventListener('load', () => resolve(window.hljs));
-        existing.addEventListener('error', () => reject(new Error('highlight.js 加载失败')));
-      });
-    }
-
-    return new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      script.src = '/assets/js/highlight.min.js';
-      script.async = true;
-      script.dataset.hljsScript = 'true';
-      script.onload = () => resolve(window.hljs);
-      script.onerror = () => reject(new Error('highlight.js 加载失败'));
-      document.head.appendChild(script);
-    });
-  }
-
-  function highlightDynamicBlocks() {
-    const blocks = document.querySelectorAll('.expressive-code-dynamic pre code');
-    if (!blocks.length) return;
-
-    loadHighlightScript()
-      .then((hljs) => {
-        if (!hljs || !hljs.highlightElement) return;
-        blocks.forEach((block) => {
-          if (block.dataset.hljsApplied) return;
-          hljs.highlightElement(block);
-          block.dataset.hljsApplied = 'true';
-        });
-      })
-      .catch((err) => {
-        console.warn('语法高亮加载失败', err);
-      });
-  }
-
-  document.addEventListener('astro:page-load', highlightDynamicBlocks);
-  if (document.readyState === 'complete') {
-    highlightDynamicBlocks();
-  } else {
-    document.addEventListener('DOMContentLoaded', highlightDynamicBlocks);
-  }
-</script>
 
 <script is:inline define:vars={{ analyticsPostId: postId, analyticsPostSlug: slug }}>
 document.addEventListener('astro:page-load', function() {
