@@ -50,7 +50,7 @@ export default defineConfig({
             animationClass: "transition-swup-", // see https://swup.js.org/options/#animationselector
             // the default value `transition-` cause transition delay
             // when the Tailwind class `transition-all` is used
-            containers: ["main"],
+            containers: ["main", "#right-sidebar-dynamic", "#floating-toc-wrapper"],
             smoothScrolling: false,
             cache: true,
             preload: false,
@@ -70,7 +70,16 @@ export default defineConfig({
                 return event.state && event.state.url && event.state.url.includes("#");
             },
         }),
-        icon(),
+        icon({
+            include: {
+                "fa6-brands": ["*"],
+                "fa6-regular": ["*"],
+                "fa6-solid": ["*"],
+                "material-symbols": ["*"],
+                "simple-icons": ["*"],
+                mdi: ["*"],
+            },
+        }),
         expressiveCode({
             themes: [expressiveCodeConfig.darkTheme, expressiveCodeConfig.lightTheme],
             useDarkModeMediaQuery: false,

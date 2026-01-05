@@ -203,8 +203,8 @@ export const zh_CN: Translation = {
     [Key.sponsorButtonText]:
         "如果这篇文章对你有帮助，欢迎分享给更多人或赞助支持！",
 
-    [Key.shareOnSocial]: "分享",
-    [Key.shareOnSocialDescription]: "如果这篇文章对你有帮助，欢迎分享给更多人！",
+	[Key.shareOnSocial]: "文章分享",
+	[Key.shareOnSocialDescription]: "如果这篇文章对你有帮助，欢迎分享给更多人！",
 
 	// 站点统计
 	[Key.siteStats]: "站点统计",
