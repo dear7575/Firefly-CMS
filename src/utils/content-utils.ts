@@ -12,12 +12,17 @@ async function getRawSortedPosts() {
 
 	// Fetch dynamic posts from backend API if available
 	let dynamicPosts: any[] = [];
+	const apiUrl = getApiUrl();
 	try {
-		const API_URL = getApiUrl();
-		const res = await fetch(`${API_URL}/posts/?all=true`);
+		console.log(`[SSR] Fetching dynamic posts from: ${apiUrl}/posts?all=true`);
+		const res = await fetch(`${apiUrl}/posts?all=true`);
 		if (res.ok) {
 			const data = await res.json();
-			dynamicPosts = data
+			// API 返回的是包含 _pagination 的对象或者是数组，这里根据 get_posts 的返回进行处理
+			// main.py 中 get_posts 返回的是 List[dict]，每个 dict 包含 _pagination
+			const postsArray = Array.isArray(data) ? data : (data.items || []);
+
+			dynamicPosts = postsArray
 				.map((p: any) => ({
 					id: `dynamic-${p.slug}`,  // 使用 dynamic-slug 格式，以便与前端路由匹配
 					data: {
@@ -32,11 +37,13 @@ async function getRawSortedPosts() {
 						pinned: p.pinned || false,
 						pin_order: p.pin_order || 0,
 						has_password: p.has_password,
+						dbId: p.id,
 					},
 				}))
 				.filter((p: any) => (import.meta.env.PROD ? p.data.draft !== true : true));
 		}
-	} catch {
+	} catch (err) {
+		console.error(`[SSR] Error fetching dynamic posts from ${apiUrl}:`, err);
 		// 静默处理 API 错误，使用静态文章
 	}
 
