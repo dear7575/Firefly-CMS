@@ -73,7 +73,7 @@ const groupIcons: Record<string, string> = {
             <div class="flex items-center gap-3 flex-shrink-0">
                 <button
                     id="initSettingsBtn"
-                    class="bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 px-4 py-2.5 rounded-xl font-medium transition-all flex items-center gap-2 border border-zinc-200 dark:border-zinc-700"
+                    class="bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-sm text-zinc-700 dark:text-zinc-300 px-4 py-2.5 rounded-xl font-medium transition-all flex items-center gap-2 border border-zinc-200 dark:border-zinc-800"
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -117,7 +117,7 @@ const groupIcons: Record<string, string> = {
             <div id="groupTabs" class="flex gap-2 min-w-max">
                 <button
                     data-group="all"
-                    class="group-tab active px-4 py-2 rounded-lg text-sm font-medium transition-all bg-[var(--primary)] dark:bg-zinc-800 text-white dark:text-zinc-100 dark:border dark:border-indigo-500/50 dark:shadow-[0_0_15px_rgba(99,102,241,0.3)]"
+                    class="group-tab active px-4 py-2 rounded-lg text-sm font-medium transition-all bg-[var(--primary)] dark:bg-zinc-800 text-white dark:text-zinc-100 border border-transparent dark:border-indigo-500/50 dark:shadow-[0_0_15px_rgba(99,102,241,0.3)]"
                 >
                     {i18n(I18nKey.bangumiFilterAll)}
                 </button>
@@ -655,8 +655,8 @@ const groupIcons: Record<string, string> = {
                                 : GROUP_LABELS[group] || group;
                         var isActive = currentGroup === group;
                         var activeClass = isActive
-                            ? "bg-[var(--primary)] dark:bg-zinc-800 text-white dark:text-zinc-100 dark:border dark:border-indigo-500/50 dark:shadow-[0_0_15px_rgba(99,102,241,0.3)]"
-                            : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700";
+                            ? "bg-[var(--primary)] dark:bg-zinc-800 text-white dark:text-zinc-100 border border-transparent dark:border-indigo-500/50 dark:shadow-[0_0_15px_rgba(99,102,241,0.3)]"
+                            : "bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-sm";
                         return (
                             '<button data-group="' +
                             group +

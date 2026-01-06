@@ -179,7 +179,7 @@ const adminMenuIcons = Object.fromEntries(
 <html
         lang="en"
         class="text-zinc-900 dark:text-zinc-100"
-        style={`--configHue: ${configHue}; --hue: ${configHue}; --primary: oklch(0.70 0.14 ${configHue}); --primary-light: oklch(0.75 0.14 ${configHue}); --primary-dark: oklch(0.65 0.14 ${configHue}); --page-bg: oklch(0.95 0.01 ${configHue}); --page-bg-dark: oklch(0.16 0.014 ${configHue}); --card-bg: white; --card-bg-dark: oklch(0.23 0.015 ${configHue}); --btn-bg: oklch(0.95 0.025 ${configHue}); --btn-bg-hover: oklch(0.9 0.05 ${configHue}); --btn-bg-dark: oklch(0.33 0.035 ${configHue}); --btn-bg-hover-dark: oklch(0.38 0.04 ${configHue}); --sidebar-bg: oklch(0.98 0.008 ${configHue}); --sidebar-bg-dark: oklch(0.18 0.012 ${configHue}); --primary-rgb: 79, 70, 229;`}
+        style={`--configHue: ${configHue}; --hue: ${configHue}; --primary: oklch(0.70 0.14 ${configHue}); --primary-light: oklch(0.75 0.14 ${configHue}); --primary-dark: oklch(0.65 0.14 ${configHue}); --page-bg: oklch(0.97 0.012 ${configHue}); --page-bg-dark: oklch(0.16 0.015 ${configHue}); --card-bg: white; --card-bg-dark: oklch(0.23 0.015 ${configHue}); --btn-bg: oklch(0.95 0.025 ${configHue}); --btn-bg-hover: oklch(0.9 0.05 ${configHue}); --btn-bg-dark: oklch(0.33 0.035 ${configHue}); --btn-bg-hover-dark: oklch(0.38 0.04 ${configHue}); --sidebar-bg: oklch(0.98 0.008 ${configHue}); --sidebar-bg-dark: oklch(0.18 0.012 ${configHue}); --primary-rgb: 79, 70, 229;`}
 >
 <head>
     <ClientRouter/>
@@ -390,6 +390,28 @@ const adminMenuIcons = Object.fromEntries(
             border: 1px solid transparent;
             background: transparent;
             transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .admin-tab-pill::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(135deg, transparent 0%, oklch(0.9 0.05 var(--hue)) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .dark .admin-tab-pill::before {
+            background: linear-gradient(135deg, transparent 0%, oklch(0.3 0.04 var(--hue)) 100%);
+        }
+
+        .admin-tab-pill > * {
+            position: relative;
+            z-index: 1;
         }
 
         .admin-tab-trigger {
@@ -409,22 +431,79 @@ const adminMenuIcons = Object.fromEntries(
             color: oklch(0.83 0.01 var(--hue));
         }
 
-        .admin-tab-pill:hover {
-            border-color: rgba(15, 23, 42, 0.2);
-            background: rgba(15, 23, 42, 0.06);
+        .admin-tab-pill:not(.admin-tab-pill-active):hover {
+            background: oklch(0.97 0.01 var(--hue));
             color: oklch(0.32 0.01 var(--hue));
         }
 
-        .dark .admin-tab-pill:hover {
-            border-color: rgba(255, 255, 255, 0.15);
-            background: rgba(255, 255, 255, 0.08);
+        .dark .admin-tab-pill:not(.admin-tab-pill-active):hover {
+            background: oklch(0.25 0.02 var(--hue));
             color: oklch(0.95 0.02 var(--hue));
+        }
+
+        .admin-tab-pill:hover::before {
+            opacity: 1;
+        }
+
+        .admin-tab-pill-active::before {
+            opacity: 0;
+        }
+
+        .admin-tab-pill-active:hover::before {
+            opacity: 1;
         }
 
         .admin-tab-pill-active {
             color: #fff;
             background: linear-gradient(120deg, oklch(0.69 0.14 var(--hue)) 0%, oklch(0.62 0.13 var(--hue)) 100%);
             box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+        }
+
+        button:not(.admin-tab-trigger):not(.admin-tab-close) {
+            position: relative;
+            overflow: hidden;
+        }
+
+        button:not(.admin-tab-trigger):not(.admin-tab-close)::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(135deg, transparent 0%, oklch(0.9 0.05 var(--hue)) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .dark button:not(.admin-tab-trigger):not(.admin-tab-close)::before {
+            background: linear-gradient(135deg, transparent 0%, oklch(0.3 0.04 var(--hue)) 100%);
+        }
+
+        button:not(.admin-tab-trigger):not(.admin-tab-close):hover::before {
+            opacity: 1;
+        }
+
+        button[class*="bg-red"]:not(.admin-tab-trigger):not(.admin-tab-close)::before {
+            opacity: 0;
+        }
+
+        button:not(.admin-tab-trigger):not(.admin-tab-close) {
+            translate: 0 0;
+            transition: translate 0.2s ease, filter 0.2s ease;
+        }
+
+        button:not(.admin-tab-trigger):not(.admin-tab-close):hover {
+            translate: 0 -1px;
+            filter: drop-shadow(0 8px 16px rgba(15, 23, 42, 0.12));
+        }
+
+        .dark button:not(.admin-tab-trigger):not(.admin-tab-close):hover {
+            filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.35));
+        }
+
+        button:not(.admin-tab-trigger):not(.admin-tab-close):active {
+            translate: 0 0;
+            filter: none;
         }
 
         .admin-tab-pill-icon {
@@ -2202,6 +2281,14 @@ const adminMenuIcons = Object.fromEntries(
                 document.documentElement.style.setProperty('--primary', `oklch(0.70 0.14 ${val})`);
                 document.documentElement.style.setProperty('--primary-light', `oklch(0.75 0.14 ${val})`);
                 document.documentElement.style.setProperty('--primary-dark', `oklch(0.65 0.14 ${val})`);
+                document.documentElement.style.setProperty('--page-bg', `oklch(0.97 0.012 ${val})`);
+                document.documentElement.style.setProperty('--page-bg-dark', `oklch(0.16 0.015 ${val})`);
+                document.documentElement.style.setProperty('--sidebar-bg', `oklch(0.98 0.008 ${val})`);
+                document.documentElement.style.setProperty('--sidebar-bg-dark', `oklch(0.18 0.012 ${val})`);
+                document.documentElement.style.setProperty('--btn-bg', `oklch(0.95 0.025 ${val})`);
+                document.documentElement.style.setProperty('--btn-bg-hover', `oklch(0.9 0.05 ${val})`);
+                document.documentElement.style.setProperty('--btn-bg-dark', `oklch(0.33 0.035 ${val})`);
+                document.documentElement.style.setProperty('--btn-bg-hover-dark', `oklch(0.38 0.04 ${val})`);
             }
 
             var timeout;
@@ -2241,7 +2328,7 @@ const adminMenuIcons = Object.fromEntries(
 
             if (resetBtn) {
                 resetBtn.addEventListener('click', function () {
-                    var val = 200;
+                    var val = 165;
                     if (slider) {
                         slider.value = val;
                         updateThumb(val);

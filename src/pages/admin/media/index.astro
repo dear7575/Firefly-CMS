@@ -19,18 +19,18 @@ import { siteConfig } from "@/config";
                 </label>
             </div>
             <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap justify-end">
-                <button id="toggleSidebarBtn" class="lg:hidden px-3 py-2 text-sm sm:py-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all" title="切换侧边栏">
+                <button id="toggleSidebarBtn" class="lg:hidden px-3 py-2 text-sm sm:py-2.5 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-sm transition-all" title="切换侧边栏">
                     <svg class="w-5 h-5 text-zinc-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
-                <button id="createFolderBtn" class="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-sm bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
+                <button id="createFolderBtn" class="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-sm transition-all flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
                     新建文件夹
                 </button>
-                <button id="toggleViewBtn" class="px-3 py-2 text-sm sm:py-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all" title="切换视图">
+                <button id="toggleViewBtn" class="px-3 py-2 text-sm sm:py-2.5 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-sm transition-all" title="切换视图">
                     <svg id="gridIcon" class="w-5 h-5 text-zinc-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
                     <svg id="listIcon" class="w-5 h-5 text-zinc-600 dark:text-zinc-400 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
-                <button id="openMetadataBtn" class="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-sm bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
+                <button id="openMetadataBtn" class="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-sm transition-all flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16.5V7a2 2 0 012-2h1m13 7.5V17a2 2 0 01-2 2h-1M9 5h6m-6 0a2 2 0 012-2h2a2 2 0 012 2m-6 0v14m6-14v14"/></svg>
                     媒体库
                 </button>
