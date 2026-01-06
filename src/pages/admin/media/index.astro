@@ -5,39 +5,45 @@ import { siteConfig } from "@/config";
 ---
 
 <AdminLayout title={`文件管理 - ${siteConfig.title}`} activeMenu="media">
-    <div class="p-6 lg:p-8 animate-fade-in-up">
+    <div class="p-4 sm:p-6 lg:p-8 animate-fade-in-up">
         <!-- 头部 -->
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-            <div>
-                <h1 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">文件管理</h1>
-                <p class="text-sm text-zinc-500 mt-1">管理上传的图片和文件</p>
+        <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-start sm:justify-between">
+            <div class="flex items-start justify-between gap-3 sm:block sm:min-w-0">
+                <div class="min-w-0">
+                    <h1 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">文件管理</h1>
+                    <p class="text-sm text-zinc-500 mt-1">管理上传的图片和文件</p>
+                </div>
+                <label for="fileInput" class="sm:hidden bg-[var(--primary)] dark:bg-zinc-800 hover:opacity-90 dark:hover:bg-zinc-700 text-white dark:text-zinc-100 px-6 py-2.5 rounded-xl font-medium transition-all shadow-lg hover:shadow-xl active:scale-95 cursor-pointer flex items-center gap-2 dark:border dark:border-indigo-500/50 dark:shadow-[0_0_15px_rgba(99,102,241,0.3)] flex-shrink-0">
+                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
+                    上传 文件
+                </label>
             </div>
-            <div class="flex gap-2">
-                <button id="toggleSidebarBtn" class="lg:hidden px-3 py-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all" title="切换侧边栏">
+            <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap justify-end">
+                <button id="toggleSidebarBtn" class="lg:hidden px-3 py-2 text-sm sm:py-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all" title="切换侧边栏">
                     <svg class="w-5 h-5 text-zinc-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
-                <button id="createFolderBtn" class="px-4 py-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
+                <button id="createFolderBtn" class="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-sm bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
                     新建文件夹
                 </button>
-                <button id="toggleViewBtn" class="px-3 py-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all" title="切换视图">
+                <button id="toggleViewBtn" class="px-3 py-2 text-sm sm:py-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all" title="切换视图">
                     <svg id="gridIcon" class="w-5 h-5 text-zinc-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
                     <svg id="listIcon" class="w-5 h-5 text-zinc-600 dark:text-zinc-400 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
-                <button id="openMetadataBtn" class="px-4 py-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-all flex items-center gap-2 text-indigo-600 dark:text-indigo-200 border border-indigo-100 dark:border-indigo-900/60">
+                <button id="openMetadataBtn" class="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-sm bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16.5V7a2 2 0 012-2h1m13 7.5V17a2 2 0 01-2 2h-1M9 5h6m-6 0a2 2 0 012-2h2a2 2 0 012 2m-6 0v14m6-14v14"/></svg>
                     媒体库
                 </button>
-                <label class="bg-[var(--primary)] dark:bg-zinc-800 hover:opacity-90 dark:hover:bg-zinc-700 text-white dark:text-zinc-100 px-6 py-2.5 rounded-xl font-medium transition-all shadow-lg hover:shadow-xl active:scale-95 cursor-pointer flex items-center gap-2 dark:border dark:border-[var(--primary)]/50">
+                <label for="fileInput" class="hidden sm:inline-flex bg-[var(--primary)] dark:bg-zinc-800 hover:opacity-90 dark:hover:bg-zinc-700 text-white dark:text-zinc-100 px-6 py-2.5 rounded-xl font-medium transition-all shadow-lg hover:shadow-xl active:scale-95 cursor-pointer items-center gap-2 dark:border dark:border-indigo-500/50 dark:shadow-[0_0_15px_rgba(99,102,241,0.3)] flex-shrink-0">
                     <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
-                    上传文件
-                    <input type="file" id="fileInput" multiple accept="image/*,application/pdf,application/zip,text/plain,text/markdown,.md" class="hidden" />
+                    上传 文件
                 </label>
             </div>
         </div>
+        <input type="file" id="fileInput" multiple accept="image/*,application/pdf,application/zip,text/plain,text/markdown,.md" class="hidden" />
 
         <!-- 双栏布局 -->
-        <div class="flex gap-4">
+        <div class="flex flex-col lg:flex-row gap-4">
             <!-- 左侧目录树 -->
             <aside id="folderSidebar" class="w-80 flex-shrink-0 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden hidden lg:block">
                 <div class="p-4 border-b border-zinc-200 dark:border-zinc-800">
@@ -55,25 +61,26 @@ import { siteConfig } from "@/config";
                     </div>
                 </div>
             </aside>
+            <div id="folderSidebarBackdrop" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-30 hidden lg:hidden"></div>
 
             <!-- 右侧内容区 -->
             <div class="flex-1 min-w-0">
                 <!-- 面包屑和搜索栏 -->
-                <div class="flex items-center justify-between gap-4 mb-3">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
                     <!-- 面包屑 -->
-                    <nav id="breadcrumb" class="flex-1 flex items-center gap-1.5 text-sm bg-white dark:bg-zinc-900 px-4 h-[46px] rounded-xl border border-zinc-200 dark:border-zinc-800 min-w-0 overflow-x-auto">
+                    <nav id="breadcrumb" class="flex-1 flex items-center gap-1.5 text-sm bg-white dark:bg-zinc-900 px-3 sm:px-4 h-12 sm:h-[46px] rounded-xl border border-zinc-200 dark:border-zinc-800 min-w-0 overflow-x-auto">
                         <svg class="w-4 h-4 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                         <a href="#" class="text-zinc-700 dark:text-zinc-300 hover:text-[var(--primary)] transition-colors breadcrumb-link font-medium" data-path="">根目录</a>
                     </nav>
                     <!-- 搜索框 -->
-                    <div class="relative w-80 flex-shrink-0">
-                        <input type="text" id="searchInput" placeholder="搜索文件..." class="w-full px-4 h-[46px] pl-10 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent outline-none transition-all" />
+                    <div class="relative w-full md:w-80 flex-shrink-0">
+                        <input type="text" id="searchInput" placeholder="搜索文件..." class="w-full px-4 h-12 sm:h-[46px] pl-10 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-sm sm:text-base focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent outline-none transition-all" />
                         <svg class="w-5 h-5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                     </div>
                 </div>
 
                 <!-- 批量操作栏 -->
-                <div id="batchActions" class="hidden mb-4 p-3 bg-[color-mix(in_srgb,var(--primary)_10%,transparent)] rounded-xl border border-[var(--primary)]/30 flex items-center justify-between">
+                <div id="batchActions" class="hidden mb-4 p-3 bg-[color-mix(in_srgb,var(--primary)_10%,transparent)] rounded-xl border border-[var(--primary)]/30 flex flex-col sm:flex-row items-start sm:items-center gap-3 justify-between">
                     <span class="text-sm text-[var(--primary)]">
                         已选择 <span id="selectedCount">0</span> 个文件
                     </span>
@@ -91,8 +98,8 @@ import { siteConfig } from "@/config";
                 </div>
 
                 <!-- 拖拽上传区 -->
-                <div id="dropZone" class="mb-4 hidden border-2 border-dashed border-[var(--primary)] bg-[color-mix(in_srgb,var(--primary)_5%,transparent)] rounded-2xl p-8 text-center transition-all duration-300">
-                    <div class="w-14 h-14 mx-auto mb-3 rounded-xl bg-[var(--primary)] flex items-center justify-center">
+                <div id="dropZone" class="mb-4 hidden border-2 border-dashed border-[var(--primary)] bg-[color-mix(in_srgb,var(--primary)_5%,transparent)] rounded-2xl p-5 sm:p-8 text-center transition-all duration-300">
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-3 rounded-xl bg-[var(--primary)] flex items-center justify-center">
                         <svg class="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
                     </div>
                     <p class="text-[var(--primary)] font-medium">拖放文件到这里上传</p>
@@ -101,7 +108,7 @@ import { siteConfig } from "@/config";
 
                 <!-- 文件网格/列表 -->
                 <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
-                    <div id="mediaGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-4 p-4">
+                    <div id="mediaGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 p-3 sm:p-4">
                         <div class="col-span-full flex flex-col items-center justify-center py-16">
                             <div class="w-12 h-12 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center mb-3 animate-pulse">
                                 <svg class="w-6 h-6 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -110,7 +117,7 @@ import { siteConfig } from "@/config";
                         </div>
                     </div>
                     <!-- 统计信息 -->
-                    <div class="px-4 py-3 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between text-sm text-zinc-500">
+                    <div class="px-4 py-3 border-t border-zinc-100 dark:border-zinc-800 flex flex-col sm:flex-row items-start sm:items-center gap-1 sm:gap-2 justify-between text-sm text-zinc-500">
                         <span id="fileCount">0 项</span>
                         <span id="storageInfo"></span>
                     </div>
@@ -239,6 +246,18 @@ import { siteConfig } from "@/config";
         @apply rotate-90;
     }
 
+    #breadcrumb {
+        height: 48px;
+        min-height: 48px;
+    }
+
+    @media (min-width: 640px) {
+        #breadcrumb {
+            height: 46px;
+            min-height: 46px;
+        }
+    }
+
     /* 文件项样式 */
     .media-item, .folder-item {
         @apply relative bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 overflow-hidden transition-all duration-200 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-600 cursor-pointer;
@@ -344,7 +363,34 @@ import { siteConfig } from "@/config";
     /* 响应式侧边栏 */
     @media (max-width: 1023px) {
         #folderSidebar.mobile-open {
-            @apply fixed inset-y-0 left-0 z-40 block w-80;
+            @apply fixed inset-y-0 left-0 z-40 block w-72 rounded-r-2xl shadow-2xl;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .media-item .info, .folder-item .info {
+            padding: 0.5rem 0.75rem;
+        }
+
+        .media-item .actions, .folder-item .actions {
+            opacity: 1;
+        }
+
+        .media-item .select-checkbox {
+            opacity: 1;
+        }
+
+        .media-item .action-btn, .folder-item .action-btn {
+            padding: 0.25rem;
+            border-radius: 0.5rem;
+        }
+
+        .media-item .filename, .folder-item .filename {
+            font-size: 0.875rem;
+        }
+
+        .media-item .filesize, .folder-item .filesize {
+            font-size: 0.75rem;
         }
     }
 </style>
@@ -749,7 +795,17 @@ import { siteConfig } from "@/config";
         // 切换侧边栏（移动端）
         document.getElementById('toggleSidebarBtn')?.addEventListener('click', function() {
             var sidebar = document.getElementById('folderSidebar');
-            sidebar.classList.toggle('mobile-open');
+            var backdrop = document.getElementById('folderSidebarBackdrop');
+            var isOpen = sidebar.classList.toggle('mobile-open');
+            if (backdrop) {
+                backdrop.classList.toggle('hidden', !isOpen);
+            }
+        });
+
+        document.getElementById('folderSidebarBackdrop')?.addEventListener('click', function() {
+            var sidebar = document.getElementById('folderSidebar');
+            sidebar?.classList.remove('mobile-open');
+            this.classList.add('hidden');
         });
 
         function closeMetadataModal() {
@@ -912,10 +968,10 @@ import { siteConfig } from "@/config";
                 var html = files.map(function(file) {
                     var isImg = isImage(file.filename);
                     var thumbnail = isImg
-                        ? '<img src="' + file.url + '" alt="' + file.filename + '" loading="lazy" />'
+                        ? '<img src="' + file.url + '" alt="' + file.filename + '" loading="lazy" draggable="false" />'
                         : getFileIcon(file.filename);
 
-                    return '<div class="media-item" data-url="' + file.url + '" data-filename="' + file.filename + '">' +
+                    return '<div class="media-item" data-url="' + file.url + '" data-filename="' + file.filename + '" draggable="false">' +
                         '<div class="actions">' +
                             (isImg ? '<button class="action-btn preview-btn" title="预览"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg></button>' : '') +
                             '<button class="action-btn copy-btn" title="复制链接"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg></button>' +
@@ -967,7 +1023,7 @@ import { siteConfig } from "@/config";
                     e.stopPropagation();
                     var item = this.closest('.media-item');
                     var filename = item.dataset.filename;
-                    deleteFile(filename);
+                    deleteFile(filename, item);
                 });
             });
         }
@@ -1009,10 +1065,18 @@ import { siteConfig } from "@/config";
         }
 
         // 删除文件
-        async function deleteFile(filename) {
+        async function deleteFile(filename, item) {
             var confirmed = await window.showAdminConfirm('确定要删除 "' + filename + '" 吗？');
 
             if (!confirmed) return;
+
+            if (item) {
+                item.style.opacity = '0.5';
+                item.style.pointerEvents = 'none';
+                item.querySelectorAll('img').forEach(function(img) {
+                    img.removeAttribute('src');
+                });
+            }
 
             try {
                 var url = currentPath ? API_URL + '/upload/' + currentPath + '/' + filename : API_URL + '/upload//' + filename;
@@ -1025,13 +1089,16 @@ import { siteConfig } from "@/config";
 
                 if (result.ok) {
                     await window.showAdminAlert(result.msg || '删除成功', 'success');
+                    item?.remove();
                     loadFiles();
                 } else {
                     window.showAdminAlert(result.msg || '删除失败', 'error');
+                    loadFiles();
                 }
             } catch (err) {
                 console.error(err);
                 window.showAdminAlert('删除失败', 'error');
+                loadFiles();
             }
         }
 
@@ -1107,30 +1174,69 @@ import { siteConfig } from "@/config";
 
         // 拖拽上传
         var dropZone = document.getElementById('dropZone');
+        var dragDepth = 0;
+        var internalDrag = false;
+
+        function isFileDrag(e) {
+            var types = e.dataTransfer ? e.dataTransfer.types : null;
+            if (!types) return false;
+            return Array.prototype.indexOf.call(types, 'Files') !== -1;
+        }
+
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function(eventName) {
-            document.body.addEventListener(eventName, function(e) {
+            document.addEventListener(eventName, function(e) {
+                if (internalDrag || !isFileDrag(e)) return;
                 e.preventDefault();
                 e.stopPropagation();
             });
         });
 
-        ['dragenter', 'dragover'].forEach(function(eventName) {
-            document.body.addEventListener(eventName, function() {
-                dropZone.classList.remove('hidden');
-            });
+        document.addEventListener('dragenter', function(e) {
+            if (internalDrag || !isFileDrag(e)) return;
+            dragDepth += 1;
+            dropZone?.classList.remove('hidden');
         });
 
-        ['dragleave', 'drop'].forEach(function(eventName) {
-            document.body.addEventListener(eventName, function() {
-                dropZone.classList.add('hidden');
-            });
+        document.addEventListener('dragover', function(e) {
+            if (internalDrag || !isFileDrag(e)) return;
+            if (e.dataTransfer) {
+                e.dataTransfer.dropEffect = 'copy';
+            }
         });
 
-        document.body.addEventListener('drop', function(e) {
+        document.addEventListener('dragleave', function(e) {
+            if (internalDrag || !isFileDrag(e)) return;
+            dragDepth = Math.max(0, dragDepth - 1);
+            if (dragDepth === 0) {
+                dropZone?.classList.add('hidden');
+            }
+        });
+
+        document.addEventListener('drop', function(e) {
+            if (internalDrag || !isFileDrag(e)) {
+                internalDrag = false;
+                return;
+            }
+            dragDepth = 0;
+            dropZone?.classList.add('hidden');
+            if (e.target && e.target.closest && e.target.closest('#mediaGrid')) {
+                return;
+            }
             var files = e.dataTransfer.files;
-            if (files.length > 0) {
+            if (files && files.length > 0) {
                 uploadFiles(files);
             }
+        });
+
+        document.addEventListener('dragstart', function(e) {
+            if (e.target && e.target.closest && e.target.closest('#mediaGrid')) {
+                internalDrag = true;
+                dropZone?.classList.add('hidden');
+            }
+        });
+
+        document.addEventListener('dragend', function() {
+            internalDrag = false;
         });
 
         // 视图切换

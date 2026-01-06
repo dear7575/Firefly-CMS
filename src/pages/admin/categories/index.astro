@@ -14,9 +14,9 @@ const API_URL = getApiUrl();
 >
     <div class="p-6 lg:p-8">
         <div
-            class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6"
+            class="flex items-center justify-between gap-3 mb-6"
         >
-            <div>
+            <div class="min-w-0">
                 <h1 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
                     {i18n(I18nKey.adminCategoryManagement)}
                 </h1>
@@ -26,7 +26,7 @@ const API_URL = getApiUrl();
             </div>
             <button
                 id="addCategoryBtn"
-                class="bg-[var(--primary)] dark:bg-zinc-800 hover:opacity-90 dark:hover:bg-zinc-700 text-white dark:text-zinc-100 px-6 py-2.5 rounded-xl font-medium transition-all shadow-lg hover:shadow-xl active:scale-95 flex items-center gap-2 dark:border dark:border-indigo-500/50 dark:shadow-[0_0_15px_rgba(99,102,241,0.3)]"
+                class="bg-[var(--primary)] dark:bg-zinc-800 hover:opacity-90 dark:hover:bg-zinc-700 text-white dark:text-zinc-100 px-6 py-2.5 rounded-xl font-medium transition-all shadow-lg hover:shadow-xl active:scale-95 flex items-center gap-2 dark:border dark:border-indigo-500/50 dark:shadow-[0_0_15px_rgba(99,102,241,0.3)] flex-shrink-0"
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"

@@ -213,6 +213,7 @@ class AnnouncementConfig(BaseModel):
     title: str = Field(default="公告", description="公告标题")
     content: str = Field(..., description="公告内容")
     closable: bool = Field(default=True, description="是否可关闭")
+    image: str = Field(default="", description="公告图片URL")
     link_enable: bool = Field(default=False, description="是否启用链接")
     link_text: str = Field(default="了解更多", description="链接文本")
     link_url: str = Field(default="/about", description="链接URL")
@@ -228,6 +229,7 @@ def get_announcement_config(db: Session = Depends(get_db)):
         "announcement_title",
         "announcement_content",
         "announcement_closable",
+        "announcement_image",
         "announcement_link_enable",
         "announcement_link_text",
         "announcement_link_url",
@@ -254,6 +256,7 @@ def get_announcement_config(db: Session = Depends(get_db)):
             "title": "公告",
             "content": "欢迎来到我的博客！这是一则示例公告。",
             "closable": True,
+            "image": "",
             "link": {
                 "enable": False,
                 "text": "了解更多",
@@ -267,6 +270,7 @@ def get_announcement_config(db: Session = Depends(get_db)):
         "title": settings_map.get("title", "公告"),
         "content": settings_map.get("content", ""),
         "closable": settings_map.get("closable", True),
+        "image": settings_map.get("image", ""),
         "link": {
             "enable": settings_map.get("link_enable", False),
             "text": settings_map.get("link_text", "了解更多"),
@@ -288,6 +292,7 @@ def update_announcement_config(
         "announcement_title": (config.title, "string", "announcement"),
         "announcement_content": (config.content, "string", "announcement"),
         "announcement_closable": (str(config.closable), "boolean", "announcement"),
+        "announcement_image": (config.image, "string", "announcement"),
         "announcement_link_enable": (str(config.link_enable), "boolean", "announcement"),
         "announcement_link_text": (config.link_text, "string", "announcement"),
         "announcement_link_url": (config.link_url, "string", "announcement"),

@@ -85,6 +85,30 @@ const API_URL = getApiUrl();
                             class="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-[var(--primary)] outline-none resize-none"
                             placeholder="输入公告内容..."></textarea>
                     </div>
+                    <div>
+                        <label
+                            class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2"
+                            >公告图片</label
+                        >
+                        <div class="flex items-center gap-2">
+                            <input
+                                type="text"
+                                id="announcementImage"
+                                class="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-[var(--primary)] outline-none"
+                                placeholder="https://"
+                            />
+                            <button
+                                type="button"
+                                id="openAnnouncementImagePicker"
+                                class="px-3 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-sm font-medium transition-all"
+                            >
+                                从媒体库
+                            </button>
+                        </div>
+                        <div id="announcementImagePreview" class="hidden mt-3 w-full rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800">
+                            <img id="announcementImagePreviewImg" src="" alt="公告图片预览" class="w-full max-h-56 object-cover" />
+                        </div>
+                    </div>
 
                     <div
                         class="flex items-center gap-3 p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl"
@@ -221,11 +245,45 @@ const API_URL = getApiUrl();
             </div>
         </div>
     </div>
+
+    <!-- 媒体库选择器 -->
+    <div id="mediaPickerModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-5xl border border-zinc-200 dark:border-zinc-800 shadow-2xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-bold text-zinc-900 dark:text-zinc-100">选择图片</h3>
+                    <p class="text-xs text-zinc-500">从媒体库选择公告图片</p>
+                </div>
+                <button id="mediaPickerClose" class="w-9 h-9 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-500 hover:bg-zinc-200 dark:hover:bg-zinc-700 flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="p-4 flex flex-col gap-3">
+                <div class="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+                    <div class="relative w-full sm:w-72">
+                        <input id="mediaPickerSearch" type="text" placeholder="搜索图片..." class="w-full px-4 h-10 pl-10 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-sm focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent outline-none transition-all" />
+                        <svg class="w-5 h-5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </div>
+                    <div class="text-xs text-zinc-500" id="mediaPickerCount">0</div>
+                </div>
+                <div id="mediaPickerGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 min-h-[240px]">
+                    <div class="col-span-full text-center text-sm text-zinc-500 py-10">加载中...</div>
+                </div>
+                <div class="flex items-center justify-between text-sm text-zinc-500">
+                    <button id="mediaPickerPrev" class="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">上一页</button>
+                    <span id="mediaPickerPage">1/1</span>
+                    <button id="mediaPickerNext" class="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">下一页</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </AdminLayout>
 
 <script is:inline>
     (function () {
         var API_URL = window.API_URL;
+        var pickerReady = false;
+        setupMediaPicker();
         // 加载当前公告配置
         async function loadAnnouncementConfig() {
             try {
@@ -241,6 +299,8 @@ const API_URL = getApiUrl();
                     config.content || "";
                 document.getElementById("announcementClosable").checked =
                     config.closable !== false;
+                document.getElementById("announcementImage").value =
+                    config.image || "";
                 document.getElementById("linkEnable").checked =
                     config.link && config.link.enable;
                 document.getElementById("linkText").value =
@@ -250,6 +310,7 @@ const API_URL = getApiUrl();
                 document.getElementById("linkExternal").checked =
                     config.link && config.link.external;
 
+                updateImagePreview();
                 updatePreview();
                 toggleLinkSettings();
             } catch (err) {
@@ -275,6 +336,8 @@ const API_URL = getApiUrl();
                 document.getElementById("announcementTitle").value || "公告";
             var content =
                 document.getElementById("announcementContent").value || "";
+            var image =
+                document.getElementById("announcementImage").value || "";
             var closable = document.getElementById(
                 "announcementClosable",
             ).checked;
@@ -283,7 +346,7 @@ const API_URL = getApiUrl();
                 document.getElementById("linkText").value || "了解更多";
 
             var preview = document.getElementById("announcementPreview");
-            if (!preview || !content) {
+            if (!preview || (!content && !image)) {
                 if (preview)
                     preview.innerHTML =
                         '<div class="text-zinc-500 text-center py-4">配置公告后将在此显示预览</div>';
@@ -295,6 +358,11 @@ const API_URL = getApiUrl();
                 '<div class="text-sm font-medium text-zinc-600 dark:text-zinc-400">' +
                 title +
                 "</div>" +
+                (image
+                    ? '<div class="rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800">' +
+                      '<img src="' + image + '" alt="公告图片" class="w-full h-auto" />' +
+                      "</div>"
+                    : "") +
                 '<div class="text-zinc-700 dark:text-zinc-300 leading-relaxed">' +
                 content +
                 "</div>" +
@@ -329,6 +397,7 @@ const API_URL = getApiUrl();
                         .value,
                     closable: document.getElementById("announcementClosable")
                         .checked,
+                    image: document.getElementById("announcementImage").value || "",
                     link_enable: document.getElementById("linkEnable").checked,
                     link_text:
                         document.getElementById("linkText").value || "了解更多",
@@ -381,6 +450,7 @@ const API_URL = getApiUrl();
         [
             "announcementTitle",
             "announcementContent",
+            "announcementImage",
             "announcementClosable",
             "linkEnable",
             "linkText",
@@ -399,6 +469,175 @@ const API_URL = getApiUrl();
                 toggleLinkSettings();
                 updatePreview();
             });
+        }
+
+        function updateImagePreview() {
+            var previewWrap = document.getElementById("announcementImagePreview");
+            var previewImg = document.getElementById("announcementImagePreviewImg");
+            var imageInput = document.getElementById("announcementImage");
+            if (!previewWrap || !previewImg || !imageInput) return;
+
+            var value = imageInput.value || "";
+            if (!value) {
+                previewWrap.classList.add("hidden");
+                previewImg.src = "";
+                return;
+            }
+            previewWrap.classList.remove("hidden");
+            previewImg.onerror = function () {
+                previewWrap.classList.add("hidden");
+            };
+            previewImg.src = value;
+        }
+
+        function setupMediaPicker() {
+            var modal = document.getElementById("mediaPickerModal");
+            if (!modal || pickerReady) return;
+            pickerReady = true;
+
+            var openBtn = document.getElementById("openAnnouncementImagePicker");
+            var closeBtn = document.getElementById("mediaPickerClose");
+            var searchInput = document.getElementById("mediaPickerSearch");
+            var grid = document.getElementById("mediaPickerGrid");
+            var countEl = document.getElementById("mediaPickerCount");
+            var prevBtn = document.getElementById("mediaPickerPrev");
+            var nextBtn = document.getElementById("mediaPickerNext");
+            var pageEl = document.getElementById("mediaPickerPage");
+
+            var currentPage = 1;
+            var totalPages = 1;
+            var keyword = "";
+            var searchTimer = null;
+
+            function isImageItem(item) {
+                if (item.mime_type && item.mime_type.indexOf("image/") === 0) {
+                    return true;
+                }
+                var name = item.filename || "";
+                var ext = name.toLowerCase().split(".").pop();
+                return ["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(ext);
+            }
+
+            function openPicker() {
+                currentPage = 1;
+                keyword = "";
+                if (searchInput) searchInput.value = "";
+                modal.classList.remove("hidden");
+                modal.classList.add("flex");
+                loadMedia();
+            }
+
+            function closePicker() {
+                modal.classList.add("hidden");
+                modal.classList.remove("flex");
+            }
+
+            async function loadMedia() {
+                if (!grid) return;
+                grid.innerHTML = '<div class="col-span-full text-center text-sm text-zinc-500 py-10">加载中...</div>';
+
+                try {
+                    var query = "page=" + currentPage + "&page_size=40";
+                    if (keyword) {
+                        query += "&keyword=" + encodeURIComponent(keyword);
+                    }
+                    var result = await window.adminRequest(API_URL + "/upload/media?" + query, {
+                        headers: {
+                            "Authorization": "Bearer " + localStorage.getItem("adminToken")
+                        }
+                    });
+
+                    if (!result.ok) {
+                        throw new Error(result.msg || "加载失败");
+                    }
+
+                    var data = result.data || {};
+                    var items = (data.items || []).filter(isImageItem);
+                    var total = data.pagination ? data.pagination.total : items.length;
+                    totalPages = data.pagination ? data.pagination.total_pages : 1;
+
+                    if (countEl) {
+                        countEl.textContent = "共 " + total + " 张图片";
+                    }
+                    if (pageEl) {
+                        pageEl.textContent = currentPage + "/" + (totalPages || 1);
+                    }
+                    if (prevBtn) prevBtn.disabled = currentPage <= 1;
+                    if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
+
+                    if (items.length === 0) {
+                        grid.innerHTML = '<div class="col-span-full text-center text-sm text-zinc-500 py-10">暂无图片</div>';
+                        return;
+                    }
+
+                    grid.innerHTML = items.map(function(item) {
+                        var name = item.original_name || item.filename || "image";
+                        return '' +
+                            '<button type="button" class="group text-left rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 hover:border-[var(--primary)]/50 transition-all" data-url="' + item.url + '" data-name="' + name + '">' +
+                                '<div class="aspect-square bg-zinc-100 dark:bg-zinc-800 overflow-hidden">' +
+                                    '<img src="' + item.url + '" alt="' + name + '" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform" />' +
+                                '</div>' +
+                                '<div class="px-2 py-1.5 text-xs text-zinc-600 dark:text-zinc-300 truncate">' + name + '</div>' +
+                            '</button>';
+                    }).join("");
+
+                    grid.querySelectorAll("button[data-url]").forEach(function(btn) {
+                        btn.addEventListener("click", function() {
+                            var url = this.dataset.url;
+                            var imageInput = document.getElementById("announcementImage");
+                            if (imageInput) {
+                                imageInput.value = url;
+                                imageInput.dispatchEvent(new Event("input"));
+                            }
+                            updateImagePreview();
+                            updatePreview();
+                            closePicker();
+                        });
+                    });
+                } catch (err) {
+                    console.error("加载媒体失败:", err);
+                    grid.innerHTML = '<div class="col-span-full text-center text-sm text-red-500 py-10">加载失败</div>';
+                }
+            }
+
+            openBtn?.addEventListener("click", openPicker);
+            closeBtn?.addEventListener("click", closePicker);
+            modal?.addEventListener("click", function(e) {
+                if (e.target === modal) {
+                    closePicker();
+                }
+            });
+
+            searchInput?.addEventListener("input", function() {
+                keyword = this.value.trim();
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(function() {
+                    currentPage = 1;
+                    loadMedia();
+                }, 300);
+            });
+
+            prevBtn?.addEventListener("click", function() {
+                if (currentPage > 1) {
+                    currentPage -= 1;
+                    loadMedia();
+                }
+            });
+
+            nextBtn?.addEventListener("click", function() {
+                if (currentPage < totalPages) {
+                    currentPage += 1;
+                    loadMedia();
+                }
+            });
+
+            var imageInput = document.getElementById("announcementImage");
+            if (imageInput) {
+                imageInput.addEventListener("input", function() {
+                    updateImagePreview();
+                    updatePreview();
+                });
+            }
         }
 
         function initAnnouncementPage() {

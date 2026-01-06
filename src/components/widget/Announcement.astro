@@ -3,6 +3,7 @@ import { Icon } from "astro-icon/components";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
 import WidgetLayout from "./WidgetLayout.astro";
+import { url } from "@/utils/url-utils";
 import { getApiUrl } from "@/utils/api-utils";
 import { parseApiResponse } from "@/utils/api-response";
 
@@ -12,6 +13,7 @@ let config = {
   title: "公告",
   content: "欢迎来到我的博客！",
   closable: true,
+  image: "",
   link: {
     enable: false,
     text: "了解更多",
@@ -46,6 +48,18 @@ const style = Astro.props.style;
   style={style}
 >
   <div>
+    {
+      config.image && (
+        <div class="mb-3">
+          <img
+            src={config.image.startsWith("/") ? url(config.image) : config.image}
+            alt="公告图片"
+            class="w-full h-auto rounded-lg"
+            loading="lazy"
+          />
+        </div>
+      )
+    }
     <!-- 公告栏内容 -->
     <div class="text-neutral-600 dark:text-neutral-300 leading-relaxed mb-3">
       {config.content}

@@ -82,6 +82,10 @@ DEFAULT_SITE_SETTINGS = [
     {"key": "post_default_layout", "value": "list", "type": "string", "group": "post", "label": "默认布局", "description": "文章列表默认布局: list/grid", "sort_order": 99},
     {"key": "post_show_toc", "value": "true", "type": "boolean", "group": "post", "label": "显示目录", "description": "是否在文章页显示目录", "sort_order": 98},
     {"key": "post_show_updated", "value": "true", "type": "boolean", "group": "post", "label": "显示更新时间", "description": "是否显示文章更新时间", "sort_order": 97},
+
+    # 广告设置
+    {"key": "ad1_image", "value": "", "type": "string", "group": "advertisement", "label": "广告位1图片", "description": "广告位1图片URL，留空使用默认", "sort_order": 100},
+    {"key": "ad2_image", "value": "", "type": "string", "group": "advertisement", "label": "广告位2图片", "description": "广告位2图片URL，留空使用默认", "sort_order": 99},
 ]
 
 
