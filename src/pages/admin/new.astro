@@ -27,7 +27,8 @@ const editorI18n = {
         >
             <div class="flex items-center gap-4">
                 <a
-                        href="/admin"
+                        href="/admin/posts"
+                        data-admin-back="posts"
                         class="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors text-zinc-500"
                 >
                     <svg
@@ -208,12 +209,32 @@ const editorI18n = {
                                         class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight"
                                 >{i18n(I18nKey.adminPostPassword)}</label
                                 >
-                                <input
-                                        id="password"
-                                        type="password"
-                                        placeholder={i18n(I18nKey.adminPostPasswordPlaceholder)}
-                                        class="admin-input"
-                                />
+                                <div class="relative">
+                                    <input
+                                            id="password"
+                                            type="password"
+                                            placeholder={i18n(I18nKey.adminPostPasswordPlaceholder)}
+                                            class="admin-input pr-12"
+                                    />
+                                    <button
+                                            type="button"
+                                            id="password-toggle"
+                                            class="admin-password-toggle"
+                                            aria-label="显示密码"
+                                            title="显示密码"
+                                    >
+                                        <svg data-eye="show" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12z"></path>
+                                            <circle cx="12" cy="12" r="3.5"></circle>
+                                        </svg>
+                                        <svg data-eye="hide" class="w-5 h-5 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M3 3l18 18"></path>
+                                            <path d="M10.5 5.2A9.9 9.9 0 0 1 12 5c6 0 9.5 7 9.5 7a18.2 18.2 0 0 1-4 4.8"></path>
+                                            <path d="M6.4 6.4A18.4 18.4 0 0 0 2.5 12s3.5 6.5 9.5 6.5c1.6 0 3-.4 4.2-1"></path>
+                                            <path d="M9.9 9.9a3.5 3.5 0 0 0 4.2 4.2"></path>
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
                             <!-- 置顶开关 -->
                             <div
@@ -340,6 +361,39 @@ function initNewPage() {
     const scheduledAtInput = document.getElementById("scheduledAt");
     const scheduledWrapper = document.getElementById("scheduledWrapper");
     const publishedAtInput = document.getElementById("publishedAt");
+    const passwordInput = document.getElementById("password");
+    const passwordToggle = document.getElementById("password-toggle");
+    const backButton = document.querySelector('[data-admin-back="posts"]');
+
+    function initPasswordToggle() {
+        if (!passwordInput || !passwordToggle) {
+            return;
+        }
+        if (passwordToggle.dataset.bound === "true") {
+            return;
+        }
+        passwordToggle.dataset.bound = "true";
+
+        const showIcon = passwordToggle.querySelector('[data-eye="show"]');
+        const hideIcon = passwordToggle.querySelector('[data-eye="hide"]');
+
+        function updatePasswordVisibility(isVisible) {
+            passwordInput.type = isVisible ? "text" : "password";
+            passwordToggle.setAttribute("aria-label", isVisible ? "隐藏密码" : "显示密码");
+            passwordToggle.setAttribute("title", isVisible ? "隐藏密码" : "显示密码");
+            if (showIcon) showIcon.classList.toggle("hidden", isVisible);
+            if (hideIcon) hideIcon.classList.toggle("hidden", !isVisible);
+        }
+
+        let isVisible = false;
+        updatePasswordVisibility(isVisible);
+
+        passwordToggle.addEventListener("click", function () {
+            isVisible = !isVisible;
+            updatePasswordVisibility(isVisible);
+            passwordInput.focus();
+        });
+    }
 
     function convertLocalToISO(value) {
         if (!value) return null;
@@ -361,9 +415,32 @@ function initNewPage() {
         }
     }
 
+    function bindBackButton() {
+        if (!backButton || backButton.dataset.bound === "true") {
+            return;
+        }
+        backButton.dataset.bound = "true";
+        backButton.addEventListener("click", function (event) {
+            event.preventDefault();
+            if (window.__adminTabManager && typeof window.__adminTabManager.closeCurrentAndNavigate === "function") {
+                window.__adminTabManager.closeCurrentAndNavigate("/admin/posts");
+                return;
+            }
+            if (window.__adminTabManager && typeof window.__adminTabManager.close === "function") {
+                window.__adminTabManager.close(window.location.pathname);
+            }
+            if (window.__adminTabManager && typeof window.__adminTabManager.navigate === "function") {
+                window.__adminTabManager.navigate("/admin/posts");
+            } else {
+                window.location.href = "/admin/posts";
+            }
+        });
+    }
+
     statusSelect?.addEventListener("change", function (event) {
         updateStatusUI(event.target.value);
     });
+    bindBackButton();
 
     // 加载分类列表
     async function loadCategories() {
@@ -816,6 +893,7 @@ function initNewPage() {
     initVditor();
     loadCategories();
     loadTags();
+    initPasswordToggle();
 }
 </script>
 
@@ -832,13 +910,17 @@ function initNewPage() {
     }
 
     .admin-input:focus {
-        @apply border-indigo-400 dark:border-indigo-500/70 ring-4 ring-indigo-500/10 dark:ring-indigo-500/20;
-        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1), 0 2px 8px rgba(99, 102, 241, 0.15);
+        border-color: var(--primary);
+        box-shadow:
+            0 0 0 4px color-mix(in oklch, var(--primary) 18%, transparent),
+            0 2px 8px color-mix(in oklch, var(--primary) 30%, transparent);
     }
 
     /* 暗色模式下的炫光效果 */
     .dark .admin-input:focus {
-        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15), 0 0 20px rgba(99, 102, 241, 0.2);
+        box-shadow:
+            0 0 0 4px color-mix(in oklch, var(--primary) 22%, transparent),
+            0 0 20px color-mix(in oklch, var(--primary) 30%, transparent);
     }
 
     /* 输入框有内容时的样式 */
@@ -904,12 +986,16 @@ function initNewPage() {
     }
 
     .category-selector.open .category-selector-trigger {
-        @apply border-indigo-400 dark:border-indigo-500/70 ring-4 ring-indigo-500/10 dark:ring-indigo-500/20;
-        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1), 0 2px 8px rgba(99, 102, 241, 0.15);
+        border-color: var(--primary);
+        box-shadow:
+            0 0 0 4px color-mix(in oklch, var(--primary) 18%, transparent),
+            0 2px 8px color-mix(in oklch, var(--primary) 30%, transparent);
     }
 
     .dark .category-selector.open .category-selector-trigger {
-        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15), 0 0 20px rgba(99, 102, 241, 0.2);
+        box-shadow:
+            0 0 0 4px color-mix(in oklch, var(--primary) 22%, transparent),
+            0 0 20px color-mix(in oklch, var(--primary) 30%, transparent);
     }
 
     .category-selector.open #categoryArrow {
@@ -1004,12 +1090,16 @@ function initNewPage() {
     }
 
     .tags-selector:focus-within {
-        @apply border-indigo-400 dark:border-indigo-500/70 ring-4 ring-indigo-500/10 dark:ring-indigo-500/20;
-        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1), 0 2px 8px rgba(99, 102, 241, 0.15);
+        border-color: var(--primary);
+        box-shadow:
+            0 0 0 4px color-mix(in oklch, var(--primary) 18%, transparent),
+            0 2px 8px color-mix(in oklch, var(--primary) 30%, transparent);
     }
 
     .dark .tags-selector:focus-within {
-        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15), 0 0 20px rgba(99, 102, 241, 0.2);
+        box-shadow:
+            0 0 0 4px color-mix(in oklch, var(--primary) 22%, transparent),
+            0 0 20px color-mix(in oklch, var(--primary) 30%, transparent);
     }
 
     /* 标签按钮样式 */

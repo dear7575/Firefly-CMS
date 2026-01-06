@@ -66,6 +66,7 @@ const config = {
 
   // 页面加载时初始化
   document.addEventListener("DOMContentLoaded", initTwikoo);
+  document.addEventListener("astro:page-load", initTwikoo);
 
   // Swup 页面切换后重新初始化
   if (window.swup && window.swup.hooks) {

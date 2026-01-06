@@ -136,29 +136,29 @@ const PUBLIC_API_URL = import.meta.env.PUBLIC_API_URL;
 <html lang={siteLang} class="bg-[var(--page-bg)] text-[14px] md:text-[16px]">
   <head>
     <!-- Microsoft Clarity -->
-    {
-      siteConfig.analytics?.clarityId && (
-        <script
-          is:inline
-          data-swup-ignore-script
-          type="text/javascript"
-          define:vars={{ clarityId: siteConfig.analytics.clarityId }}
-        >
-          (function (c, l, a, r, i, t, y) {
-            c[a] =
-              c[a] ||
-              function () {
-                (c[a].q = c[a].q || []).push(arguments);
-              };
-            t = l.createElement(r);
-            t.async = 1;
-            t.src = "https://www.clarity.ms/tag/" + i;
-            y = l.getElementsByTagName(r)[0];
-            y.parentNode.insertBefore(t, y);
-          })(window, document, "clarity", "script", clarityId);
-        </script>
-      )
-    }
+    <!--{-->
+    <!--  siteConfig.analytics?.clarityId && (-->
+    <!--    <script-->
+    <!--      is:inline-->
+    <!--      data-swup-ignore-script-->
+    <!--      type="text/javascript"-->
+    <!--      define:vars={{ clarityId: siteConfig.analytics.clarityId }}-->
+    <!--    >-->
+    <!--      (function (c, l, a, r, i, t, y) {-->
+    <!--        c[a] =-->
+    <!--          c[a] ||-->
+    <!--          function () {-->
+    <!--            (c[a].q = c[a].q || []).push(arguments);-->
+    <!--          };-->
+    <!--        t = l.createElement(r);-->
+    <!--        t.async = 1;-->
+    <!--        t.src = "https://www.clarity.ms/tag/" + i;-->
+    <!--        y = l.getElementsByTagName(r)[0];-->
+    <!--        y.parentNode.insertBefore(t, y);-->
+    <!--      })(window, document, "clarity", "script", clarityId);-->
+    <!--    </script>-->
+    <!--  )-->
+    <!--}-->
     <!-- End Microsoft Clarity -->
 
     <title>{pageTitle}</title>
@@ -778,6 +778,50 @@ function disableAnimation() {
     setTimeout(() => context.overlay?.remove(), 300);
   }
 
+  function updatePasswordToggleState(
+    passwordInput: HTMLInputElement,
+    toggle: HTMLElement,
+  ) {
+    const isVisible = passwordInput.type === "text";
+    toggle.setAttribute("aria-label", isVisible ? "隐藏密码" : "显示密码");
+    toggle.setAttribute("title", isVisible ? "隐藏密码" : "显示密码");
+    const showIcon = toggle.querySelector('[data-eye="show"]');
+    const hideIcon = toggle.querySelector('[data-eye="hide"]');
+    if (showIcon) {
+      showIcon.classList.toggle("hidden", isVisible);
+    }
+    if (hideIcon) {
+      hideIcon.classList.toggle("hidden", !isVisible);
+    }
+  }
+
+  function initPasswordToggle(context: ReturnType<typeof getPasswordContext>) {
+    const toggle = document.getElementById("post-password-toggle");
+    if (!context?.passwordInput || !toggle) {
+      return;
+    }
+    if ((toggle as HTMLElement).dataset.bound === "true") {
+      updatePasswordToggleState(context.passwordInput, toggle);
+      return;
+    }
+    (toggle as HTMLElement).dataset.bound = "true";
+
+    toggle.addEventListener(
+      "click",
+      (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        context.passwordInput.type =
+          context.passwordInput.type === "password" ? "text" : "password";
+        updatePasswordToggleState(context.passwordInput, toggle);
+        context.passwordInput.focus();
+      },
+      true,
+    );
+
+    updatePasswordToggleState(context.passwordInput, toggle);
+  }
+
   function showError(
     context: ReturnType<typeof getPasswordContext>,
     message: string,
@@ -852,6 +896,7 @@ function disableAnimation() {
     if (!context) {
       return;
     }
+    initPasswordToggle(context);
     if (readStoredAccess(context)) {
       unlockContent(context);
     }
@@ -1375,8 +1420,6 @@ function disableAnimation() {
     // 全局布局切换监听器 - 支持在任何页面（包括文章详情页）切换布局
     window.addEventListener("layoutChange", (event: CustomEvent) => {
       const newLayout = event.detail.layout;
-      const rightSidebar = document.getElementById("right-sidebar");
-      const mainGrid = document.getElementById("main-grid");
       const postContainer = document.getElementById("post-container");
       const swupContainer = document.getElementById("swup-container");
 
@@ -1396,43 +1439,7 @@ function disableAnimation() {
         }, 500);
       }
 
-      // 根据新布局状态调整侧边栏显示
-      if (newLayout === "grid") {
-        if (rightSidebar) {
-          // 简洁的淡出动画
-          rightSidebar.style.transition =
-            "opacity 0.35s ease-in-out, transform 0.35s ease-in-out";
-          rightSidebar.style.opacity = "0";
-          rightSidebar.style.transform = "translateX(15px)";
-          setTimeout(() => {
-            rightSidebar.style.display = "none";
-            rightSidebar.style.opacity = "";
-            rightSidebar.style.transform = "";
-          }, 350);
-        }
-        if (mainGrid) {
-          mainGrid.classList.add("grid-layout-active");
-        }
-      } else {
-        if (rightSidebar) {
-          // 简洁的淡入动画
-          rightSidebar.style.display = "";
-          rightSidebar.style.transition =
-            "opacity 0.35s ease-in-out, transform 0.35s ease-in-out";
-          rightSidebar.style.opacity = "0";
-          rightSidebar.style.transform = "translateX(15px)";
-          setTimeout(() => {
-            rightSidebar.style.opacity = "1";
-            rightSidebar.style.transform = "translateX(0)";
-          }, 50);
-          setTimeout(() => {
-            rightSidebar.style.transition = "";
-          }, 400);
-        }
-        if (mainGrid) {
-          mainGrid.classList.remove("grid-layout-active");
-        }
-      }
+      // 切换布局时不隐藏右侧栏，保持统计/日历显示
     });
   };
   if (window?.swup?.hooks) {

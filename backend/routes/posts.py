@@ -826,6 +826,30 @@ def restore_post_revision(
     return {"message": "文章已恢复到指定版本"}
 
 
+@router.delete("/{post_id}/revisions/{revision_id}", summary="删除文章历史版本")
+def delete_post_revision(
+        post_id: str,
+        revision_id: str,
+        db: Session = Depends(get_db),
+        current_user: models.Admin = Depends(get_current_user)
+):
+    """删除指定文章的历史版本"""
+    db_post = db.query(models.Post).filter(models.Post.id == post_id).first()
+    if not db_post:
+        raise HTTPException(status_code=404, detail="文章不存在")
+
+    revision = db.query(models.PostRevision).filter(
+        models.PostRevision.id == revision_id,
+        models.PostRevision.post_id == post_id
+    ).first()
+    if not revision:
+        raise HTTPException(status_code=404, detail="版本不存在")
+
+    db.delete(revision)
+    db.commit()
+    return {"message": "版本已删除"}
+
+
 # ============== 回收站相关 API ==============
 
 @router.get("/trash/list", response_model=List[dict], summary="获取回收站文章列表")

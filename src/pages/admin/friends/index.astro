@@ -523,16 +523,16 @@ const API_URL = getApiUrl();
     }
 
     .modal-input:focus {
-        @apply border-indigo-400 dark:border-indigo-500/70 ring-4 ring-indigo-500/10 dark:ring-indigo-500/20;
+        border-color: var(--primary);
         box-shadow:
-            0 0 0 4px rgba(99, 102, 241, 0.1),
-            0 2px 8px rgba(99, 102, 241, 0.15);
+            0 0 0 4px color-mix(in oklch, var(--primary) 18%, transparent),
+            0 2px 8px color-mix(in oklch, var(--primary) 30%, transparent);
     }
 
     :global(.dark) .modal-input:focus {
         box-shadow:
-            0 0 0 4px rgba(99, 102, 241, 0.15),
-            0 0 20px rgba(99, 102, 241, 0.2);
+            0 0 0 4px color-mix(in oklch, var(--primary) 22%, transparent),
+            0 0 20px color-mix(in oklch, var(--primary) 30%, transparent);
     }
 
     input[type="number"].modal-input {
