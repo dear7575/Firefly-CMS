@@ -459,12 +459,12 @@ const adminMenuIcons = Object.fromEntries(
             box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
         }
 
-        button:not(.admin-tab-trigger):not(.admin-tab-close) {
+        button:not(.admin-tab-trigger):not(.admin-tab-close):not(.admin-password-toggle) {
             position: relative;
             overflow: hidden;
         }
 
-        button:not(.admin-tab-trigger):not(.admin-tab-close)::before {
+        button:not(.admin-tab-trigger):not(.admin-tab-close):not(.admin-password-toggle)::before {
             content: '';
             position: absolute;
             inset: 0;
@@ -475,33 +475,33 @@ const adminMenuIcons = Object.fromEntries(
             pointer-events: none;
         }
 
-        .dark button:not(.admin-tab-trigger):not(.admin-tab-close)::before {
+        .dark button:not(.admin-tab-trigger):not(.admin-tab-close):not(.admin-password-toggle)::before {
             background: linear-gradient(135deg, transparent 0%, oklch(0.3 0.04 var(--hue)) 100%);
         }
 
-        button:not(.admin-tab-trigger):not(.admin-tab-close):hover::before {
+        button:not(.admin-tab-trigger):not(.admin-tab-close):not(.admin-password-toggle):hover::before {
             opacity: 1;
         }
 
-        button[class*="bg-red"]:not(.admin-tab-trigger):not(.admin-tab-close)::before {
+        button[class*="bg-red"]:not(.admin-tab-trigger):not(.admin-tab-close):not(.admin-password-toggle)::before {
             opacity: 0;
         }
 
-        button:not(.admin-tab-trigger):not(.admin-tab-close) {
+        button:not(.admin-tab-trigger):not(.admin-tab-close):not(.admin-password-toggle) {
             translate: 0 0;
             transition: translate 0.2s ease, filter 0.2s ease;
         }
 
-        button:not(.admin-tab-trigger):not(.admin-tab-close):hover {
+        button:not(.admin-tab-trigger):not(.admin-tab-close):not(.admin-password-toggle):hover {
             translate: 0 -1px;
             filter: drop-shadow(0 8px 16px rgba(15, 23, 42, 0.12));
         }
 
-        .dark button:not(.admin-tab-trigger):not(.admin-tab-close):hover {
+        .dark button:not(.admin-tab-trigger):not(.admin-tab-close):not(.admin-password-toggle):hover {
             filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.35));
         }
 
-        button:not(.admin-tab-trigger):not(.admin-tab-close):active {
+        button:not(.admin-tab-trigger):not(.admin-tab-close):not(.admin-password-toggle):active {
             translate: 0 0;
             filter: none;
         }
@@ -2236,11 +2236,16 @@ const adminMenuIcons = Object.fromEntries(
             var display = document.getElementById('currentHueDisplay');
             var resetBtn = document.getElementById('resetThemeBtn');
             var toggleBtn = document.getElementById('themeToggle');
+            var defaultHue = "165";
 
             // Sync with local storage on load (SPA persistence)
             var stored = localStorage.getItem('hue');
             if (stored) {
                 updateTheme(stored);
+            } else {
+                var style = getComputedStyle(document.documentElement);
+                var currentHue = style.getPropertyValue('--hue').trim() || defaultHue;
+                updateResetState(currentHue);
             }
 
             if (btn && dropdown) {
@@ -2275,26 +2280,40 @@ const adminMenuIcons = Object.fromEntries(
                 if (display) display.textContent = val;
             }
 
+            function updateResetState(val) {
+                if (!resetBtn) return;
+                var isDefault = String(val) === defaultHue;
+                resetBtn.disabled = isDefault;
+                resetBtn.setAttribute('aria-disabled', isDefault ? 'true' : 'false');
+                resetBtn.classList.toggle('hidden', isDefault);
+                resetBtn.classList.toggle('opacity-40', isDefault);
+                resetBtn.classList.toggle('cursor-not-allowed', isDefault);
+                resetBtn.classList.toggle('pointer-events-none', isDefault);
+            }
+
             function updateTheme(val) {
-                document.documentElement.style.setProperty('--hue', val);
-                document.documentElement.style.setProperty('--configHue', val);
-                document.documentElement.style.setProperty('--primary', `oklch(0.70 0.14 ${val})`);
-                document.documentElement.style.setProperty('--primary-light', `oklch(0.75 0.14 ${val})`);
-                document.documentElement.style.setProperty('--primary-dark', `oklch(0.65 0.14 ${val})`);
-                document.documentElement.style.setProperty('--page-bg', `oklch(0.97 0.012 ${val})`);
-                document.documentElement.style.setProperty('--page-bg-dark', `oklch(0.16 0.015 ${val})`);
-                document.documentElement.style.setProperty('--sidebar-bg', `oklch(0.98 0.008 ${val})`);
-                document.documentElement.style.setProperty('--sidebar-bg-dark', `oklch(0.18 0.012 ${val})`);
-                document.documentElement.style.setProperty('--btn-bg', `oklch(0.95 0.025 ${val})`);
-                document.documentElement.style.setProperty('--btn-bg-hover', `oklch(0.9 0.05 ${val})`);
-                document.documentElement.style.setProperty('--btn-bg-dark', `oklch(0.33 0.035 ${val})`);
-                document.documentElement.style.setProperty('--btn-bg-hover-dark', `oklch(0.38 0.04 ${val})`);
+                var hue = String(val);
+                document.documentElement.style.setProperty('--hue', hue);
+                document.documentElement.style.setProperty('--configHue', hue);
+                document.documentElement.style.setProperty('--primary', `oklch(0.70 0.14 ${hue})`);
+                document.documentElement.style.setProperty('--primary-light', `oklch(0.75 0.14 ${hue})`);
+                document.documentElement.style.setProperty('--primary-dark', `oklch(0.65 0.14 ${hue})`);
+                document.documentElement.style.setProperty('--page-bg', `oklch(0.97 0.012 ${hue})`);
+                document.documentElement.style.setProperty('--page-bg-dark', `oklch(0.16 0.015 ${hue})`);
+                document.documentElement.style.setProperty('--sidebar-bg', `oklch(0.98 0.008 ${hue})`);
+                document.documentElement.style.setProperty('--sidebar-bg-dark', `oklch(0.18 0.012 ${hue})`);
+                document.documentElement.style.setProperty('--btn-bg', `oklch(0.95 0.025 ${hue})`);
+                document.documentElement.style.setProperty('--btn-bg-hover', `oklch(0.9 0.05 ${hue})`);
+                document.documentElement.style.setProperty('--btn-bg-dark', `oklch(0.33 0.035 ${hue})`);
+                document.documentElement.style.setProperty('--btn-bg-hover-dark', `oklch(0.38 0.04 ${hue})`);
+                updateResetState(hue);
             }
 
             var timeout;
 
             function saveTheme(val) {
-                localStorage.setItem('hue', val);
+                var hue = String(val);
+                localStorage.setItem('hue', hue);
                 if (timeout) clearTimeout(timeout);
                 timeout = setTimeout(async function () {
                     try {
@@ -2308,7 +2327,7 @@ const adminMenuIcons = Object.fromEntries(
                                 'Authorization': 'Bearer ' + token
                             },
                             body: JSON.stringify({
-                                value: val
+                                value: hue
                             })
                         });
                     } catch (e) {
@@ -2328,7 +2347,7 @@ const adminMenuIcons = Object.fromEntries(
 
             if (resetBtn) {
                 resetBtn.addEventListener('click', function () {
-                    var val = 165;
+                    var val = defaultHue;
                     if (slider) {
                         slider.value = val;
                         updateThumb(val);

@@ -59,7 +59,7 @@ const API_URL = getApiUrl();
                 <button
                     type="button"
                     id="openEditorImagePicker"
-                    class="px-4 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 font-medium transition-all"
+                    class="px-4 py-2 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-sm text-zinc-700 dark:text-zinc-300 font-medium transition-all"
                 >
                     插入 图片
                 </button>
@@ -124,12 +124,28 @@ const API_URL = getApiUrl();
                                     class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight"
                                     >{i18n(I18nKey.adminPostCategoryLabel)}</label
                                 >
-                                <select
-                                    id="category"
-                                    class="admin-input"
-                                >
-                                    <option value="">{i18n(I18nKey.adminPostCategoryPlaceholder)}</option>
-                                </select>
+                                <div class="custom-select" id="categorySelector">
+                                    <div class="custom-select-trigger" id="categorySelectorTrigger">
+                                        <span class="custom-select-value placeholder" id="categoryValue" data-placeholder={i18n(I18nKey.adminPostCategoryPlaceholder)}>
+                                            {i18n(I18nKey.adminPostCategoryPlaceholder)}
+                                        </span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="custom-select-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </div>
+                                    <div class="custom-select-dropdown hidden" id="categoryDropdown">
+                                        <div class="custom-select-search">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                            </svg>
+                                            <input type="text" id="categorySearch" placeholder="搜索分类..." />
+                                        </div>
+                                        <div class="custom-select-options" id="categoryOptions">
+                                            <!-- 分类选项会通过 JS 动态填充 -->
+                                        </div>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="category" value="" />
                             </div>
                             <div>
                                 <label
@@ -173,7 +189,7 @@ const API_URL = getApiUrl();
                                 <button
                                     type="button"
                                     id="openCoverPicker"
-                                    class="px-3 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-sm font-medium transition-all"
+                                    class="h-[46px] px-3 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-sm text-zinc-700 dark:text-zinc-300 text-sm font-medium transition-all flex items-center justify-center"
                                 >
                                     从媒体库
                                 </button>
@@ -274,11 +290,37 @@ const API_URL = getApiUrl();
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight">发布状态</label>
-                                <select id="statusSelect" class="admin-input">
-                                    <option value="published">{i18n(I18nKey.adminPostPublish)}</option>
-                                    <option value="draft">保存草稿</option>
-                                    <option value="scheduled">定时发布</option>
-                                </select>
+                                <div class="custom-select" id="statusSelector">
+                                    <div class="custom-select-trigger" id="statusTrigger">
+                                        <span class="custom-select-value" id="statusValue">保存草稿</span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="custom-select-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </div>
+                                    <div class="custom-select-dropdown hidden" id="statusDropdown">
+                                        <div class="custom-select-options" id="statusOptions">
+                                            <div class="custom-select-option" data-value="published">
+                                                <span class="custom-select-option-name">{i18n(I18nKey.adminPostPublish)}</span>
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="custom-select-option-check" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            </div>
+                                            <div class="custom-select-option selected" data-value="draft">
+                                                <span class="custom-select-option-name">保存草稿</span>
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="custom-select-option-check" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            </div>
+                                            <div class="custom-select-option" data-value="scheduled">
+                                                <span class="custom-select-option-name">定时发布</span>
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="custom-select-option-check" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="statusSelect" value="draft" />
                                 <p class="text-xs text-zinc-400 mt-2">选择文章发布方式，定时发布需要设置具体时间。</p>
                             </div>
                             <div>
@@ -385,9 +427,15 @@ const API_URL = getApiUrl();
         let initTimer = null;
         let selectedTagIds = []; // 存储选中的标签ID
         let allTags = []; // 存储所有标签数据
-        let currentPostCategory = ''; // 存储当前文章的分类
+        let allCategories = []; // 存储所有分类数据
+        let selectedCategory = ''; // 当前选中的分类
         let currentPostTags = []; // 存储当前文章的标签
         const statusSelect = document.getElementById("statusSelect");
+        const statusSelector = document.getElementById("statusSelector");
+        const statusTrigger = document.getElementById("statusTrigger");
+        const statusDropdown = document.getElementById("statusDropdown");
+        const statusValue = document.getElementById("statusValue");
+        const statusOptions = document.getElementById("statusOptions");
         const scheduledAtInput = document.getElementById("scheduledAt");
         const scheduledWrapper = document.getElementById("scheduledWrapper");
         const publishedAtInput = document.getElementById("publishedAt");
@@ -398,6 +446,7 @@ const API_URL = getApiUrl();
         const discardAutosaveBtn = document.getElementById("discardAutosaveBtn");
         const autosaveStatus = document.getElementById("autosaveStatus");
         const revisionList = document.getElementById("revisionList");
+        let currentPostId = null;
         let autosaveTimer = null;
         const AUTOSAVE_INTERVAL = 30000;
         let lastAutosaveSignature = "";
@@ -431,13 +480,76 @@ const API_URL = getApiUrl();
             }
         }
 
-        statusSelect?.addEventListener("change", function(event) {
-            updateStatusUI(event.target.value);
-        });
-        if (statusSelect) {
-            statusSelect.value = postStatus;
+        function syncStatusUI(value) {
+            updateStatusUI(value);
+            if (statusOptions) {
+                statusOptions.querySelectorAll(".custom-select-option").forEach(function(option) {
+                    const isSelected = option.dataset.value === value;
+                    option.classList.toggle("selected", isSelected);
+                    if (isSelected && statusValue) {
+                        const labelEl = option.querySelector(".custom-select-option-name");
+                        statusValue.textContent = labelEl ? labelEl.textContent : value;
+                    }
+                });
+            } else if (statusValue) {
+                statusValue.textContent = value;
+            }
         }
-        updateStatusUI(postStatus);
+
+        function setStatusValue(value) {
+            if (!statusSelect) return;
+            const nextValue = value || "draft";
+            statusSelect.value = nextValue;
+            syncStatusUI(nextValue);
+        }
+
+        function openStatusDropdown() {
+            if (statusSelector) statusSelector.classList.add("open");
+            if (statusDropdown) statusDropdown.classList.remove("hidden");
+        }
+
+        function closeStatusDropdown() {
+            if (statusSelector) statusSelector.classList.remove("open");
+            if (statusDropdown) statusDropdown.classList.add("hidden");
+        }
+
+        function initStatusSelector() {
+            if (!statusSelector || !statusTrigger || !statusDropdown || !statusOptions) {
+                return;
+            }
+            if (statusSelector.dataset.bound === "true") {
+                return;
+            }
+            statusSelector.dataset.bound = "true";
+
+            statusTrigger.addEventListener("click", function(e) {
+                e.stopPropagation();
+                if (statusSelector.classList.contains("open")) {
+                    closeStatusDropdown();
+                } else {
+                    openStatusDropdown();
+                }
+            });
+
+            statusOptions.querySelectorAll(".custom-select-option").forEach(function(option) {
+                option.addEventListener("click", function() {
+                    setStatusValue(option.dataset.value);
+                    closeStatusDropdown();
+                });
+            });
+
+            document.addEventListener("click", function(e) {
+                if (!statusSelector.contains(e.target)) {
+                    closeStatusDropdown();
+                }
+            });
+        }
+
+        statusSelect?.addEventListener("change", function(event) {
+            syncStatusUI(event.target.value);
+        });
+        initStatusSelector();
+        setStatusValue(statusSelect ? statusSelect.value : postStatus);
         setupMediaPicker();
 
         function setupMediaPicker() {
@@ -706,10 +818,7 @@ const API_URL = getApiUrl();
             if (passwordEl) passwordEl.value = payload.password || "";
 
             if (payload.category_name) {
-                const categorySelect = document.getElementById("category");
-                if (categorySelect) {
-                    categorySelect.value = payload.category_name;
-                }
+                selectCategory(payload.category_name);
             }
             if (payload.tags && payload.tags.length) {
                 currentPostTags = payload.tags;
@@ -830,6 +939,16 @@ const API_URL = getApiUrl();
             }
         }
 
+        function resolvePostId() {
+            if (currentPostId) return currentPostId;
+            const container = document.getElementById("editorContainer");
+            const postId = container ? container.dataset.postId : null;
+            if (postId) {
+                currentPostId = postId;
+            }
+            return postId;
+        }
+
         async function loadRevisions(postId) {
             if (!revisionList || !postId) return;
             try {
@@ -848,28 +967,17 @@ const API_URL = getApiUrl();
                     }
                     revisionList.innerHTML = revisions.map(function(rev) {
                         const date = new Date(rev.created_at).toLocaleString();
-                        return '<div class="p-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/40 flex items-center justify-between gap-3">' +
-                            '<div>' +
-                                '<p class="font-medium text-zinc-800 dark:text-zinc-100 text-sm">' + rev.title + '</p>' +
-                                '<p class="text-[11px] text-zinc-400">' + date + (rev.editor ? ' · ' + rev.editor : '') + '</p>' +
+                        return '<div class="p-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/40 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">' +
+                            '<div class="min-w-0">' +
+                                '<p class="font-medium text-zinc-800 dark:text-zinc-100 text-sm truncate">' + rev.title + '</p>' +
+                                '<p class="text-[11px] text-zinc-400 truncate">' + date + (rev.editor ? ' · ' + rev.editor : '') + '</p>' +
                             '</div>' +
-                            '<div class="flex items-center gap-2">' +
-                                '<button type="button" class="px-3 py-1 text-xs rounded-lg border border-zinc-300 text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800" data-revision-restore="' + rev.id + '">恢复</button>' +
-                                '<button type="button" class="px-3 py-1 text-xs rounded-lg border border-rose-300 text-rose-600 hover:bg-rose-50 dark:border-rose-400/40 dark:text-rose-300 dark:hover:bg-rose-900/20" data-revision-delete="' + rev.id + '">删除</button>' +
+                            '<div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:shrink-0">' +
+                                '<button type="button" class="w-full sm:w-auto px-3 py-1 text-xs rounded-lg border border-zinc-300 text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800 whitespace-nowrap" data-revision-restore="' + rev.id + '">恢复</button>' +
+                                '<button type="button" class="w-full sm:w-auto px-3 py-1 text-xs rounded-lg border border-rose-300 text-rose-600 hover:bg-rose-50 dark:border-rose-400/40 dark:text-rose-300 dark:hover:bg-rose-900/20 whitespace-nowrap" data-revision-delete="' + rev.id + '">删除</button>' +
                             '</div>' +
                         '</div>';
                     }).join('');
-
-                    revisionList.querySelectorAll("[data-revision-restore]").forEach(function(btn) {
-                        btn.addEventListener("click", function() {
-                            restoreRevision(postId, btn.dataset.revisionRestore);
-                        });
-                    });
-                    revisionList.querySelectorAll("[data-revision-delete]").forEach(function(btn) {
-                        btn.addEventListener("click", function() {
-                            deleteRevision(postId, btn.dataset.revisionDelete);
-                        });
-                    });
                 } else {
                     revisionList.innerHTML = '<p class="text-xs text-red-400">加载版本记录失败</p>';
                 }
@@ -878,6 +986,36 @@ const API_URL = getApiUrl();
                 revisionList.innerHTML = '<p class="text-xs text-red-400">加载版本记录失败</p>';
             }
         }
+
+        function bindRevisionListEvents() {
+            if (!revisionList || revisionList.dataset.bound === "true") return;
+            revisionList.dataset.bound = "true";
+            revisionList.addEventListener("click", function(event) {
+                const restoreBtn = event.target.closest("[data-revision-restore]");
+                if (restoreBtn) {
+                    event.preventDefault();
+                    const postId = resolvePostId();
+                    if (!postId) {
+                        window.showAdminAlert("无法识别文章ID", "error");
+                        return;
+                    }
+                    restoreRevision(postId, restoreBtn.dataset.revisionRestore);
+                    return;
+                }
+                const deleteBtn = event.target.closest("[data-revision-delete]");
+                if (deleteBtn) {
+                    event.preventDefault();
+                    const postId = resolvePostId();
+                    if (!postId) {
+                        window.showAdminAlert("无法识别文章ID", "error");
+                        return;
+                    }
+                    deleteRevision(postId, deleteBtn.dataset.revisionDelete);
+                }
+            });
+        }
+
+        bindRevisionListEvents();
 
         async function restoreRevision(postId, revisionId) {
             if (!postId || !revisionId) return;
@@ -938,38 +1076,133 @@ const API_URL = getApiUrl();
         }
 
         // 加载分类列表
-        async function loadCategories(selectedCategory) {
-            const categorySelect = document.getElementById('category');
-            if (!categorySelect) return;
+        async function loadCategories(categoryName) {
+            const categoryOptions = document.getElementById('categoryOptions');
+            if (!categoryOptions) return;
+
+            selectedCategory = categoryName || '';
 
             try {
                 const result = await window.adminRequest(API_URL + '/categories');
-                if (result.ok) {
-                    const categories = result.data || [];
-                    // 保留第一个占位选项
-                    const placeholder = categorySelect.querySelector('option');
-                    categorySelect.innerHTML = '';
-                    if (placeholder) categorySelect.appendChild(placeholder);
-
-                    categories.forEach(function(cat) {
-                        if (cat.enabled) {
-                            const option = document.createElement('option');
-                            option.value = cat.name;
-                            option.textContent = cat.name;
-                            if (cat.color) {
-                                option.style.color = cat.color;
-                            }
-                            // 如果是当前文章的分类，设置为选中
-                            if (selectedCategory && cat.name === selectedCategory) {
-                                option.selected = true;
-                            }
-                            categorySelect.appendChild(option);
-                        }
-                    });
+            if (result.ok) {
+                allCategories = (result.data || []).filter(c => c.enabled);
+                renderCategoryOptions();
+                initCategorySelector();
+                const hasSelected = selectedCategory && allCategories.some(function(cat) { return cat.name === selectedCategory; });
+                if (!hasSelected && allCategories.length) {
+                    selectedCategory = allCategories[0].name || '';
                 }
+                selectCategory(selectedCategory);
+            }
             } catch (err) {
                 console.error('加载分类失败:', err);
+                categoryOptions.innerHTML = '<div class="custom-select-empty">加载分类失败</div>';
             }
+        }
+
+        // 渲染分类选项
+        function renderCategoryOptions(filter = '') {
+            const categoryOptions = document.getElementById('categoryOptions');
+            if (!categoryOptions) return;
+
+            const filtered = filter
+                ? allCategories.filter(c => c.name.toLowerCase().includes(filter.toLowerCase()))
+                : allCategories;
+
+            if (filtered.length === 0) {
+                categoryOptions.innerHTML = '<div class="custom-select-empty">' + (filter ? '未找到匹配的分类' : '暂无可用分类') + '</div>';
+                return;
+            }
+
+            categoryOptions.innerHTML = filtered.map(function(cat) {
+                const isSelected = selectedCategory === cat.name;
+                return '<div class="custom-select-option' + (isSelected ? ' selected' : '') + '" data-value="' + cat.name + '">' +
+                    '<span class="custom-select-option-name">' + cat.name + '</span>' +
+                    '<svg xmlns="http://www.w3.org/2000/svg" class="custom-select-option-check" fill="none" viewBox="0 0 24 24" stroke="currentColor">' +
+                        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />' +
+                    '</svg>' +
+                '</div>';
+            }).join('');
+
+            categoryOptions.querySelectorAll('.custom-select-option').forEach(function(option) {
+                option.addEventListener('click', function() {
+                    selectCategory(option.dataset.value);
+                });
+            });
+        }
+
+        // 选择分类
+        function selectCategory(value) {
+            const normalized = value || '';
+            const exists = normalized && allCategories.some(function(cat) { return cat.name === normalized; });
+            selectedCategory = exists ? normalized : '';
+            const categoryInput = document.getElementById('category');
+            const categoryValue = document.getElementById('categoryValue');
+            const placeholder = categoryValue ? categoryValue.dataset.placeholder : '';
+
+            if (categoryInput) categoryInput.value = selectedCategory;
+            if (categoryValue) {
+                categoryValue.textContent = selectedCategory || placeholder;
+                categoryValue.classList.toggle('placeholder', !selectedCategory);
+            }
+
+            renderCategoryOptions();
+            closeCategoryDropdown();
+        }
+
+        // 初始化分类选择器交互
+        function initCategorySelector() {
+            const selector = document.getElementById('categorySelector');
+            const trigger = document.getElementById('categorySelectorTrigger');
+            const dropdown = document.getElementById('categoryDropdown');
+            const searchInput = document.getElementById('categorySearch');
+
+            if (!selector || !trigger || !dropdown) return;
+            if (selector.dataset.bound === 'true') return;
+            selector.dataset.bound = 'true';
+
+            trigger.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (selector.classList.contains('open')) {
+                    closeCategoryDropdown();
+                } else {
+                    openCategoryDropdown();
+                }
+            });
+
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    renderCategoryOptions(searchInput.value);
+                });
+            }
+
+            document.addEventListener('click', function(e) {
+                if (!selector.contains(e.target)) {
+                    closeCategoryDropdown();
+                }
+            });
+        }
+
+        function openCategoryDropdown() {
+            const selector = document.getElementById('categorySelector');
+            const dropdown = document.getElementById('categoryDropdown');
+            const searchInput = document.getElementById('categorySearch');
+
+            if (selector) selector.classList.add('open');
+            if (dropdown) dropdown.classList.remove('hidden');
+            if (searchInput) {
+                searchInput.value = '';
+                searchInput.focus();
+            }
+            renderCategoryOptions();
+        }
+
+        function closeCategoryDropdown() {
+            const selector = document.getElementById('categorySelector');
+            const dropdown = document.getElementById('categoryDropdown');
+
+            if (selector) selector.classList.remove('open');
+            if (dropdown) dropdown.classList.add('hidden');
         }
 
         // 加载标签列表
@@ -1099,6 +1332,9 @@ const API_URL = getApiUrl();
                 return;
             }
 
+            currentPostId = postId;
+            bindRevisionListEvents();
+
             console.log("Initializing Vditor for post:", postId);
 
             // Initialize Vditor - 使用本地资源
@@ -1161,17 +1397,13 @@ const API_URL = getApiUrl();
                     }
 
                     postStatus = data.status || (data.is_draft ? "draft" : "published");
-                    if (statusSelect) {
-                        statusSelect.value = postStatus;
-                    }
+                    setStatusValue(postStatus);
                     if (publishedAtInput) {
                         publishedAtInput.value = formatDatetimeForInput(data.published_at);
                     }
                     if (scheduledAtInput) {
                         scheduledAtInput.value = formatDatetimeForInput(data.scheduled_at);
                     }
-                    updateStatusUI(postStatus);
-
                     // Handle pinned status
                     if (data.pinned) {
                         isPinned = true;

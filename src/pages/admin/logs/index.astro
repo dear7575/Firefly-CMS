@@ -25,21 +25,43 @@ const API_URL = getApiUrl();
                 </p>
             </div>
             <div class="flex gap-3">
-                <select
-                    id="logTypeFilter"
-                    class="px-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-[var(--primary)] outline-none transition-all hover:border-[var(--primary)]"
-                >
-                    <option value="">{i18n(I18nKey.adminLogTypeAll)}</option>
-                    <option value="login_success"
-                        >{i18n(I18nKey.adminLogTypeLoginSuccess)}</option
-                    >
-                    <option value="login_failed"
-                        >{i18n(I18nKey.adminLogTypeLoginFailed)}</option
-                    >
-                    <option value="api_access"
-                        >{i18n(I18nKey.adminLogTypeApiAccess)}</option
-                    >
-                </select>
+                <div class="custom-select min-w-[12rem]" id="logTypeSelector">
+                    <div class="custom-select-trigger" id="logTypeTrigger">
+                        <span class="custom-select-value" id="logTypeValue">{i18n(I18nKey.adminLogTypeAll)}</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="custom-select-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
+                    <div class="custom-select-dropdown hidden" id="logTypeDropdown">
+                        <div class="custom-select-options" id="logTypeOptions">
+                            <div class="custom-select-option selected" data-value="">
+                                <span class="custom-select-option-name">{i18n(I18nKey.adminLogTypeAll)}</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="custom-select-option-check" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+                            <div class="custom-select-option" data-value="login_success">
+                                <span class="custom-select-option-name">{i18n(I18nKey.adminLogTypeLoginSuccess)}</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="custom-select-option-check" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+                            <div class="custom-select-option" data-value="login_failed">
+                                <span class="custom-select-option-name">{i18n(I18nKey.adminLogTypeLoginFailed)}</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="custom-select-option-check" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+                            <div class="custom-select-option" data-value="api_access">
+                                <span class="custom-select-option-name">{i18n(I18nKey.adminLogTypeApiAccess)}</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="custom-select-option-check" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" id="logTypeFilter" value="" />
                 <button
                     id="cleanupBtn"
                     class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl font-medium transition-all flex items-center gap-2 shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0"
@@ -208,6 +230,11 @@ const API_URL = getApiUrl();
         var totalLogs = 0;
         var t = window.adminI18n || {};
         var API_URL = window.API_URL;
+        var logTypeFilter = document.getElementById("logTypeFilter");
+        var logTypeSelector = document.getElementById("logTypeSelector");
+        var logTypeTrigger = document.getElementById("logTypeTrigger");
+        var logTypeDropdown = document.getElementById("logTypeDropdown");
+        var logTypeValue = document.getElementById("logTypeValue");
 
         // 日志类型映射
         var logTypeLabels = {
@@ -221,7 +248,9 @@ const API_URL = getApiUrl();
 
         // 格式化时间
         function formatTime(dateStr) {
-            var date = new Date(dateStr);
+            if (!dateStr) return "-";
+            var isIsoWithTz = /[zZ]|([+-]\d{2}:?\d{2})$/.test(dateStr);
+            var date = isIsoWithTz ? new Date(dateStr) : new Date(dateStr + "Z");
             return date.toLocaleString("zh-CN", {
                 year: "numeric",
                 month: "2-digit",
@@ -272,7 +301,7 @@ const API_URL = getApiUrl();
             var tbody = document.getElementById("logsTableBody");
             if (!tbody) return;
 
-            var logType = document.getElementById("logTypeFilter").value;
+            var logType = logTypeFilter ? logTypeFilter.value : "";
             var url =
                 API_URL +
                 "/logs?page=" +
@@ -558,12 +587,55 @@ const API_URL = getApiUrl();
         var cleanupBtn = document.getElementById("cleanupBtn");
         var clearAllBtn = document.getElementById("clearAllBtn");
 
-        if (logTypeFilter) {
-            logTypeFilter.addEventListener("change", function () {
-                currentPage = 1;
-                loadLogs();
+        function closeLogTypeDropdown() {
+            if (logTypeSelector) logTypeSelector.classList.remove("open");
+            if (logTypeDropdown) logTypeDropdown.classList.add("hidden");
+        }
+
+        function setLogType(value, label) {
+            if (logTypeFilter) logTypeFilter.value = value || "";
+            if (logTypeValue && label) logTypeValue.textContent = label;
+
+            document.querySelectorAll('#logTypeOptions .custom-select-option').forEach(function(opt) {
+                if ((opt.dataset.value || "") === (value || "")) {
+                    opt.classList.add("selected");
+                } else {
+                    opt.classList.remove("selected");
+                }
+            });
+
+            closeLogTypeDropdown();
+            currentPage = 1;
+            loadLogs();
+        }
+
+        if (logTypeTrigger && logTypeSelector && logTypeDropdown) {
+            logTypeTrigger.addEventListener("click", function(e) {
+                e.stopPropagation();
+                var isOpen = logTypeSelector.classList.contains("open");
+                if (isOpen) {
+                    closeLogTypeDropdown();
+                } else {
+                    logTypeSelector.classList.add("open");
+                    logTypeDropdown.classList.remove("hidden");
+                }
             });
         }
+
+        document.querySelectorAll('#logTypeOptions .custom-select-option').forEach(function(opt) {
+            opt.addEventListener("click", function(e) {
+                e.stopPropagation();
+                var labelEl = this.querySelector(".custom-select-option-name");
+                var label = labelEl ? labelEl.textContent : "";
+                setLogType(this.dataset.value || "", label);
+            });
+        });
+
+        document.addEventListener("click", function(e) {
+            if (logTypeSelector && !logTypeSelector.contains(e.target)) {
+                closeLogTypeDropdown();
+            }
+        });
 
         if (cleanupBtn) {
             cleanupBtn.addEventListener("click", cleanupLogs);

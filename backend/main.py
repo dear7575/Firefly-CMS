@@ -235,6 +235,9 @@ async def log_requests(request: Request, call_next):
     # 跳过日志相关接口（避免记录查看日志的操作）
     if request.url.path.startswith("/logs"):
         return response
+    # 跳过主题色保存（避免产生大量日志）
+    if request.url.path.endswith("/settings/by-key/theme_hue"):
+        return response
 
     # 记录 API 访问日志
     # 从 Authorization 头提取用户名
