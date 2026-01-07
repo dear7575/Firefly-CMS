@@ -106,6 +106,15 @@ class Settings(BaseSettings):
     # 上传文件存储路径
     UPLOAD_DIR: str = "uploads"
 
+    # 备份文件存储路径
+    BACKUP_DIR: str = "backups"
+
+    # 自动备份开关
+    AUTO_BACKUP_ENABLED: bool = True
+
+    # 自动备份间隔（小时）
+    AUTO_BACKUP_INTERVAL_HOURS: int = 24
+
     # 最大上传文件大小（MB）
     MAX_UPLOAD_SIZE: int = 10
 

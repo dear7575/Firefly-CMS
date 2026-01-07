@@ -60,6 +60,27 @@ class Post(Base):
         cascade="all, delete-orphan",
         order_by="desc(PostRevision.created_at)"
     )
+    scheduled_logs = relationship(
+        "ScheduledPublishLog",
+        back_populates="post",
+        cascade="all, delete-orphan",
+        order_by="desc(ScheduledPublishLog.created_at)"
+    )
+
+
+class ScheduledPublishLog(Base):
+    """定时发布日志表"""
+    __tablename__ = "scheduled_publish_logs"
+    __table_args__ = {'comment': '定时发布日志'}
+
+    id = Column(String(36), primary_key=True, default=generate_uuid, index=True, comment="日志ID(UUID)")
+    post_id = Column(String(36), ForeignKey("posts.id", ondelete="CASCADE"), nullable=False, index=True, comment="文章ID")
+    status = Column(String(20), nullable=False, comment="状态(success/failed)")
+    message = Column(Text, nullable=True, comment="日志说明")
+    scheduled_at = Column(DateTime, nullable=True, comment="计划发布时间")
+    created_at = Column(DateTime, default=datetime.utcnow, comment="记录时间")
+
+    post = relationship("Post", back_populates="scheduled_logs")
 
 
 class PostRevision(Base):
@@ -215,6 +236,20 @@ class SocialLink(Base):
     show_name = Column(Boolean, default=False, comment="是否显示名称")
     sort_order = Column(Integer, default=0, comment="排序权重(越大越靠前)")
     enabled = Column(Boolean, default=True, comment="是否启用")
+    created_at = Column(DateTime, default=datetime.utcnow, comment="创建时间")
+
+
+class BackupRecord(Base):
+    """数据备份记录表"""
+    __tablename__ = "backup_records"
+    __table_args__ = {'comment': '数据备份记录'}
+
+    id = Column(String(36), primary_key=True, default=generate_uuid, index=True, comment="记录ID(UUID)")
+    filename = Column(String(255), nullable=False, comment="备份文件名")
+    backup_type = Column(String(20), default="full", comment="备份类型(full/posts)")
+    source = Column(String(20), default="manual", comment="来源(manual/auto)")
+    size = Column(Integer, default=0, comment="文件大小(字节)")
+    note = Column(String(200), nullable=True, comment="备注")
     created_at = Column(DateTime, default=datetime.utcnow, comment="创建时间")
 
 

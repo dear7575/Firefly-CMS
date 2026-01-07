@@ -366,6 +366,8 @@ INSERT INTO `site_settings` VALUES ('a031839b-3905-4284-bc54-1a1a17d57ecb', 'ban
 INSERT INTO `site_settings` VALUES ('a147eea5-84a2-4e01-ada5-39d78586f43e', 'post_show_last_modified', 'true', 'boolean', 'post', '显示更新时间', '是否显示上次编辑时间卡片', 96, '2025-12-26 02:02:09');
 INSERT INTO `site_settings` VALUES ('a56467ab-097c-4b8d-9009-82b450de02bd', 'wallpaper_switchable', 'true', 'boolean', 'wallpaper', '允许切换', '是否允许用户切换壁纸模式', 99, '2025-12-26 02:02:09');
 INSERT INTO `site_settings` VALUES ('a58cc76f-f2d6-4cc4-bf98-b45160459b07', 'profile_avatar', '/assets/images/avatar.webp', 'string', 'profile', '头像', '个人头像图片URL', 100, '2025-12-26 02:02:09');
+INSERT INTO `site_settings` VALUES ('a68e6fb0-2b79-4c7f-8f59-0f5a2c4b1a10', 'backup_auto_enabled', 'true', 'boolean', 'backup', '自动备份', '是否启用自动备份', 100, '2025-12-26 02:02:09');
+INSERT INTO `site_settings` VALUES ('a9f2b0c8-6e3d-4c2b-9f21-0f7b4d1b2c33', 'backup_auto_interval_hours', '24', 'number', 'backup', '备份间隔(小时)', '自动备份执行间隔', 99, '2025-12-26 02:02:09');
 INSERT INTO `site_settings` VALUES ('ad242f31-3926-40aa-9e1f-ad0b9285d9b1', 'waves_desktop_enable', 'true', 'boolean', 'waves', '桌面端波浪', '桌面端是否启用波浪动画', 100, '2025-12-26 02:02:09');
 INSERT INTO `site_settings` VALUES ('b3502bd2-33cd-4035-86bb-26b6f50a40ba', 'feature_search', 'true', 'boolean', 'feature', '搜索功能', '是否启用搜索功能', 99, '2025-12-26 01:53:39');
 INSERT INTO `site_settings` VALUES ('b4909820-3a43-483b-91ca-6283da5be9cc', 'site_keywords', 'Firefly,Fuwari,Astro,ACGN,博客,技术博客,静态博客', 'string', 'basic', '站点关键词', '用于SEO的关键词', 96, '2025-12-26 02:02:09');
@@ -452,5 +454,40 @@ INSERT INTO `tags` VALUES ('c3f8996d-93f8-497b-86d7-2592ce198c36', '博客', 'bl
 INSERT INTO `tags` VALUES ('d762bcde-dc4b-4d17-b00c-e7de2983bedc', 'KaTeX', 'katex', '#06b6d4', 1, '2025-12-26 02:51:50');
 INSERT INTO `tags` VALUES ('eb53689f-54c6-4281-8731-b259727d94ff', '演示', 'showcase', '#fb923c', 1, '2025-12-26 02:51:50');
 INSERT INTO `tags` VALUES ('ed23ec0c-35a2-43c2-b150-16858cdcfedf', 'Math', 'math', '#84cc16', 1, '2025-12-26 02:51:50');
+
+-- ----------------------------
+-- Table structure for backup_records
+-- ----------------------------
+DROP TABLE IF EXISTS `backup_records`;
+CREATE TABLE `backup_records`  (
+  `id` varchar(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '记录ID(UUID)',
+  `filename` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '备份文件名',
+  `backup_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'full' COMMENT '备份类型(full/posts)',
+  `source` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'manual' COMMENT '来源(manual/auto)',
+  `size` int NULL DEFAULT NULL COMMENT '文件大小(字节)',
+  `note` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '备注',
+  `created_at` datetime NULL DEFAULT NULL COMMENT '创建时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `ix_backup_records_id`(`id` ASC) USING BTREE,
+  INDEX `ix_backup_records_created_at`(`created_at` ASC) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '数据备份记录' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for scheduled_publish_logs
+-- ----------------------------
+DROP TABLE IF EXISTS `scheduled_publish_logs`;
+CREATE TABLE `scheduled_publish_logs`  (
+  `id` varchar(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '日志ID(UUID)',
+  `post_id` varchar(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '文章ID',
+  `status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '状态(success/failed)',
+  `message` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '日志说明',
+  `scheduled_at` datetime NULL DEFAULT NULL COMMENT '计划发布时间',
+  `created_at` datetime NULL DEFAULT NULL COMMENT '记录时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `ix_scheduled_publish_logs_post_id`(`post_id` ASC) USING BTREE,
+  INDEX `ix_scheduled_publish_logs_created_at`(`created_at` ASC) USING BTREE,
+  INDEX `ix_scheduled_publish_logs_id`(`id` ASC) USING BTREE,
+  CONSTRAINT `scheduled_publish_logs_ibfk_1` FOREIGN KEY (`post_id`) REFERENCES `posts` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '定时发布日志' ROW_FORMAT = Dynamic;
 
 SET FOREIGN_KEY_CHECKS = 1;

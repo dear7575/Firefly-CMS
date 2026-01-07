@@ -134,9 +134,14 @@ import { siteConfig } from "@/config";
                     <h3 class="text-lg font-bold text-zinc-900 dark:text-zinc-100">媒体库总览</h3>
                     <p class="text-sm text-zinc-500 dark:text-zinc-400">查看数据库中的媒体文件记录</p>
                 </div>
-                <button id="closeMetadataBtn" class="w-9 h-9 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-500 hover:bg-zinc-200 dark:hover:bg-zinc-700 flex items-center justify-center">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
+                <div class="flex items-center gap-2">
+                    <button id="rebuildUsageBtn" class="px-3 py-2 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-300 text-sm hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all">
+                        重新统计
+                    </button>
+                    <button id="closeMetadataBtn" class="w-9 h-9 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-500 hover:bg-zinc-200 dark:hover:bg-zinc-700 flex items-center justify-center">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
             </div>
             <div id="metadataStats" class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4 text-sm text-zinc-500 dark:text-zinc-400">
                 <div class="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/70 border border-zinc-200 dark:border-zinc-700">
@@ -303,6 +308,10 @@ import { siteConfig } from "@/config";
         @apply text-xs text-zinc-500 dark:text-zinc-400 mt-0.5;
     }
 
+    .media-item .usage {
+        @apply text-xs text-zinc-500 dark:text-zinc-400 mt-0.5;
+    }
+
     .folder-item .filesize {
         @apply text-amber-600 dark:text-amber-400;
     }
@@ -410,6 +419,7 @@ import { siteConfig } from "@/config";
         var metadataPagination = document.getElementById('metadataPagination');
         var openMetadataBtn = document.getElementById('openMetadataBtn');
         var closeMetadataBtn = document.getElementById('closeMetadataBtn');
+        var rebuildUsageBtn = document.getElementById('rebuildUsageBtn');
         var currentMetadataPage = 1;
         var metadataKeyword = '';
         var metadataSearchTimer = null;
@@ -691,7 +701,12 @@ import { siteConfig } from "@/config";
                     window.showAdminAlert('媒体文件已删除', 'success');
                     loadMetadata(currentMetadataPage);
                 } else {
-                    window.showAdminAlert(result.msg || '删除失败', 'error');
+                    var usage = result.data && result.data.details ? result.data.details.usage_count : null;
+                    if (usage !== null && usage !== undefined) {
+                        window.showAdminAlert('该媒体被 ' + usage + ' 篇文章引用，无法删除', 'warning');
+                    } else {
+                        window.showAdminAlert(result.msg || '删除失败', 'error');
+                    }
                 }
             } catch (err) {
                 console.error('删除媒体失败:', err);
@@ -760,10 +775,12 @@ import { siteConfig } from "@/config";
                 }
 
                 metadataList.innerHTML = items.map(function(item) {
+                    var usageCount = typeof item.usage_count === 'number' ? item.usage_count : 0;
                     var info = [
                         '大小 ' + formatSize(item.size || 0),
                         '类型 ' + (item.mime_type || '未知'),
                         '上传者 ' + (item.uploader || '未知'),
+                        '引用 ' + usageCount,
                         '上传时间 ' + new Date(item.created_at).toLocaleString()
                     ].join(' · ');
 
@@ -820,6 +837,40 @@ import { siteConfig } from "@/config";
             metadataModal.classList.add('flex');
             loadMetadataStats();
             loadMetadata(1);
+        });
+
+        rebuildUsageBtn?.addEventListener('click', async function() {
+            var confirmed = false;
+            if (typeof window.adminConfirm === 'function') {
+                confirmed = await window.adminConfirm('确定要重新统计媒体引用吗？');
+            } else {
+                confirmed = window.confirm('确定要重新统计媒体引用吗？');
+            }
+            if (!confirmed) return;
+            var originalText = rebuildUsageBtn.textContent;
+            rebuildUsageBtn.disabled = true;
+            rebuildUsageBtn.textContent = '统计中...';
+            try {
+                var result = await window.adminRequest(API_URL + '/upload/media/rebuild-usage', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('adminToken')
+                    }
+                });
+                if (result.ok) {
+                    window.showAdminAlert('媒体引用统计已更新', 'success');
+                    loadMetadata(currentMetadataPage || 1);
+                    loadFiles();
+                } else {
+                    window.showAdminAlert(result.msg || '统计失败', 'error');
+                }
+            } catch (err) {
+                console.error('统计失败:', err);
+                window.showAdminAlert('统计失败', 'error');
+            } finally {
+                rebuildUsageBtn.disabled = false;
+                rebuildUsageBtn.textContent = originalText;
+            }
         });
 
         closeMetadataBtn?.addEventListener('click', function() {
@@ -970,6 +1021,7 @@ import { siteConfig } from "@/config";
                     var thumbnail = isImg
                         ? '<img src="' + file.url + '" alt="' + file.filename + '" loading="lazy" draggable="false" />'
                         : getFileIcon(file.filename);
+                    var usageCount = typeof file.usage_count === 'number' ? file.usage_count : 0;
 
                     return '<div class="media-item" data-url="' + file.url + '" data-filename="' + file.filename + '" draggable="false">' +
                         '<div class="actions">' +
@@ -981,6 +1033,7 @@ import { siteConfig } from "@/config";
                         '<div class="info">' +
                             '<div class="filename" title="' + file.filename + '">' + file.filename + '</div>' +
                             '<div class="filesize">' + formatSize(file.size) + '</div>' +
+                            '<div class="usage">引用 ' + usageCount + '</div>' +
                         '</div>' +
                     '</div>';
                 }).join('');
@@ -1092,7 +1145,12 @@ import { siteConfig } from "@/config";
                     item?.remove();
                     loadFiles();
                 } else {
-                    window.showAdminAlert(result.msg || '删除失败', 'error');
+                    var usage = result.data && result.data.details ? result.data.details.usage_count : null;
+                    if (usage !== null && usage !== undefined) {
+                        window.showAdminAlert('该文件被 ' + usage + ' 篇文章引用，无法删除', 'warning');
+                    } else {
+                        window.showAdminAlert(result.msg || '删除失败', 'error');
+                    }
                     loadFiles();
                 }
             } catch (err) {

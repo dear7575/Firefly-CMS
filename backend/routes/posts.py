@@ -8,6 +8,7 @@ import json
 
 import models
 import auth
+from media_usage import sync_post_media, refresh_media_usage_counts
 from database import get_db, settings
 from fastapi import APIRouter, Depends, HTTPException, status, Header
 from fastapi.security import OAuth2PasswordBearer
@@ -111,12 +112,28 @@ def process_scheduled_posts(db: Session) -> None:
         return
 
     for post in scheduled_posts:
-        post.status = "published"
-        post.is_draft = 0
-        post.published_at = post.scheduled_at or now
-        post.scheduled_at = None
-
-    db.commit()
+        scheduled_time = post.scheduled_at
+        try:
+            post.status = "published"
+            post.is_draft = 0
+            post.published_at = scheduled_time or now
+            post.scheduled_at = None
+            db.add(models.ScheduledPublishLog(
+                post_id=post.id,
+                status="success",
+                message="发布成功",
+                scheduled_at=scheduled_time
+            ))
+            db.commit()
+        except Exception as exc:
+            db.rollback()
+            db.add(models.ScheduledPublishLog(
+                post_id=post.id,
+                status="failed",
+                message=str(exc)[:500],
+                scheduled_at=scheduled_time
+            ))
+            db.commit()
 
 
 def create_revision_snapshot(
@@ -466,6 +483,7 @@ def create_post(
     db.commit()
     db.refresh(db_post)
     create_revision_snapshot(db, db_post, current_user)
+    sync_post_media(db, db_post.id, db_post.content, db_post.image)
 
     return {"message": "文章创建成功", "id": db_post.id}
 
@@ -560,6 +578,7 @@ def update_post(
 
     db.commit()
     create_revision_snapshot(db, db_post, current_user)
+    sync_post_media(db, db_post.id, db_post.content, db_post.image)
     return {"message": "文章更新成功"}
 
 
@@ -592,7 +611,13 @@ def delete_post(
 
     if permanent:
         # 永久删除
+        media_ids = [media.id for media in db_post.media_files]
+        db.query(models.PostMedia).filter(
+            models.PostMedia.post_id == post_id
+        ).delete(synchronize_session=False)
         db.delete(db_post)
+        db.commit()
+        refresh_media_usage_counts(db, media_ids)
         db.commit()
         return {"message": "文章已永久删除"}
     else:
@@ -600,6 +625,107 @@ def delete_post(
         db_post.deleted_at = datetime.utcnow()
         db.commit()
         return {"message": "文章已移入回收站"}
+
+
+@router.get("/scheduled/queue", summary="获取定时发布队列")
+def get_scheduled_queue(
+    page: int = 1,
+    page_size: int = 10,
+    db: Session = Depends(get_db),
+    current_user: models.Admin = Depends(get_current_user)
+):
+    """获取待发布的定时文章列表"""
+    query = db.query(models.Post).filter(
+        models.Post.status == "scheduled",
+        models.Post.scheduled_at != None
+    ).order_by(models.Post.scheduled_at.asc())
+
+    total = query.count()
+    posts = query.offset((page - 1) * page_size).limit(page_size).all()
+
+    items = []
+    for post in posts:
+        attempts = db.query(models.ScheduledPublishLog).filter(
+            models.ScheduledPublishLog.post_id == post.id
+        ).count()
+        last_log = db.query(models.ScheduledPublishLog).filter(
+            models.ScheduledPublishLog.post_id == post.id
+        ).order_by(models.ScheduledPublishLog.created_at.desc()).first()
+
+        items.append({
+            "id": post.id,
+            "title": post.title,
+            "slug": post.slug,
+            "scheduled_at": post.scheduled_at,
+            "status": "failed" if last_log and last_log.status == "failed" else "pending",
+            "attempts": attempts,
+            "last_attempt_at": last_log.created_at if last_log else None,
+            "last_error": last_log.message if last_log and last_log.status == "failed" else None
+        })
+
+    return {
+        "items": items,
+        "pagination": {
+            "page": page,
+            "page_size": page_size,
+            "total": total,
+            "total_pages": (total + page_size - 1) // page_size
+        }
+    }
+
+
+@router.get("/scheduled/logs", summary="获取定时发布日志")
+def get_scheduled_logs(
+    page: int = 1,
+    page_size: int = 20,
+    db: Session = Depends(get_db),
+    current_user: models.Admin = Depends(get_current_user)
+):
+    """获取定时发布日志"""
+    query = db.query(models.ScheduledPublishLog).order_by(
+        models.ScheduledPublishLog.created_at.desc()
+    )
+    total = query.count()
+    logs = query.offset((page - 1) * page_size).limit(page_size).all()
+
+    return {
+        "items": [{
+            "id": log.id,
+            "post_id": log.post_id,
+            "post_title": log.post.title if log.post else "",
+            "slug": log.post.slug if log.post else "",
+            "status": log.status,
+            "message": log.message,
+            "scheduled_at": log.scheduled_at,
+            "created_at": log.created_at
+        } for log in logs],
+        "pagination": {
+            "page": page,
+            "page_size": page_size,
+            "total": total,
+            "total_pages": (total + page_size - 1) // page_size
+        }
+    }
+
+
+@router.post("/{post_id}/scheduled/retry", summary="手动重试定时发布")
+def retry_scheduled_post(
+    post_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.Admin = Depends(get_current_user)
+):
+    """手动重试定时发布"""
+    db_post = db.query(models.Post).filter(models.Post.id == post_id).first()
+    if not db_post:
+        raise HTTPException(status_code=404, detail="文章不存在")
+
+    if db_post.status != "scheduled":
+        raise HTTPException(status_code=400, detail="文章不在定时发布状态")
+
+    db_post.scheduled_at = datetime.utcnow()
+    db_post.is_draft = 0
+    db.commit()
+    return {"message": "已加入发布队列"}
 
 
 @router.patch("/{post_id}/pin", summary="切换文章置顶状态")

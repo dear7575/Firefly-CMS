@@ -2,27 +2,26 @@
 Firefly CMS API 主入口
 FastAPI 应用程序配置和启动
 """
+import asyncio
+import json
+import logging
+import os
+import time
+import uuid
+from collections import defaultdict
+from datetime import datetime
+
 from fastapi import FastAPI, Depends, HTTPException, status, Request, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy.orm import Session
-from datetime import datetime, timedelta
-from collections import defaultdict
-import asyncio
-import logging
-import time
-import os
-import uuid
-import json
 
 import auth
 import models
 from database import engine, Base, get_db, SessionLocal, settings as db_settings
-from routes import posts, categories, tags, friends, social, settings, dashboard, logs, search, upload, backup, analytics, auth as auth_routes
 from exception_handlers import register_exception_handlers
-from exceptions import RateLimitError
 from logging_config import (
     setup_logging,
     set_request_id,
@@ -31,6 +30,8 @@ from logging_config import (
     get_logging_config_dict
 )
 from response_utils import build_error, normalize_payload, is_standard_payload
+from routes import posts, categories, tags, friends, social, settings, dashboard, logs, search, upload, backup, \
+    analytics, auth as auth_routes
 
 setup_logging()
 logger = logging.getLogger("firefly")
@@ -40,6 +41,8 @@ Base.metadata.create_all(bind=engine)
 
 # 创建上传目录
 os.makedirs(db_settings.UPLOAD_DIR, exist_ok=True)
+# 创建备份目录
+os.makedirs(db_settings.BACKUP_DIR, exist_ok=True)
 
 # 创建 FastAPI 应用实例
 app = FastAPI(
@@ -50,6 +53,7 @@ app = FastAPI(
 
 # 注册全局异常处理器
 register_exception_handlers(app)
+
 
 # 解析 CORS 配置
 def get_cors_config():
@@ -96,6 +100,42 @@ SCHEDULED_PUBLISH_INTERVAL = int(os.getenv("SCHEDULED_PUBLISH_INTERVAL", "60"))
 if SCHEDULED_PUBLISH_INTERVAL < 10:
     SCHEDULED_PUBLISH_INTERVAL = 10
 
+# 自动备份配置
+AUTO_BACKUP_ENABLED = str(os.getenv("AUTO_BACKUP_ENABLED", str(db_settings.AUTO_BACKUP_ENABLED))).lower() in (
+    "1", "true", "yes", "y", "on"
+)
+AUTO_BACKUP_INTERVAL_HOURS = int(os.getenv("AUTO_BACKUP_INTERVAL_HOURS", str(db_settings.AUTO_BACKUP_INTERVAL_HOURS)))
+if AUTO_BACKUP_INTERVAL_HOURS < 1:
+    AUTO_BACKUP_INTERVAL_HOURS = 1
+AUTO_BACKUP_INTERVAL_SECONDS = AUTO_BACKUP_INTERVAL_HOURS * 3600
+
+
+def read_backup_settings(db: Session) -> tuple[bool, int]:
+    """读取自动备份设置（优先数据库，回退环境变量）"""
+    enabled = AUTO_BACKUP_ENABLED
+    interval_hours = AUTO_BACKUP_INTERVAL_HOURS
+
+    rows = db.query(models.SiteSetting).filter(
+        models.SiteSetting.key.in_(["backup_auto_enabled", "backup_auto_interval_hours"])
+    ).all()
+    for row in rows:
+        if row.key == "backup_auto_enabled":
+            value = (row.value or "").strip().lower()
+            if value in ("true", "1", "yes", "y", "on"):
+                enabled = True
+            elif value in ("false", "0", "no", "n", "off"):
+                enabled = False
+        elif row.key == "backup_auto_interval_hours":
+            try:
+                interval_hours = int(float(row.value))
+            except (TypeError, ValueError):
+                interval_hours = AUTO_BACKUP_INTERVAL_HOURS
+
+    if interval_hours < 1:
+        interval_hours = 1
+
+    return enabled, interval_hours
+
 
 async def scheduled_publish_worker(stop_event: asyncio.Event):
     """后台循环处理定时发布文章"""
@@ -112,6 +152,35 @@ async def scheduled_publish_worker(stop_event: asyncio.Event):
 
         try:
             await asyncio.wait_for(stop_event.wait(), timeout=SCHEDULED_PUBLISH_INTERVAL)
+        except asyncio.TimeoutError:
+            continue
+
+
+async def auto_backup_worker(stop_event: asyncio.Event):
+    """后台循环执行自动备份"""
+    logger.info("自动备份后台任务启动")
+    while not stop_event.is_set():
+        interval_hours = AUTO_BACKUP_INTERVAL_HOURS
+        try:
+            db = SessionLocal()
+            try:
+                enabled, interval_hours = read_backup_settings(db)
+                if enabled:
+                    backup.create_backup_record(db, backup_type="full", source="auto")
+                else:
+                    logger.info("自动备份已关闭，跳过本次执行")
+            finally:
+                db.close()
+        except Exception as exc:
+            logger.error("自动备份失败: %s", exc)
+
+        try:
+            wait_seconds = AUTO_BACKUP_INTERVAL_SECONDS
+            try:
+                wait_seconds = interval_hours * 3600
+            except Exception:
+                wait_seconds = AUTO_BACKUP_INTERVAL_SECONDS
+            await asyncio.wait_for(stop_event.wait(), timeout=wait_seconds)
         except asyncio.TimeoutError:
             continue
 
@@ -149,11 +218,11 @@ def check_rate_limit(client_ip: str) -> bool:
 
 
 def save_access_log(
-    log_type: str,
-    request: Request,
-    username: str = None,
-    status_code: int = None,
-    detail: str = None
+        log_type: str,
+        request: Request,
+        username: str = None,
+        status_code: int = None,
+        detail: str = None
 ):
     """保存访问日志到数据库"""
     db = SessionLocal()
@@ -326,6 +395,13 @@ async def start_scheduled_publish_worker():
         scheduled_publish_worker(stop_event)
     )
 
+    if AUTO_BACKUP_ENABLED:
+        backup_stop_event = asyncio.Event()
+        app.state.auto_backup_stop = backup_stop_event
+        app.state.auto_backup_task = asyncio.create_task(
+            auto_backup_worker(backup_stop_event)
+        )
+
 
 @app.on_event("shutdown")
 async def stop_scheduled_publish_worker():
@@ -336,6 +412,16 @@ async def stop_scheduled_publish_worker():
     if task:
         try:
             await task
+        except asyncio.CancelledError:
+            pass
+
+    backup_stop = getattr(app.state, "auto_backup_stop", None)
+    backup_task = getattr(app.state, "auto_backup_task", None)
+    if backup_stop:
+        backup_stop.set()
+    if backup_task:
+        try:
+            await backup_task
         except asyncio.CancelledError:
             pass
 
@@ -361,9 +447,9 @@ api_router.include_router(analytics.router)
 
 @api_router.post("/token", summary="用户登录", tags=["认证"])
 async def login(
-    request: Request,
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    db: Session = Depends(get_db)
+        request: Request,
+        form_data: OAuth2PasswordRequestForm = Depends(),
+        db: Session = Depends(get_db)
 ):
     """
     用户登录接口
@@ -422,7 +508,6 @@ async def root():
 
 # 将 API 路由注册到 app
 app.include_router(api_router)
-
 
 # 直接运行此文件时启动服务器
 if __name__ == "__main__":

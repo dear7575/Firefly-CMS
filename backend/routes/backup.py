@@ -8,7 +8,7 @@ import json
 import os
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse, FileResponse
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
@@ -43,26 +43,8 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
     return user
 
 
-@router.get("/export", summary="导出所有数据")
-async def export_data(
-    db: Session = Depends(get_db),
-    current_user: models.Admin = Depends(get_current_user)
-):
-    """
-    导出所有博客数据为 JSON 格式
-
-    需要认证。导出内容包括：
-    - 文章（不含密码）
-    - 分类
-    - 标签
-    - 友链
-    - 社交链接
-    - 站点设置
-
-    Returns:
-        StreamingResponse: JSON 文件下载
-    """
-    # 导出文章
+def build_full_backup_payload(db: Session) -> Dict[str, Any]:
+    """构建全量备份数据"""
     posts = db.query(models.Post).all()
     posts_data = [{
         "id": p.id,
@@ -81,7 +63,6 @@ async def export_data(
         "has_password": p.password is not None and p.password != ""
     } for p in posts]
 
-    # 导出分类
     categories = db.query(models.Category).all()
     categories_data = [{
         "id": c.id,
@@ -94,7 +75,6 @@ async def export_data(
         "enabled": c.enabled
     } for c in categories]
 
-    # 导出标签
     tags = db.query(models.Tag).all()
     tags_data = [{
         "id": t.id,
@@ -104,7 +84,6 @@ async def export_data(
         "enabled": t.enabled
     } for t in tags]
 
-    # 导出友链
     friends = db.query(models.FriendLink).all()
     friends_data = [{
         "id": f.id,
@@ -117,7 +96,6 @@ async def export_data(
         "enabled": f.enabled
     } for f in friends]
 
-    # 导出社交链接
     socials = db.query(models.SocialLink).all()
     socials_data = [{
         "id": s.id,
@@ -129,7 +107,6 @@ async def export_data(
         "enabled": s.enabled
     } for s in socials]
 
-    # 导出站点设置
     site_settings = db.query(models.SiteSetting).all()
     settings_data = [{
         "key": s.key,
@@ -140,8 +117,7 @@ async def export_data(
         "description": s.description
     } for s in site_settings]
 
-    # 组装导出数据
-    export_data = {
+    return {
         "version": "1.0",
         "exported_at": datetime.utcnow().isoformat(),
         "data": {
@@ -162,23 +138,9 @@ async def export_data(
         }
     }
 
-    # 生成 JSON 文件
-    json_str = json.dumps(export_data, ensure_ascii=False, indent=2)
-    filename = f"firefly_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
 
-    return StreamingResponse(
-        io.BytesIO(json_str.encode('utf-8')),
-        media_type="application/json",
-        headers={"Content-Disposition": f"attachment; filename={filename}"}
-    )
-
-
-@router.get("/export/posts", summary="仅导出文章")
-async def export_posts(
-    db: Session = Depends(get_db),
-    current_user: models.Admin = Depends(get_current_user)
-):
-    """仅导出文章数据"""
+def build_posts_backup_payload(db: Session) -> Dict[str, Any]:
+    """构建文章备份数据"""
     posts = db.query(models.Post).all()
     posts_data = [{
         "title": p.title,
@@ -194,7 +156,7 @@ async def export_posts(
         "pin_order": p.pin_order or 0
     } for p in posts]
 
-    export_data = {
+    return {
         "version": "1.0",
         "exported_at": datetime.utcnow().isoformat(),
         "type": "posts",
@@ -202,8 +164,99 @@ async def export_posts(
         "count": len(posts_data)
     }
 
+
+def persist_backup_payload(
+    db: Session,
+    json_str: str,
+    filename: str,
+    backup_type: str,
+    source: str
+) -> Optional[models.BackupRecord]:
+    """保存备份文件并记录历史"""
+    if not json_str:
+        return None
+    os.makedirs(settings.BACKUP_DIR, exist_ok=True)
+    file_path = os.path.join(settings.BACKUP_DIR, filename)
+    with open(file_path, "w", encoding="utf-8") as f:
+        f.write(json_str)
+    size = os.path.getsize(file_path)
+    record = models.BackupRecord(
+        filename=filename,
+        backup_type=backup_type,
+        source=source,
+        size=size
+    )
+    db.add(record)
+    db.commit()
+    db.refresh(record)
+    return record
+
+
+def create_backup_record(
+    db: Session,
+    backup_type: str = "full",
+    source: str = "manual"
+) -> Optional[models.BackupRecord]:
+    """创建备份记录（用于自动备份或手动备份）"""
+    if backup_type == "posts":
+        payload = build_posts_backup_payload(db)
+        filename = f"firefly_posts_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    else:
+        payload = build_full_backup_payload(db)
+        filename = f"firefly_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        backup_type = "full"
+
+    json_str = json.dumps(payload, ensure_ascii=False, indent=2)
+    return persist_backup_payload(db, json_str, filename, backup_type, source)
+
+
+@router.get("/export", summary="导出所有数据")
+async def export_data(
+    db: Session = Depends(get_db),
+    current_user: models.Admin = Depends(get_current_user)
+):
+    """
+    导出所有博客数据为 JSON 格式
+
+    需要认证。导出内容包括：
+    - 文章（不含密码）
+    - 分类
+    - 标签
+    - 友链
+    - 社交链接
+    - 站点设置
+
+    Returns:
+        StreamingResponse: JSON 文件下载
+    """
+    export_data = build_full_backup_payload(db)
+    json_str = json.dumps(export_data, ensure_ascii=False, indent=2)
+    filename = f"firefly_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    try:
+        persist_backup_payload(db, json_str, filename, "full", "manual")
+    except Exception:
+        pass
+
+    return StreamingResponse(
+        io.BytesIO(json_str.encode('utf-8')),
+        media_type="application/json",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+
+@router.get("/export/posts", summary="仅导出文章")
+async def export_posts(
+    db: Session = Depends(get_db),
+    current_user: models.Admin = Depends(get_current_user)
+):
+    """仅导出文章数据"""
+    export_data = build_posts_backup_payload(db)
     json_str = json.dumps(export_data, ensure_ascii=False, indent=2)
     filename = f"firefly_posts_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    try:
+        persist_backup_payload(db, json_str, filename, "posts", "manual")
+    except Exception:
+        pass
 
     return StreamingResponse(
         io.BytesIO(json_str.encode('utf-8')),
@@ -467,3 +520,80 @@ async def import_data(
         "message": "数据导入完成",
         "stats": import_stats
     }
+
+
+@router.get("/history", summary="获取备份历史记录")
+async def get_backup_history(
+    page: int = 1,
+    page_size: int = 10,
+    db: Session = Depends(get_db),
+    current_user: models.Admin = Depends(get_current_user)
+):
+    """获取备份历史记录列表"""
+    query = db.query(models.BackupRecord)
+    total = query.count()
+    items = query.order_by(models.BackupRecord.created_at.desc()).offset(
+        (page - 1) * page_size
+    ).limit(page_size).all()
+
+    return {
+        "items": [{
+            "id": item.id,
+            "filename": item.filename,
+            "backup_type": item.backup_type,
+            "source": item.source,
+            "size": item.size,
+            "created_at": item.created_at
+        } for item in items],
+        "pagination": {
+            "page": page,
+            "page_size": page_size,
+            "total": total,
+            "total_pages": (total + page_size - 1) // page_size
+        }
+    }
+
+
+@router.get("/history/{backup_id}/download", summary="下载备份记录")
+async def download_backup_record(
+    backup_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.Admin = Depends(get_current_user)
+):
+    """下载指定备份记录"""
+    record = db.query(models.BackupRecord).filter(models.BackupRecord.id == backup_id).first()
+    if not record:
+        raise HTTPException(status_code=404, detail="备份记录不存在")
+
+    file_path = os.path.join(settings.BACKUP_DIR, record.filename)
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="备份文件不存在")
+
+    return FileResponse(
+        file_path,
+        media_type="application/json",
+        filename=record.filename
+    )
+
+
+@router.delete("/history/{backup_id}", summary="删除备份记录")
+async def delete_backup_record(
+    backup_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.Admin = Depends(get_current_user)
+):
+    """删除指定备份记录及文件"""
+    record = db.query(models.BackupRecord).filter(models.BackupRecord.id == backup_id).first()
+    if not record:
+        raise HTTPException(status_code=404, detail="备份记录不存在")
+
+    file_path = os.path.join(settings.BACKUP_DIR, record.filename)
+    if os.path.exists(file_path):
+        try:
+            os.remove(file_path)
+        except Exception:
+            raise HTTPException(status_code=500, detail="备份文件删除失败")
+
+    db.delete(record)
+    db.commit()
+    return {"message": "备份记录已删除"}
