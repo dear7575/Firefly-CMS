@@ -388,7 +388,14 @@ const groupIcons: Record<string, string> = {
                 if (!setting) return false;
                 var key = (setting.key || "").toLowerCase();
                 var label = setting.label || "";
-                if (key.includes("type") || key.includes("mode") || key.includes("layout") || /类型|模式/.test(label)) {
+                if (
+                    key.includes("type") ||
+                    key.includes("mode") ||
+                    key.includes("layout") ||
+                    key.includes("position") ||
+                    key.includes("offset") ||
+                    /类型|模式|位置|偏移/.test(label)
+                ) {
                     return false;
                 }
                 return (
@@ -406,12 +413,20 @@ const groupIcons: Record<string, string> = {
                 );
             }
 
+            function isLikelyImageUrl(value) {
+                if (!value) return false;
+                if (value.startsWith("data:image/")) return true;
+                if (value.startsWith("http://") || value.startsWith("https://")) return true;
+                if (value.startsWith("/")) return true;
+                return false;
+            }
+
             function updateImagePreview(value) {
                 var previewWrap = document.getElementById("settingImagePreview");
                 var previewImg = document.getElementById("settingImagePreviewImg");
                 if (!previewWrap || !previewImg) return;
 
-                if (!value) {
+                if (!value || !isLikelyImageUrl(value)) {
                     previewWrap.classList.add("hidden");
                     previewImg.src = "";
                     return;

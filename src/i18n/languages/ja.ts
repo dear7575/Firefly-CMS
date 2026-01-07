@@ -380,7 +380,9 @@ export const ja: Translation = {
 	[Key.adminSocialIcon]: "アイコン",
 	[Key.adminSocialIconPlaceholder]: "例: fa6-brands:github",
 	[Key.adminSocialUrl]: "リンクURL",
-	[Key.adminSocialUrlPlaceholder]: "https:// または mailto:",
+	[Key.adminSocialUrlPlaceholder]: "https://、mailto: または /rss/",
+	[Key.adminSocialUrlInvalid]:
+		"リンク形式が正しくありません。https://、mailto:、または /path を使用してください",
 	[Key.adminSocialShowName]: "ラベルを表示",
 	[Key.adminSocialShowNameDesc]:
 		"有効にするとフロントでアイコンとテキストを並べて表示します",

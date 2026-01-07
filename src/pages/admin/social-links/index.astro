@@ -95,10 +95,11 @@ const API_URL = getApiUrl();
                         <span class="text-red-500">*</span>
                     </label>
                     <input
-                        type="url"
+                        type="text"
                         id="socialLinkUrl"
                         required
                         class="modal-input"
+                        inputmode="url"
                         placeholder={i18n(I18nKey.adminSocialUrlPlaceholder)}
                     />
                 </div>
@@ -155,6 +156,7 @@ const API_URL = getApiUrl();
         var API_URL = window.API_URL;
         var t = window.adminI18n || {};
         var socialLinks = [];
+        var eventsBound = false;
 
         function escapeHtml(str) {
             return (str || "")
@@ -357,6 +359,13 @@ const API_URL = getApiUrl();
             }
         }
 
+        function isValidSocialUrl(url) {
+            if (!url) return false;
+            if (url.startsWith("/")) return true;
+            if (url.startsWith("mailto:")) return true;
+            return /^https?:\/\/.+/i.test(url);
+        }
+
         window.editSocialLink = function (id) {
             var link = socialLinks.find(function (item) {
                 return item.id === id;
@@ -405,6 +414,8 @@ const API_URL = getApiUrl();
         };
 
         function bindEvents() {
+            if (eventsBound) return;
+            eventsBound = true;
             var addBtn = document.getElementById("addSocialLinkBtn");
             var closeBtn = document.getElementById("closeSocialLinkModal");
             var cancelBtn = document.getElementById("cancelSocialLink");
@@ -452,6 +463,10 @@ const API_URL = getApiUrl();
 
                     if (!name || !icon || !url) {
                         window.showAdminAlert(t.requiredFields || "Required fields cannot be empty", "warning");
+                        return;
+                    }
+                    if (!isValidSocialUrl(url)) {
+                        window.showAdminAlert(t.socialUrlInvalid || "Invalid URL format", "warning");
                         return;
                     }
 

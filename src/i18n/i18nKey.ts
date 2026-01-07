@@ -344,6 +344,7 @@ enum I18nKey {
 	adminSocialIconPlaceholder = "adminSocialIconPlaceholder",
 	adminSocialUrl = "adminSocialUrl",
 	adminSocialUrlPlaceholder = "adminSocialUrlPlaceholder",
+	adminSocialUrlInvalid = "adminSocialUrlInvalid",
 	adminSocialShowName = "adminSocialShowName",
 	adminSocialShowNameDesc = "adminSocialShowNameDesc",
 	adminSocialBadgeShowName = "adminSocialBadgeShowName",

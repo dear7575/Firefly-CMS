@@ -264,7 +264,9 @@ export const ru: Translation = {
 	[Key.adminSocialIcon]: "Иконка",
 	[Key.adminSocialIconPlaceholder]: "например fa6-brands:github",
 	[Key.adminSocialUrl]: "URL ссылки",
-	[Key.adminSocialUrlPlaceholder]: "https:// или mailto:",
+	[Key.adminSocialUrlPlaceholder]: "https://, mailto: или /rss/",
+	[Key.adminSocialUrlInvalid]:
+		"Неверный формат ссылки. Используйте https://, mailto: или /path",
 	[Key.adminSocialShowName]: "Показывать подпись",
 	[Key.adminSocialShowNameDesc]:
 		"Включите, чтобы на фронте одновременно показывались иконка и текст",
