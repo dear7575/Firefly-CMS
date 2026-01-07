@@ -459,12 +459,12 @@ const adminMenuIcons = Object.fromEntries(
             box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
         }
 
-        button:not(.admin-tab-trigger):not(.admin-tab-close):not(.admin-password-toggle):not(.pinned-toggle):not(.vditor-tooltipped) {
+        body[data-admin-layout] button:not(.admin-tab-trigger):not(.admin-tab-close):not(.admin-password-toggle):not(.pinned-toggle):not(.vditor-tooltipped) {
             position: relative;
             overflow: hidden;
         }
 
-        button:not(.admin-tab-trigger):not(.admin-tab-close):not(.admin-password-toggle):not(.pinned-toggle):not(.vditor-tooltipped)::before {
+        body[data-admin-layout] button:not(.admin-tab-trigger):not(.admin-tab-close):not(.admin-password-toggle):not(.pinned-toggle):not(.vditor-tooltipped)::before {
             content: '';
             position: absolute;
             inset: 0;
@@ -475,33 +475,33 @@ const adminMenuIcons = Object.fromEntries(
             pointer-events: none;
         }
 
-        .dark button:not(.admin-tab-trigger):not(.admin-tab-close):not(.admin-password-toggle):not(.pinned-toggle):not(.vditor-tooltipped)::before {
+        .dark body[data-admin-layout] button:not(.admin-tab-trigger):not(.admin-tab-close):not(.admin-password-toggle):not(.pinned-toggle):not(.vditor-tooltipped)::before {
             background: linear-gradient(135deg, transparent 0%, oklch(0.3 0.04 var(--hue)) 100%);
         }
 
-        button:not(.admin-tab-trigger):not(.admin-tab-close):not(.admin-password-toggle):not(.pinned-toggle):not(.vditor-tooltipped):hover::before {
+        body[data-admin-layout] button:not(.admin-tab-trigger):not(.admin-tab-close):not(.admin-password-toggle):not(.pinned-toggle):not(.vditor-tooltipped):hover::before {
             opacity: 1;
         }
 
-        button[class*="bg-red"]:not(.admin-tab-trigger):not(.admin-tab-close):not(.admin-password-toggle):not(.pinned-toggle):not(.vditor-tooltipped)::before {
+        body[data-admin-layout] button[class*="bg-red"]:not(.admin-tab-trigger):not(.admin-tab-close):not(.admin-password-toggle):not(.pinned-toggle):not(.vditor-tooltipped)::before {
             opacity: 0;
         }
 
-        button:not(.admin-tab-trigger):not(.admin-tab-close):not(.admin-password-toggle):not(.pinned-toggle):not(.vditor-tooltipped) {
+        body[data-admin-layout] button:not(.admin-tab-trigger):not(.admin-tab-close):not(.admin-password-toggle):not(.pinned-toggle):not(.vditor-tooltipped) {
             translate: 0 0;
             transition: translate 0.2s ease, filter 0.2s ease;
         }
 
-        button:not(.admin-tab-trigger):not(.admin-tab-close):not(.admin-password-toggle):not(.pinned-toggle):not(.vditor-tooltipped):hover {
+        body[data-admin-layout] button:not(.admin-tab-trigger):not(.admin-tab-close):not(.admin-password-toggle):not(.pinned-toggle):not(.vditor-tooltipped):hover {
             translate: 0 -1px;
             filter: drop-shadow(0 8px 16px rgba(15, 23, 42, 0.12));
         }
 
-        .dark button:not(.admin-tab-trigger):not(.admin-tab-close):not(.admin-password-toggle):not(.pinned-toggle):not(.vditor-tooltipped):hover {
+        .dark body[data-admin-layout] button:not(.admin-tab-trigger):not(.admin-tab-close):not(.admin-password-toggle):not(.pinned-toggle):not(.vditor-tooltipped):hover {
             filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.35));
         }
 
-        button:not(.admin-tab-trigger):not(.admin-tab-close):not(.admin-password-toggle):not(.pinned-toggle):not(.vditor-tooltipped):active {
+        body[data-admin-layout] button:not(.admin-tab-trigger):not(.admin-tab-close):not(.admin-password-toggle):not(.pinned-toggle):not(.vditor-tooltipped):active {
             translate: 0 0;
             filter: none;
         }
@@ -1344,6 +1344,7 @@ const adminMenuIcons = Object.fromEntries(
 </head>
 <body
         class="min-h-screen font-sans selection:bg-indigo-100 dark:selection:bg-indigo-900/30"
+        data-admin-layout
 >
 {hideNav ? (
     <!-- 无导航布局（登录页面等）- 带背景图片和波浪效果 -->
