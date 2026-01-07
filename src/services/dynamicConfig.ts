@@ -89,6 +89,12 @@ export async function getDynamicSiteConfig(staticConfig: any): Promise<any> {
             ? [{ src: apiSettings.brand_favicon, sizes: '32x32' }]
             : staticConfig.favicon,
 
+        analytics: {
+            ...staticConfig.analytics,
+            googleAnalyticsId: apiSettings.analytics_google_id || staticConfig.analytics?.googleAnalyticsId,
+            microsoftClarityId: apiSettings.analytics_clarity_id || staticConfig.analytics?.microsoftClarityId,
+        },
+
         // 分页配置
         pagination: {
             ...staticConfig.pagination,

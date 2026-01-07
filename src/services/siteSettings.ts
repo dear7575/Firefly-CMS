@@ -77,6 +77,10 @@ const DEFAULT_SETTINGS: Record<string, any> = {
     feature_archive: true,
     feature_friends: true,
 
+    // 统计埋点
+    analytics_google_id: '',
+    analytics_clarity_id: '',
+
     // 评论设置
     comment_type: "none",
     comment_twikoo_env_id: "",

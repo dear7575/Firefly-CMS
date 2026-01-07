@@ -316,6 +316,8 @@ export const en: Translation = {
 	// Action Messages
 	[Key.adminConfirmDelete]:
 		"Are you sure you want to delete this post? This action cannot be undone.",
+	[Key.adminConfirmInitSettings]:
+		"Initialize default settings? Existing custom values will be kept.",
 	[Key.adminDeleteSuccess]: "Deleted successfully",
 	[Key.adminDeleteFailed]: "Delete failed, please try again later",
 	[Key.adminSaveSuccess]: "Saved successfully",

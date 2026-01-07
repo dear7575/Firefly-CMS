@@ -304,6 +304,7 @@ export const zh_CN: Translation = {
 
     // 操作提示
     [Key.adminConfirmDelete]: "确定要删除这篇文章吗？此操作不可恢复。",
+    [Key.adminConfirmInitSettings]: "确定要初始化默认配置吗？已存在的配置不会被覆盖。",
     [Key.adminDeleteSuccess]: "删除成功",
     [Key.adminDeleteFailed]: "删除失败，请稍后重试",
     [Key.adminSaveSuccess]: "保存成功",

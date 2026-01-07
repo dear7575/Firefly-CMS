@@ -312,6 +312,7 @@ export const ja: Translation = {
 
 	// 操作メッセージ
 	[Key.adminConfirmDelete]: "この記事を削除してもよろしいですか？この操作は元に戻せません。",
+	[Key.adminConfirmInitSettings]: "既定の設定を初期化しますか？既存の値は上書きされません。",
 	[Key.adminDeleteSuccess]: "削除しました",
 	[Key.adminDeleteFailed]: "削除に失敗しました。後でもう一度お試しください",
 	[Key.adminSaveSuccess]: "保存しました",

@@ -298,6 +298,7 @@ enum I18nKey {
 
 	// 操作提示
 	adminConfirmDelete = "adminConfirmDelete",
+	adminConfirmInitSettings = "adminConfirmInitSettings",
 	adminDeleteSuccess = "adminDeleteSuccess",
 	adminDeleteFailed = "adminDeleteFailed",
 	adminSaveSuccess = "adminSaveSuccess",

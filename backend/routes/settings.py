@@ -526,6 +526,10 @@ def init_default_settings(
         # 导航栏设置
         {"key": "brand_navbar_layout", "value": "space-between", "type": "string", "group": "brand", "label": "导航栏布局", "description": "left=左对齐, center=居中, space-between=两端对齐", "sort_order": 95},
         {"key": "brand_navbar_width_full", "value": "false", "type": "boolean", "group": "brand", "label": "导航栏全宽", "sort_order": 94},
+
+        # 统计埋点
+        {"key": "analytics_google_id", "value": "", "type": "string", "group": "analytics", "label": "Google Analytics ID", "description": "示例：G-XXXXXXXXXX", "sort_order": 100},
+        {"key": "analytics_clarity_id", "value": "", "type": "string", "group": "analytics", "label": "Microsoft Clarity ID", "description": "示例：abcd123456", "sort_order": 99},
     ]
 
     created_count = 0
