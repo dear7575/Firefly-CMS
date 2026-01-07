@@ -61,6 +61,13 @@ const siteKeywords = dynamicSettings.site_keywords
 const siteLangConfig = dynamicSettings.site_lang || siteConfig.lang;
 const authorName = dynamicSettings.profile_name || profileConfig.name;
 const siteUrl = dynamicSettings.site_url || siteConfig.site_url;
+const googleAnalyticsId =
+  dynamicSettings.analytics_google_id ||
+  siteConfig.analytics?.googleAnalyticsId;
+const microsoftClarityId =
+  dynamicSettings.analytics_clarity_id ||
+  siteConfig.analytics?.microsoftClarityId ||
+  siteConfig.analytics?.clarityId;
 
 // 主题配置
 const themeFixed = dynamicSettings.theme_fixed ?? siteConfig.themeColor.fixed;
@@ -137,11 +144,11 @@ const PUBLIC_API_URL = import.meta.env.PUBLIC_API_URL;
 <!doctype html>
 <html lang={siteLang} class="bg-[var(--page-bg)] text-[14px] md:text-[16px]">
   <head>
-    {siteConfig.analytics?.googleAnalyticsId && (
-      <GoogleAnalytics analyticsId={siteConfig.analytics.googleAnalyticsId} />
+    {googleAnalyticsId && (
+      <GoogleAnalytics analyticsId={googleAnalyticsId} />
     )}
-    {siteConfig.analytics?.microsoftClarityId && (
-      <MicrosoftClarity clarityId={siteConfig.analytics.microsoftClarityId} />
+    {microsoftClarityId && (
+      <MicrosoftClarity clarityId={microsoftClarityId} />
     )}
     <title>{pageTitle}</title>
 
