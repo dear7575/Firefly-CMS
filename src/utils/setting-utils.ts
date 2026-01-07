@@ -164,6 +164,19 @@ export function setTheme(theme: LIGHT_DARK_MODE): void {
 	// 保存到localStorage
 	localStorage.setItem("theme", theme);
 
+	// 通知其他组件主题已改变（包含解析后的结果）
+	if (typeof window !== "undefined") {
+		const resolvedTheme = resolveTheme(theme);
+		window.dispatchEvent(
+			new CustomEvent("theme-change", {
+				detail: {
+					mode: theme,
+					resolvedMode: resolvedTheme,
+				},
+			}),
+		);
+	}
+
 	// 如果切换到 system 模式，需要监听系统主题变化
 	if (theme === SYSTEM_MODE) {
 		setupSystemThemeListener();
