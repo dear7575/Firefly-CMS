@@ -1,0 +1,500 @@
+---
+export const prerender = false;
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { siteConfig } from "@/config";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+import { getApiUrl } from "@/utils/api-utils";
+
+const API_URL = getApiUrl();
+---
+
+<AdminLayout
+    title={`${i18n(I18nKey.adminBackupManagement)} - ${siteConfig.title}`}
+    activeMenu="backup"
+>
+    <div class="p-6 lg:p-8 space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div class="min-w-0">
+                <h1 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                    {i18n(I18nKey.adminBackupManagement)}
+                </h1>
+                <p class="text-sm text-zinc-500 mt-1">
+                    {i18n(I18nKey.adminManageBackups)}
+                </p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 rounded-xl bg-[var(--primary)]/10 dark:bg-[var(--primary)]/20 text-[var(--primary)] flex items-center justify-center">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v16h16M4 12h6m4 0h6M4 8h16M4 16h16" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                            {i18n(I18nKey.adminBackupExportAll)}
+                        </h2>
+                        <p class="text-xs text-zinc-500">
+                            {i18n(I18nKey.adminBackupExportHint)}
+                        </p>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-3">
+                    <button
+                        id="exportAllBtn"
+                        class="bg-[var(--primary)] dark:bg-zinc-800 hover:opacity-90 dark:hover:bg-zinc-700 text-white dark:text-zinc-100 px-5 py-2.5 rounded-xl font-medium transition-all shadow-lg hover:shadow-xl active:scale-95"
+                    >
+                        {i18n(I18nKey.adminBackupExportAll)}
+                    </button>
+                    <button
+                        id="exportPostsBtn"
+                        class="bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800 px-5 py-2.5 rounded-xl font-medium transition-all hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-sm active:scale-95"
+                    >
+                        {i18n(I18nKey.adminBackupExportPosts)}
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 text-emerald-500 flex items-center justify-center">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10a2 2 0 002 2h12a2 2 0 002-2V7m-3-4h-6a2 2 0 00-2 2v2h10V5a2 2 0 00-2-2z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                            {i18n(I18nKey.adminBackupImport)}
+                        </h2>
+                        <p class="text-xs text-zinc-500">
+                            {i18n(I18nKey.adminBackupImportHint)}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-4">
+                    <div class="flex flex-wrap items-center gap-3">
+                        <label
+                            for="backupFile"
+                            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 text-sm font-medium cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all"
+                        >
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4h6l2 2h8v14H4z" />
+                            </svg>
+                            {i18n(I18nKey.adminBackupSelectFile)}
+                        </label>
+                        <span id="backupFileName" class="text-sm text-zinc-500">
+                            {i18n(I18nKey.adminBackupFileEmpty)}
+                        </span>
+                        <input id="backupFile" type="file" accept="application/json" class="hidden" />
+                    </div>
+
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <div class="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                                {i18n(I18nKey.adminBackupMerge)}
+                            </div>
+                            <p class="text-xs text-zinc-400">
+                                {i18n(I18nKey.adminBackupMergeDesc)}
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div id="backupMergeToggle" class="toggle-switch"></div>
+                            <input type="checkbox" id="backupMerge" class="hidden" />
+                            <span id="backupMergeLabel" class="text-xs text-zinc-500">{i18n(I18nKey.adminBackupOverwrite)}</span>
+                        </div>
+                    </div>
+
+                    <button
+                        id="importBackupBtn"
+                        class="bg-[var(--primary)] dark:bg-zinc-800 hover:opacity-90 dark:hover:bg-zinc-700 text-white dark:text-zinc-100 px-5 py-2.5 rounded-xl font-medium transition-all shadow-lg hover:shadow-xl active:scale-95"
+                    >
+                        {i18n(I18nKey.adminBackupImport)}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="backupImportSummary" class="hidden bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
+            <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
+                {i18n(I18nKey.adminBackupSummary)}
+            </h3>
+            <div id="backupImportStats" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm text-zinc-600 dark:text-zinc-300"></div>
+        </div>
+
+        <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                <div>
+                    <h2 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                        {i18n(I18nKey.adminBackupHistory)}
+                    </h2>
+                    <p class="text-xs text-zinc-500">
+                        {i18n(I18nKey.adminBackupHistoryHint)}
+                    </p>
+                </div>
+                <button
+                    id="refreshBackupHistory"
+                    class="px-4 py-2 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-300 text-sm hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all"
+                >
+                    {i18n(I18nKey.adminBackupHistoryRefresh)}
+                </button>
+            </div>
+            <div id="backupHistoryList" class="space-y-3 text-sm text-zinc-600 dark:text-zinc-300">
+                {i18n(I18nKey.adminBackupHistoryLoading)}
+            </div>
+            <div id="backupHistoryPagination" class="flex items-center justify-between text-xs text-zinc-500 mt-4"></div>
+        </div>
+    </div>
+</AdminLayout>
+
+<script is:inline>
+    (function () {
+        var API_URL = window.API_URL;
+        var t = window.adminI18n || {};
+        var eventsBound = false;
+
+        function getAuthHeader() {
+            var token = localStorage.getItem("adminToken");
+            return token ? { Authorization: "Bearer " + token } : {};
+        }
+
+        function parseFilename(contentDisposition, fallbackName) {
+            if (!contentDisposition) return fallbackName;
+            var match = contentDisposition.match(/filename\*=UTF-8''([^;]+)/i);
+            if (!match) {
+                match = contentDisposition.match(/filename="?([^\";]+)"?/i);
+            }
+            if (!match) return fallbackName;
+            try {
+                return decodeURIComponent(match[1]);
+            } catch (err) {
+                return match[1];
+            }
+        }
+
+        async function downloadBackup(endpoint, fallbackName) {
+            try {
+                var response = await fetch(API_URL + endpoint, {
+                    headers: getAuthHeader(),
+                });
+                if (!response.ok) throw new Error("download failed");
+                var disposition = response.headers.get("content-disposition");
+                var blob = await response.blob();
+                var filename = parseFilename(disposition, fallbackName);
+                var url = window.URL.createObjectURL(blob);
+                var link = document.createElement("a");
+                link.href = url;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                window.URL.revokeObjectURL(url);
+            } catch (err) {
+                window.showAdminAlert(t.backupDownloadFailed || "下载失败", "error");
+            }
+        }
+
+        function renderImportStats(stats) {
+            var container = document.getElementById("backupImportStats");
+            var summary = document.getElementById("backupImportSummary");
+            if (!container || !summary) return;
+
+            var labels = {
+                posts: t.adminPost || "文章",
+                categories: t.categories || "分类",
+                tags: t.tags || "标签",
+                friends: t.friends || "友链",
+                socials: t.socialLink || "社交链接",
+                settings: t.adminSettings || "设置"
+            };
+
+            var items = Object.keys(labels).map(function (key) {
+                var info = stats && stats[key] ? stats[key] : { imported: 0, skipped: 0, errors: 0 };
+                return (
+                    '<div class="p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50">' +
+                    '<div class="text-xs text-zinc-500 mb-1">' + labels[key] + "</div>" +
+                    '<div class="flex items-center gap-3 text-xs">' +
+                    '<span class="text-emerald-500">' + (t.backupStatImported || "导入") + " " + info.imported + "</span>" +
+                    '<span class="text-amber-500">' + (t.backupStatSkipped || "跳过") + " " + info.skipped + "</span>" +
+                    '<span class="text-red-500">' + (t.backupStatErrors || "错误") + " " + info.errors + "</span>" +
+                    "</div>" +
+                    "</div>"
+                );
+            });
+
+            container.innerHTML = items.join("");
+            summary.classList.remove("hidden");
+        }
+
+        function bindEvents() {
+            if (eventsBound) return;
+            eventsBound = true;
+
+            var exportAllBtn = document.getElementById("exportAllBtn");
+            var exportPostsBtn = document.getElementById("exportPostsBtn");
+            var fileInput = document.getElementById("backupFile");
+            var fileName = document.getElementById("backupFileName");
+            var mergeToggle = document.getElementById("backupMergeToggle");
+            var mergeInput = document.getElementById("backupMerge");
+            var mergeLabel = document.getElementById("backupMergeLabel");
+            var importBtn = document.getElementById("importBackupBtn");
+            var refreshHistoryBtn = document.getElementById("refreshBackupHistory");
+
+            if (exportAllBtn) {
+                exportAllBtn.addEventListener("click", function () {
+                    downloadBackup("/backup/export", "firefly_backup.json");
+                });
+            }
+            if (exportPostsBtn) {
+                exportPostsBtn.addEventListener("click", function () {
+                    downloadBackup("/backup/export/posts", "firefly_posts.json");
+                });
+            }
+            if (fileInput) {
+                fileInput.addEventListener("change", function () {
+                    var file = this.files && this.files[0];
+                    if (fileName) {
+                        fileName.textContent = file ? file.name : (t.backupFileEmpty || "未选择文件");
+                    }
+                });
+            }
+            if (mergeToggle && mergeInput) {
+                mergeToggle.addEventListener("click", function () {
+                    mergeInput.checked = !mergeInput.checked;
+                    if (mergeInput.checked) {
+                        mergeToggle.classList.add("active");
+                        if (mergeLabel) mergeLabel.textContent = t.backupMerge || "合并导入";
+                    } else {
+                        mergeToggle.classList.remove("active");
+                        if (mergeLabel) mergeLabel.textContent = t.backupOverwrite || "覆盖导入";
+                    }
+                });
+            }
+            if (importBtn) {
+                importBtn.addEventListener("click", async function () {
+                    var file = fileInput && fileInput.files ? fileInput.files[0] : null;
+                    if (!file) {
+                        window.showAdminAlert(t.backupNoFile || "请先选择备份文件", "warning");
+                        return;
+                    }
+
+                    var formData = new FormData();
+                    formData.append("file", file);
+
+                    var merge = mergeInput && mergeInput.checked;
+                    var confirmMessage = merge
+                        ? (t.backupImportConfirmMerge || "确定要合并导入该备份吗？")
+                        : (t.backupImportConfirmOverwrite || "确定要覆盖导入该备份吗？");
+                    var confirmed = await window.showAdminConfirm(confirmMessage);
+                    if (!confirmed) return;
+                    var originalText = importBtn.textContent;
+                    importBtn.disabled = true;
+                    importBtn.textContent = t.backupImporting || "导入中...";
+
+                    try {
+                        var response = await fetch(API_URL + "/backup/import?merge=" + (merge ? "true" : "false"), {
+                            method: "POST",
+                            headers: getAuthHeader(),
+                            body: formData,
+                        });
+                        var payload = await window.parseApiResponse(response);
+                        if (payload.ok) {
+                            window.showAdminAlert(t.backupImportSuccess || "导入完成", "success");
+                            renderImportStats(payload.data ? payload.data.stats : null);
+                        } else {
+                            window.showAdminAlert(payload.msg || t.backupImportFailed || "导入失败", "error");
+                        }
+                    } catch (err) {
+                        window.showAdminAlert(t.backupImportFailed || "导入失败", "error");
+                    } finally {
+                        importBtn.disabled = false;
+                        importBtn.textContent = originalText;
+                    }
+                });
+            }
+
+            if (refreshHistoryBtn) {
+                refreshHistoryBtn.addEventListener("click", function () {
+                    loadBackupHistory(1);
+                });
+            }
+        }
+
+        function initBackupPage() {
+            if (!document.getElementById("exportAllBtn")) return;
+            bindEvents();
+            loadBackupHistory(1);
+        }
+
+        document.addEventListener("astro:page-load", initBackupPage);
+        initBackupPage();
+
+        function formatSize(bytes) {
+            if (!bytes || bytes <= 0) return "0 B";
+            var k = 1024;
+            var sizes = ["B", "KB", "MB", "GB"];
+            var i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+        }
+
+        function formatBackupType(type) {
+            if (type === "posts") return t.backupHistoryTypePosts || "仅文章";
+            return t.backupHistoryTypeFull || "全量备份";
+        }
+
+        function formatBackupSource(source) {
+            if (source === "auto") return t.backupHistorySourceAuto || "自动";
+            return t.backupHistorySourceManual || "手动";
+        }
+
+        function renderBackupHistory(items) {
+            var list = document.getElementById("backupHistoryList");
+            if (!list) return;
+            if (!items || !items.length) {
+                list.innerHTML = '<div class="text-center text-sm text-zinc-500 py-6">' + (t.backupHistoryEmpty || "暂无备份记录") + "</div>";
+                return;
+            }
+            list.innerHTML = items
+                .map(function (item) {
+                    var info = [
+                        (t.backupHistoryType || "类型") + " " + formatBackupType(item.backup_type),
+                        (t.backupHistorySource || "来源") + " " + formatBackupSource(item.source),
+                        (t.backupHistorySize || "大小") + " " + formatSize(item.size || 0),
+                        (t.backupHistoryTime || "时间") + " " + new Date(item.created_at).toLocaleString(),
+                    ].join(" · ");
+                    return (
+                        '<div class="p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3" data-backup-id="' +
+                        item.id +
+                        '">' +
+                        '<div class="min-w-0">' +
+                        '<div class="font-semibold text-zinc-900 dark:text-zinc-100 truncate">' +
+                        item.filename +
+                        "</div>" +
+                        '<div class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">' +
+                        info +
+                        "</div>" +
+                        "</div>" +
+                        '<div class="flex items-center gap-2 flex-shrink-0">' +
+                        '<button class="backup-download px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700 text-sm text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors" data-filename="' +
+                        item.filename +
+                        '">' +
+                        (t.backupHistoryDownload || "下载") +
+                        "</button>" +
+                        '<button class="backup-delete px-3 py-1.5 rounded-lg border border-red-200 text-sm text-red-500 hover:bg-red-50 transition-colors">' +
+                        (t.backupHistoryDelete || "删除") +
+                        "</button>" +
+                        "</div>" +
+                        "</div>"
+                    );
+                })
+                .join("");
+
+            list.querySelectorAll(".backup-download").forEach(function (btn) {
+                btn.addEventListener("click", function () {
+                    var parent = btn.closest("[data-backup-id]");
+                    var backupId = parent ? parent.getAttribute("data-backup-id") : null;
+                    if (!backupId) return;
+                    downloadBackup("/backup/history/" + backupId + "/download", btn.dataset.filename || "backup.json");
+                });
+            });
+
+            list.querySelectorAll(".backup-delete").forEach(function (btn) {
+                btn.addEventListener("click", async function () {
+                    var parent = btn.closest("[data-backup-id]");
+                    var backupId = parent ? parent.getAttribute("data-backup-id") : null;
+                    if (!backupId) return;
+                    var confirmed = false;
+                    if (typeof window.adminConfirm === "function") {
+                        confirmed = await window.adminConfirm(
+                            t.backupHistoryDeleteConfirm || "确定要删除该备份记录吗？同时删除备份文件。"
+                        );
+                    } else {
+                        confirmed = window.confirm(
+                            t.backupHistoryDeleteConfirm || "确定要删除该备份记录吗？同时删除备份文件。"
+                        );
+                    }
+                    if (!confirmed) return;
+                    try {
+                        var result = await window.adminRequest(API_URL + "/backup/history/" + backupId, {
+                            method: "DELETE",
+                            headers: getAuthHeader(),
+                        });
+                        if (result.ok) {
+                            window.showAdminAlert(t.backupHistoryDeleteSuccess || "备份记录已删除", "success");
+                            loadBackupHistory(1);
+                        } else {
+                            window.showAdminAlert(result.msg || t.backupHistoryDeleteFailed || "删除失败", "error");
+                        }
+                    } catch (err) {
+                        window.showAdminAlert(t.backupHistoryDeleteFailed || "删除失败", "error");
+                    }
+                });
+            });
+        }
+
+        function renderBackupHistoryPagination(pagination) {
+            var paginationEl = document.getElementById("backupHistoryPagination");
+            if (!paginationEl) return;
+            if (!pagination || pagination.total_pages <= 1) {
+                paginationEl.innerHTML = "";
+                return;
+            }
+            var prevDisabled = pagination.page <= 1 ? "disabled opacity-40 cursor-not-allowed" : "";
+            var nextDisabled = pagination.page >= pagination.total_pages ? "disabled opacity-40 cursor-not-allowed" : "";
+            paginationEl.innerHTML =
+                "<div>第 " +
+                pagination.page +
+                " / " +
+                pagination.total_pages +
+                " 页，共 " +
+                pagination.total +
+                " 条</div>" +
+                '<div class="flex gap-2">' +
+                '<button class="backup-page px-3 py-1 rounded-lg border border-zinc-200 dark:border-zinc-700 ' +
+                prevDisabled +
+                '" data-page="' +
+                (pagination.page - 1) +
+                '">上一页</button>' +
+                '<button class="backup-page px-3 py-1 rounded-lg border border-zinc-200 dark:border-zinc-700 ' +
+                nextDisabled +
+                '" data-page="' +
+                (pagination.page + 1) +
+                '">下一页</button>' +
+                "</div>";
+
+            paginationEl.querySelectorAll(".backup-page").forEach(function (btn) {
+                btn.addEventListener("click", function () {
+                    var page = Number(btn.getAttribute("data-page"));
+                    if (!page || btn.disabled) return;
+                    loadBackupHistory(page);
+                });
+            });
+        }
+
+        async function loadBackupHistory(page) {
+            var list = document.getElementById("backupHistoryList");
+            if (!list) return;
+            list.innerHTML = '<div class="text-center text-sm text-zinc-500 py-6">' + (t.backupHistoryLoading || "加载中...") + "</div>";
+            try {
+                var url = new URL(API_URL + "/backup/history", window.location.origin);
+                url.searchParams.set("page", page || 1);
+                url.searchParams.set("page_size", 8);
+                var result = await window.adminRequest(url.toString(), {
+                    headers: getAuthHeader(),
+                });
+                if (!result.ok) {
+                    list.innerHTML = '<div class="text-center text-sm text-red-400 py-6">' + (t.backupHistoryLoadFailed || "备份记录加载失败") + "</div>";
+                    return;
+                }
+                var data = result.data || {};
+                renderBackupHistory(data.items || []);
+                renderBackupHistoryPagination(data.pagination);
+            } catch (err) {
+                list.innerHTML = '<div class="text-center text-sm text-red-400 py-6">' + (t.backupHistoryLoadFailed || "备份记录加载失败") + "</div>";
+            }
+        }
+    })();
+</script>
