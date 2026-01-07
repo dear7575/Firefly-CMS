@@ -518,11 +518,19 @@ if __name__ == "__main__":
     if reload_env is not None:
         reload_enabled = reload_env.strip().lower() in ("1", "true", "yes", "y", "on")
 
+    proxy_headers_env = os.getenv("PROXY_HEADERS", "true")
+    proxy_headers = proxy_headers_env.strip().lower() in ("1", "true", "yes", "y", "on")
+    forwarded_allow_ips = os.getenv("FORWARDED_ALLOW_IPS", "*").strip()
+    if not forwarded_allow_ips:
+        forwarded_allow_ips = "*"
+
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
         port=8000,
         reload=reload_enabled,
         log_config=get_logging_config_dict(),
+        proxy_headers=proxy_headers,
+        forwarded_allow_ips=forwarded_allow_ips,
         access_log=True
     )
