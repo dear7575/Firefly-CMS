@@ -256,4 +256,21 @@ export const ru: Translation = {
 	[Key.copyLink]: "Копировать ссылку",
 	[Key.savePoster]: "Сохранить постер",
 	[Key.scanToRead]: "Сканируйте, чтобы прочитать",
+
+	// Социальные ссылки
+	[Key.adminSocialManagement]: "Соц. ссылки",
+	[Key.adminManageSocialLinks]: "Управление иконками и ссылками соцсетей",
+	[Key.adminSocialLink]: "Социальная ссылка",
+	[Key.adminSocialIcon]: "Иконка",
+	[Key.adminSocialIconPlaceholder]: "например fa6-brands:github",
+	[Key.adminSocialUrl]: "URL ссылки",
+	[Key.adminSocialUrlPlaceholder]: "https:// или mailto:",
+	[Key.adminSocialShowName]: "Показывать подпись",
+	[Key.adminSocialShowNameDesc]:
+		"Включите, чтобы на фронте одновременно показывались иконка и текст",
+	[Key.adminSocialBadgeShowName]: "Иконка + текст",
+	[Key.adminSocialBadgeIconOnly]: "Только иконка",
+	[Key.adminSocialEmpty]: "Социальные ссылки ещё не добавлены",
+	[Key.adminSocialLoadFailed]: "Не удалось загрузить социальные ссылки",
+	[Key.adminConfirmDeleteSocialLink]: "Удалить социальную ссылку «{name}»?",
 };

@@ -71,6 +71,7 @@ const adminI18n = {
     uncategorized: i18n(I18nKey.adminPostUncategorized),
     empty: i18n(I18nKey.adminPostEmpty),
     loadFailed: i18n(I18nKey.adminPostLoadFailed),
+    adminLoading: i18n(I18nKey.adminLoading),
     confirmDelete: i18n(I18nKey.adminConfirmDelete),
     initSettingsConfirm: i18n(I18nKey.adminConfirmInitSettings),
     loginExpired: i18n(I18nKey.adminLoginExpired),
@@ -94,6 +95,13 @@ const adminI18n = {
     saveFailed: i18n(I18nKey.adminSaveFailed),
     other: i18n(I18nKey.other),
     friends: i18n(I18nKey.friends),
+    socialLink: i18n(I18nKey.adminSocialLink),
+    socialLinksEmpty: i18n(I18nKey.adminSocialEmpty),
+    socialLinksFailed: i18n(I18nKey.adminSocialLoadFailed),
+    socialBadgeText: i18n(I18nKey.adminSocialBadgeShowName),
+    socialBadgeIconOnly: i18n(I18nKey.adminSocialBadgeIconOnly),
+    socialShowName: i18n(I18nKey.adminSocialShowName),
+    confirmDeleteSocialLink: i18n(I18nKey.adminConfirmDeleteSocialLink),
     all: i18n(I18nKey.bangumiFilterAll),
     contentEmpty: i18n(I18nKey.adminContentEmpty),
     delete: i18n(I18nKey.adminDelete),
@@ -140,6 +148,12 @@ const menuItems = [
         label: i18n(I18nKey.adminFriendManagement),
         icon: "M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1",
         href: "/admin/friends"
+    },
+    {
+        id: "social-links",
+        label: i18n(I18nKey.adminSocialManagement),
+        icon: "M21 8V7a2 2 0 00-2-2H5a2 2 0 00-2 2v1m18 0l-8.228 5.485a2 2 0 01-2.344 0L3 8m18 0v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8",
+        href: "/admin/social-links"
     },
     {
         id: "media",

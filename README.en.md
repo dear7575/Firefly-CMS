@@ -55,6 +55,7 @@
 ### Dynamic Configuration
 - **Site Info** - Title, subtitle, description, keywords
 - **Profile** - Avatar, nickname, bio
+- **Social Links** - Maintain platform icons/URLs/order from the Social Links admin page
 - **Brand Settings** - Logo, navbar title
 - **Banner Settings** - Homepage banner text
 - **Theme Settings** - Theme color, default mode

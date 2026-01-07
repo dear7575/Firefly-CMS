@@ -247,4 +247,20 @@ export const zh_TW: Translation = {
 	[Key.copyLink]: "複製連結",
 	[Key.savePoster]: "保存海報",
 	[Key.scanToRead]: "掃碼閱讀文章",
+
+	// 社群連結
+	[Key.adminSocialManagement]: "社群連結管理",
+	[Key.adminManageSocialLinks]: "管理社群連結與顯示方式",
+	[Key.adminSocialLink]: "社群連結",
+	[Key.adminSocialIcon]: "圖示",
+	[Key.adminSocialIconPlaceholder]: "例如 fa6-brands:github",
+	[Key.adminSocialUrl]: "連結位址",
+	[Key.adminSocialUrlPlaceholder]: "https:// 或 mailto:",
+	[Key.adminSocialShowName]: "顯示名稱",
+	[Key.adminSocialShowNameDesc]: "啟用後會在前台同時顯示文字",
+	[Key.adminSocialBadgeShowName]: "圖示 + 文字",
+	[Key.adminSocialBadgeIconOnly]: "僅圖示",
+	[Key.adminSocialEmpty]: "尚無社群連結，請新增",
+	[Key.adminSocialLoadFailed]: "載入社群連結失敗",
+	[Key.adminConfirmDeleteSocialLink]: "確定要刪除社群連結「{name}」嗎？",
 };

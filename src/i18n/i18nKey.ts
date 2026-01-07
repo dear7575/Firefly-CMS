@@ -332,9 +332,25 @@ enum I18nKey {
 	adminCategoryManagement = "adminCategoryManagement",
 	adminTagManagement = "adminTagManagement",
 	adminFriendManagement = "adminFriendManagement",
+	adminSocialManagement = "adminSocialManagement",
 	adminSystemManagement = "adminSystemManagement",
 	adminLogManagement = "adminLogManagement",
 	adminAnnouncementManagement = "adminAnnouncementManagement",
+
+	// 社交链接
+	adminManageSocialLinks = "adminManageSocialLinks",
+	adminSocialLink = "adminSocialLink",
+	adminSocialIcon = "adminSocialIcon",
+	adminSocialIconPlaceholder = "adminSocialIconPlaceholder",
+	adminSocialUrl = "adminSocialUrl",
+	adminSocialUrlPlaceholder = "adminSocialUrlPlaceholder",
+	adminSocialShowName = "adminSocialShowName",
+	adminSocialShowNameDesc = "adminSocialShowNameDesc",
+	adminSocialBadgeShowName = "adminSocialBadgeShowName",
+	adminSocialBadgeIconOnly = "adminSocialBadgeIconOnly",
+	adminSocialEmpty = "adminSocialEmpty",
+	adminSocialLoadFailed = "adminSocialLoadFailed",
+	adminConfirmDeleteSocialLink = "adminConfirmDeleteSocialLink",
 
 	// 访问日志
 	adminManageAccessLogs = "adminManageAccessLogs",

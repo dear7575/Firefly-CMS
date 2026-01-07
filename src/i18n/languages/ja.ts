@@ -346,6 +346,7 @@ export const ja: Translation = {
 	[Key.adminCategoryManagement]: "カテゴリ管理",
 	[Key.adminTagManagement]: "タグ管理",
 	[Key.adminFriendManagement]: "フレンド管理",
+	[Key.adminSocialManagement]: "ソーシャルリンク管理",
 	[Key.adminSystemManagement]: "システム管理",
 	[Key.adminLogManagement]: "アクセスログ",
 
@@ -372,4 +373,20 @@ export const ja: Translation = {
 	[Key.adminLogTotalLogs]: "総ログ数",
 	[Key.adminLogTodayLogs]: "今日のログ",
 	[Key.adminLogUniqueIps]: "ユニークIP数",
+
+	// ソーシャルリンク
+	[Key.adminManageSocialLinks]: "ソーシャルメディアのアイコンとリンクを管理",
+	[Key.adminSocialLink]: "ソーシャルリンク",
+	[Key.adminSocialIcon]: "アイコン",
+	[Key.adminSocialIconPlaceholder]: "例: fa6-brands:github",
+	[Key.adminSocialUrl]: "リンクURL",
+	[Key.adminSocialUrlPlaceholder]: "https:// または mailto:",
+	[Key.adminSocialShowName]: "ラベルを表示",
+	[Key.adminSocialShowNameDesc]:
+		"有効にするとフロントでアイコンとテキストを並べて表示します",
+	[Key.adminSocialBadgeShowName]: "アイコン + テキスト",
+	[Key.adminSocialBadgeIconOnly]: "アイコンのみ",
+	[Key.adminSocialEmpty]: "ソーシャルリンクがまだありません。追加してください",
+	[Key.adminSocialLoadFailed]: "ソーシャルリンクの読み込みに失敗しました",
+	[Key.adminConfirmDeleteSocialLink]: "ソーシャルリンク「{name}」を削除しますか？",
 };

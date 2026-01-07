@@ -351,6 +351,7 @@ export const en: Translation = {
 	[Key.adminCategoryManagement]: "Categories",
 	[Key.adminTagManagement]: "Tags",
 	[Key.adminFriendManagement]: "Friends",
+	[Key.adminSocialManagement]: "Social Links",
 	[Key.adminSystemManagement]: "System",
 	[Key.adminLogManagement]: "Access Logs",
 
@@ -396,4 +397,19 @@ export const en: Translation = {
 	[Key.adminConfirmDeleteCategory]: "Delete category \"{name}\"?",
 	[Key.adminNoCategories]: "No categories",
 	[Key.adminPosts]: "posts",
+
+	// Social Links
+	[Key.adminManageSocialLinks]: "Manage social media icons and URLs",
+	[Key.adminSocialLink]: "Social Link",
+	[Key.adminSocialIcon]: "Icon",
+	[Key.adminSocialIconPlaceholder]: "e.g. fa6-brands:github",
+	[Key.adminSocialUrl]: "Link URL",
+	[Key.adminSocialUrlPlaceholder]: "https:// or mailto:",
+	[Key.adminSocialShowName]: "Show label",
+	[Key.adminSocialShowNameDesc]: "Enable to display text next to the icon on the frontend",
+	[Key.adminSocialBadgeShowName]: "Icon + text",
+	[Key.adminSocialBadgeIconOnly]: "Icon only",
+	[Key.adminSocialEmpty]: "No social links yet. Add your first one!",
+	[Key.adminSocialLoadFailed]: "Failed to load social links",
+	[Key.adminConfirmDeleteSocialLink]: "Delete social link \"{name}\"?",
 };
