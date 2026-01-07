@@ -35,11 +35,12 @@
 - **RESTful API** - Standardized interface design
 
 ### Management Features
-- **Post Management** - Online editor (Vditor), draft/publish, pinning, password protection
+- **Post Management** - Online editor (Vditor), draft/publish, scheduled publishing, pinning, password protection, revisions/trash
 - **Category Management** - CRUD operations, color tags, enable/disable
 - **Tag Management** - CRUD operations, color tags, enable/disable
 - **Friend Links** - Link management, sorting weight, avatar/description
 - **Media Management** - File uploads, previews, link copy, deletion, and folder management
+- **Backup** - Export/import site data (posts, categories, tags, friends, social links, settings)
 - **Announcement Management** - CRUD operations, show/hide, type selection (info/warning/success)
 - **System Settings** - Dynamic management of site info, profile, theme config
 - **Social Links** - Social media link management
@@ -59,6 +60,7 @@
 - **Brand Settings** - Logo, navbar title
 - **Banner Settings** - Homepage banner text
 - **Theme Settings** - Theme color, default mode
+- **Analytics** - Google Analytics / Microsoft Clarity
 - **Footer Settings** - ICP filing, copyright info
 - **Announcement Config** - Dynamic announcement content with multiple types
 - **About Page** - Dynamic about page content management

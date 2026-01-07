@@ -74,6 +74,26 @@ const groupIcons: Record<string, string> = {
                 </p>
             </div>
             <div class="flex items-center gap-3 flex-shrink-0">
+                <a
+                    href="/admin/backup"
+                    class="bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-sm text-zinc-700 dark:text-zinc-300 px-4 py-2.5 rounded-xl font-medium transition-all flex items-center gap-2 border border-zinc-200 dark:border-zinc-800"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M4 7v10a2 2 0 002 2h12a2 2 0 002-2V7m-3-4h-6a2 2 0 00-2 2v2h10V5a2 2 0 00-2-2z"
+                        ></path>
+                    </svg>
+                    {i18n(I18nKey.adminBackupManagement)}
+                </a>
                 <button
                     id="initSettingsBtn"
                     class="bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-sm text-zinc-700 dark:text-zinc-300 px-4 py-2.5 rounded-xl font-medium transition-all flex items-center gap-2 border border-zinc-200 dark:border-zinc-800"
@@ -92,7 +112,7 @@ const groupIcons: Record<string, string> = {
                             d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                         ></path>
                     </svg>
-                    初始化默认配置
+                    {i18n(I18nKey.adminInitSettings)}
                 </button>
                 <button
                     id="addSettingBtn"

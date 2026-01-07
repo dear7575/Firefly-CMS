@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from collections import defaultdict
+import asyncio
 import logging
 import time
 import os
@@ -89,6 +90,30 @@ app.mount("/uploads", StaticFiles(directory=db_settings.UPLOAD_DIR), name="uploa
 
 # API 频率限制存储
 rate_limit_store = defaultdict(list)
+
+# 定时发布后台任务（秒）
+SCHEDULED_PUBLISH_INTERVAL = int(os.getenv("SCHEDULED_PUBLISH_INTERVAL", "60"))
+if SCHEDULED_PUBLISH_INTERVAL < 10:
+    SCHEDULED_PUBLISH_INTERVAL = 10
+
+
+async def scheduled_publish_worker(stop_event: asyncio.Event):
+    """后台循环处理定时发布文章"""
+    logger.info("定时发布后台任务启动，间隔=%ss", SCHEDULED_PUBLISH_INTERVAL)
+    while not stop_event.is_set():
+        try:
+            db = SessionLocal()
+            try:
+                posts.process_scheduled_posts(db)
+            finally:
+                db.close()
+        except Exception as exc:
+            logger.error("定时发布处理失败: %s", exc)
+
+        try:
+            await asyncio.wait_for(stop_event.wait(), timeout=SCHEDULED_PUBLISH_INTERVAL)
+        except asyncio.TimeoutError:
+            continue
 
 
 def get_client_ip(request: Request) -> str:
@@ -290,6 +315,29 @@ async def request_id_middleware(request: Request, call_next):
         reset_request_id(token)
     response.headers["X-Request-ID"] = request_id
     return response
+
+
+# 启动定时发布后台任务
+@app.on_event("startup")
+async def start_scheduled_publish_worker():
+    stop_event = asyncio.Event()
+    app.state.scheduled_publish_stop = stop_event
+    app.state.scheduled_publish_task = asyncio.create_task(
+        scheduled_publish_worker(stop_event)
+    )
+
+
+@app.on_event("shutdown")
+async def stop_scheduled_publish_worker():
+    stop_event = getattr(app.state, "scheduled_publish_stop", None)
+    task = getattr(app.state, "scheduled_publish_task", None)
+    if stop_event:
+        stop_event.set()
+    if task:
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
 
 
 # 创建 API 路由主入口
