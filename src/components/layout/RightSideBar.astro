@@ -187,15 +187,31 @@ function renderComponent(
     });
   }
 
-  // 页面加载时执行
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', toggleComponentsVisibility);
-  } else {
-    toggleComponentsVisibility();
+  function scheduleToggle(delay = 0) {
+    setTimeout(toggleComponentsVisibility, delay);
   }
 
-  // 页面切换时重新检查
-  document.addEventListener('swup:contentReplaced', () => {
-    setTimeout(toggleComponentsVisibility, 100);
-  });
+  function bindSwupHook() {
+    if (window?.swup?.hooks && !window.__rightSidebarSwupHookBound) {
+      window.__rightSidebarSwupHookBound = true;
+      window.swup.hooks.on("content:replace", () => {
+        scheduleToggle(100);
+      });
+    }
+  }
+
+  // 页面加载时执行
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => scheduleToggle());
+  } else {
+    scheduleToggle();
+  }
+
+  // 页面切换/布局变化时重新检查
+  document.addEventListener("astro:page-load", () => scheduleToggle());
+  document.addEventListener("astro:after-swap", () => scheduleToggle());
+  document.addEventListener("swup:contentReplaced", () => scheduleToggle(100));
+  window.addEventListener("layoutChange", () => scheduleToggle());
+  document.addEventListener("swup:enable", bindSwupHook);
+  bindSwupHook();
 </script>
