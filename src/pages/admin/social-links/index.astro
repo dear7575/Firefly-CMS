@@ -1,0 +1,548 @@
+---
+export const prerender = false;
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { siteConfig } from "@/config";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+import { getApiUrl } from "@/utils/api-utils";
+
+const API_URL = getApiUrl();
+---
+
+<AdminLayout
+    title={`${i18n(I18nKey.adminSocialManagement)} - ${siteConfig.title}`}
+    activeMenu="social-links"
+>
+    <div class="p-6 lg:p-8">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+            <div class="min-w-0">
+                <h1 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                    {i18n(I18nKey.adminSocialManagement)}
+                </h1>
+                <p class="text-sm text-zinc-500 mt-1">
+                    {i18n(I18nKey.adminManageSocialLinks)}
+                </p>
+            </div>
+            <button
+                id="addSocialLinkBtn"
+                class="bg-[var(--primary)] dark:bg-zinc-800 hover:opacity-90 dark:hover:bg-zinc-700 text-white dark:text-zinc-100 px-6 py-2.5 rounded-xl font-medium transition-all shadow-lg hover:shadow-xl active:scale-95 flex items-center gap-2 dark:border dark:border-indigo-500/50 dark:shadow-[0_0_15px_rgba(99,102,241,0.3)] flex-shrink-0"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path
+                        fill-rule="evenodd"
+                        d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                        clip-rule="evenodd" />
+                </svg>
+                {i18n(I18nKey.adminAdd)}
+                {i18n(I18nKey.adminSocialLink)}
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 iconify-pending" id="socialLinksGrid">
+            <div class="col-span-full text-center py-12 text-zinc-500">
+                {i18n(I18nKey.adminLoading)}
+            </div>
+        </div>
+    </div>
+
+    <div id="socialLinkModal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-xl shadow-2xl max-h-[90vh] flex flex-col border border-zinc-200 dark:border-zinc-800">
+            <div class="p-6 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+                <div>
+                    <h2 id="socialModalTitle" class="text-xl font-bold text-zinc-900 dark:text-zinc-100">
+                        {i18n(I18nKey.adminAdd)}
+                        {i18n(I18nKey.adminSocialLink)}
+                    </h2>
+                    <p class="text-xs text-zinc-500 mt-1">{i18n(I18nKey.adminManageSocialLinks)}</p>
+                </div>
+                <button
+                    id="closeSocialLinkModal"
+                    class="w-9 h-9 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-500 hover:bg-zinc-200 dark:hover:bg-zinc-700 flex items-center justify-center"
+                >
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <form id="socialLinkForm" class="p-6 space-y-4 overflow-y-auto flex-1 custom-scrollbar">
+                <input type="hidden" id="socialLinkId" />
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                        {i18n(I18nKey.adminName)}
+                        <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="socialLinkName" required class="modal-input" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                        {i18n(I18nKey.adminSocialIcon)}
+                        <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="socialLinkIcon"
+                        required
+                        class="modal-input"
+                        placeholder={i18n(I18nKey.adminSocialIconPlaceholder)}
+                    />
+                    <p class="text-xs text-zinc-400 mt-1">
+                        例如：fa6-brands:github / material-symbols:mail-rounded
+                    </p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                        {i18n(I18nKey.adminSocialUrl)}
+                        <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                        type="url"
+                        id="socialLinkUrl"
+                        required
+                        class="modal-input"
+                        placeholder={i18n(I18nKey.adminSocialUrlPlaceholder)}
+                    />
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                            {i18n(I18nKey.adminSortOrder)}
+                        </label>
+                        <input type="number" id="socialLinkOrder" class="modal-input" value="0" />
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                                {i18n(I18nKey.adminSocialShowName)}
+                            </span>
+                            <div id="socialShowNameToggle" class="toggle-switch"></div>
+                            <input type="checkbox" id="socialShowName" class="hidden" />
+                        </div>
+                        <p class="text-xs text-zinc-400">
+                            {i18n(I18nKey.adminSocialShowNameDesc)}
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                        {i18n(I18nKey.adminEnabled)}
+                    </span>
+                    <div id="socialLinkEnabledToggle" class="toggle-switch active"></div>
+                    <input type="checkbox" id="socialLinkEnabled" class="hidden" checked />
+                </div>
+            </form>
+            <div class="p-6 border-t border-zinc-200 dark:border-zinc-800 flex justify-end gap-3">
+                <button
+                    type="button"
+                    id="cancelSocialLink"
+                    class="px-4 py-2 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+                >
+                    {i18n(I18nKey.adminCancel)}
+                </button>
+                <button
+                    type="submit"
+                    form="socialLinkForm"
+                    class="px-6 py-2 bg-[var(--primary)] dark:bg-zinc-800 text-white dark:text-zinc-100 rounded-lg hover:opacity-90 dark:hover:bg-zinc-700 transition-colors dark:border dark:border-indigo-500/50 dark:shadow-[0_0_15px_rgba(99,102,241,0.3)]"
+                >
+                    {i18n(I18nKey.adminSave)}
+                </button>
+            </div>
+        </div>
+    </div>
+</AdminLayout>
+
+<script is:inline>
+    (function () {
+        var API_URL = window.API_URL;
+        var t = window.adminI18n || {};
+        var socialLinks = [];
+
+        function escapeHtml(str) {
+            return (str || "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#39;");
+        }
+
+        function ensureIconifyReady() {
+            if (window.__iconifyReadyPromise) {
+                return window.__iconifyReadyPromise;
+            }
+            if (typeof customElements !== "undefined" && customElements.get("iconify-icon")) {
+                window.__iconifyReadyPromise = Promise.resolve();
+                return window.__iconifyReadyPromise;
+            }
+            window.__iconifyReadyPromise = new Promise(function (resolve) {
+                var script = document.createElement("script");
+                script.src = "https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js";
+                script.async = true;
+                script.onload = function () {
+                    resolve();
+                };
+                script.onerror = function () {
+                    console.warn("[SocialLinks] Iconify 加载失败，使用文本占位");
+                    resolve();
+                };
+                document.head.appendChild(script);
+            });
+            return window.__iconifyReadyPromise;
+        }
+
+        function markIconifyReady() {
+            var grid = document.getElementById("socialLinksGrid");
+            if (grid) {
+                grid.classList.add("iconify-ready");
+                grid.classList.remove("iconify-pending");
+            }
+        }
+
+        async function loadSocialLinks() {
+            var grid = document.getElementById("socialLinksGrid");
+            if (!grid) return;
+
+            grid.innerHTML =
+                '<div class="col-span-full text-center py-12 text-zinc-500">' +
+                (t.adminLoading || "Loading...") +
+                "</div>";
+            try {
+                var result = await window.adminRequest(API_URL + "/social-links");
+                if (!result.ok) throw new Error(result.msg || "load failed");
+                socialLinks = result.data || [];
+                renderSocialLinks(grid);
+                ensureIconifyReady().then(markIconifyReady).catch(markIconifyReady);
+            } catch (err) {
+                grid.innerHTML =
+                    '<div class="col-span-full text-center py-12 text-red-500">' +
+                    (t.socialLinksFailed || t.loadFailed || "Failed to load social links") +
+                    "</div>";
+            }
+        }
+
+        function renderSocialLinks(grid) {
+            if (socialLinks.length === 0) {
+                grid.innerHTML =
+                    '<div class="col-span-full text-center py-12 text-zinc-500">' +
+                    (t.socialLinksEmpty || t.empty || "No social links yet") +
+                    "</div>";
+                return;
+            }
+
+            grid.innerHTML = socialLinks
+                .map(function (link) {
+                    var iconName = escapeHtml(link.icon || "");
+                    var name = escapeHtml(link.name || "");
+                    var url = escapeHtml(link.url || "");
+                    var badgeClass = link.show_name
+                        ? "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-300"
+                        : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500";
+                    var badgeText = link.show_name
+                        ? t.socialBadgeText || "Icon + Text"
+                        : t.socialBadgeIconOnly || "Icon only";
+                    var statusClass = link.enabled
+                        ? "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400"
+                        : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500";
+                    var statusText = link.enabled ? t.active || "Active" : t.disabled || "Disabled";
+                    var titleAttr = name.replace(/"/g, "&quot;");
+
+                    return (
+                        '<div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 hover:shadow-lg transition-all">' +
+                        '<div class="flex items-start gap-4">' +
+                        '<div class="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 dark:bg-[var(--primary)]/20 flex items-center justify-center text-[var(--primary)] social-icon-block">' +
+                        (iconName
+                            ? '<iconify-icon icon="' + iconName + '" class="text-2xl" aria-hidden="true"></iconify-icon>'
+                            : '<span class="text-sm text-zinc-500 font-semibold" aria-hidden="true">' + (name.charAt(0) || "?") + "</span>") +
+                        "</div>" +
+                        '<div class="flex-1 min-w-0">' +
+                        '<div class="flex items-center gap-2 mb-1">' +
+                        '<h3 class="font-semibold text-zinc-900 dark:text-zinc-100 truncate">' +
+                        name +
+                        "</h3>" +
+                        '<span class="px-2 py-0.5 text-[10px] rounded-full ' +
+                        statusClass +
+                        '">' +
+                        statusText +
+                        "</span>" +
+                        "</div>" +
+                        '<a href="' +
+                        url +
+                        '" target="_blank" class="text-xs text-zinc-500 hover:text-[var(--primary)] truncate block">' +
+                        url +
+                        "</a>" +
+                        "</div>" +
+                        "</div>" +
+                        '<div class="flex items-center justify-between mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">' +
+                        '<div class="text-xs text-zinc-400 flex flex-wrap items-center gap-2">' +
+                        '<span class="px-2 py-0.5 rounded-full ' +
+                        badgeClass +
+                        '">' +
+                        badgeText +
+                        "</span>" +
+                        '<span class="px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded-full text-zinc-500">' +
+                        (t.sortOrder || "Sort") +
+                        ": " +
+                        (link.sort_order || 0) +
+                        "</span>" +
+                        "</div>" +
+                        '<div class="flex gap-2">' +
+                        "<button onclick=\"editSocialLink('" +
+                        link.id +
+                        '\')" class="p-2 text-[var(--primary)] hover:bg-[var(--primary)]/10 rounded-lg transition-colors" title="' +
+                        (t.edit || "Edit") +
+                        '">' +
+                        '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">' +
+                        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />' +
+                        "</svg>" +
+                        "</button>" +
+                        "<button onclick=\"deleteSocialLink('" +
+                        link.id +
+                        "', '" +
+                        titleAttr +
+                        '\')" class="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors" title="' +
+                        (t.delete || "Delete") +
+                        '">' +
+                        '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">' +
+                        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />' +
+                        "</svg>" +
+                        "</button>" +
+                        "</div>" +
+                        "</div>" +
+                        "</div>"
+                    );
+                })
+                .join("");
+        }
+
+        function showModal(isEdit) {
+            var modal = document.getElementById("socialLinkModal");
+            var title = document.getElementById("socialModalTitle");
+            if (!modal || !title) return;
+            title.textContent = (isEdit ? (t.edit || "Edit") : (t.add || "Add")) + " " + (t.socialLink || "Social Link");
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+        }
+
+        function hideModal() {
+            var modal = document.getElementById("socialLinkModal");
+            var form = document.getElementById("socialLinkForm");
+            if (modal) {
+                modal.classList.add("hidden");
+                modal.classList.remove("flex");
+            }
+            if (form) form.reset();
+            var order = document.getElementById("socialLinkOrder");
+            if (order) order.value = "0";
+            var enabled = document.getElementById("socialLinkEnabled");
+            var enabledToggle = document.getElementById("socialLinkEnabledToggle");
+            if (enabled && enabledToggle) {
+                enabled.checked = true;
+                enabledToggle.classList.add("active");
+            }
+            var showName = document.getElementById("socialShowName");
+            var showNameToggle = document.getElementById("socialShowNameToggle");
+            if (showName && showNameToggle) {
+                showName.checked = false;
+                showNameToggle.classList.remove("active");
+            }
+            var idInput = document.getElementById("socialLinkId");
+            if (idInput) idInput.value = "";
+        }
+
+        function syncToggle(toggle, checkbox) {
+            if (!toggle || !checkbox) return;
+            if (checkbox.checked) {
+                toggle.classList.add("active");
+            } else {
+                toggle.classList.remove("active");
+            }
+        }
+
+        window.editSocialLink = function (id) {
+            var link = socialLinks.find(function (item) {
+                return item.id === id;
+            });
+            if (!link) return;
+            var idInput = document.getElementById("socialLinkId");
+            var nameInput = document.getElementById("socialLinkName");
+            var iconInput = document.getElementById("socialLinkIcon");
+            var urlInput = document.getElementById("socialLinkUrl");
+            var orderInput = document.getElementById("socialLinkOrder");
+            var enabledInput = document.getElementById("socialLinkEnabled");
+            var showNameInput = document.getElementById("socialShowName");
+
+            if (idInput) idInput.value = link.id;
+            if (nameInput) nameInput.value = link.name || "";
+            if (iconInput) iconInput.value = link.icon || "";
+            if (urlInput) urlInput.value = link.url || "";
+            if (orderInput) orderInput.value = link.sort_order || 0;
+            if (enabledInput) enabledInput.checked = !!link.enabled;
+            if (showNameInput) showNameInput.checked = !!link.show_name;
+
+            syncToggle(document.getElementById("socialLinkEnabledToggle"), enabledInput);
+            syncToggle(document.getElementById("socialShowNameToggle"), showNameInput);
+            showModal(true);
+        };
+
+        window.deleteSocialLink = async function (id, name) {
+            var confirmMsg = (t.confirmDeleteSocialLink || 'Delete social link "{name}"?').replace("{name}", name || "");
+            var confirmed = await window.showAdminConfirm(confirmMsg);
+            if (!confirmed) return;
+            try {
+                var result = await window.adminRequest(API_URL + "/social-links/" + id, {
+                    method: "DELETE",
+                    headers: {
+                        Authorization: "Bearer " + localStorage.getItem("adminToken"),
+                    },
+                });
+                if (result.ok) {
+                    loadSocialLinks();
+                } else if (result.code !== 401) {
+                    window.showAdminAlert(result.msg || t.deleteFailed || "Delete failed", "error");
+                }
+            } catch (err) {
+                window.showAdminAlert(t.deleteFailed || "Delete failed", "error");
+            }
+        };
+
+        function bindEvents() {
+            var addBtn = document.getElementById("addSocialLinkBtn");
+            var closeBtn = document.getElementById("closeSocialLinkModal");
+            var cancelBtn = document.getElementById("cancelSocialLink");
+            var modal = document.getElementById("socialLinkModal");
+            var form = document.getElementById("socialLinkForm");
+            var enabledToggle = document.getElementById("socialLinkEnabledToggle");
+            var enabledCheckbox = document.getElementById("socialLinkEnabled");
+            var showNameToggle = document.getElementById("socialShowNameToggle");
+            var showNameCheckbox = document.getElementById("socialShowName");
+
+            if (addBtn)
+                addBtn.addEventListener("click", function () {
+                    hideModal();
+                    showModal(false);
+                });
+            if (closeBtn) closeBtn.addEventListener("click", hideModal);
+            if (cancelBtn) cancelBtn.addEventListener("click", hideModal);
+            if (modal) {
+                modal.addEventListener("click", function (e) {
+                    if (e.target === modal) hideModal();
+                });
+            }
+            if (enabledToggle && enabledCheckbox) {
+                enabledToggle.addEventListener("click", function () {
+                    enabledCheckbox.checked = !enabledCheckbox.checked;
+                    syncToggle(enabledToggle, enabledCheckbox);
+                });
+            }
+            if (showNameToggle && showNameCheckbox) {
+                showNameToggle.addEventListener("click", function () {
+                    showNameCheckbox.checked = !showNameCheckbox.checked;
+                    syncToggle(showNameToggle, showNameCheckbox);
+                });
+            }
+            if (form) {
+                form.addEventListener("submit", async function (e) {
+                    e.preventDefault();
+                    var id = document.getElementById("socialLinkId").value;
+                    var name = document.getElementById("socialLinkName").value.trim();
+                    var icon = document.getElementById("socialLinkIcon").value.trim();
+                    var url = document.getElementById("socialLinkUrl").value.trim();
+                    var order = parseInt(document.getElementById("socialLinkOrder").value, 10) || 0;
+                    var enabled = document.getElementById("socialLinkEnabled").checked;
+                    var showName = document.getElementById("socialShowName").checked;
+
+                    if (!name || !icon || !url) {
+                        window.showAdminAlert(t.requiredFields || "Required fields cannot be empty", "warning");
+                        return;
+                    }
+
+                    var payload = {
+                        name: name,
+                        icon: icon,
+                        url: url,
+                        sort_order: order,
+                        enabled: enabled,
+                        show_name: showName,
+                    };
+
+                    try {
+                        var result = await window.adminRequest(API_URL + "/social-links" + (id ? "/" + id : ""), {
+                            method: id ? "PUT" : "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: "Bearer " + localStorage.getItem("adminToken"),
+                            },
+                            body: JSON.stringify(payload),
+                        });
+                        if (result.ok) {
+                            hideModal();
+                            loadSocialLinks();
+                        } else if (result.code !== 401) {
+                            window.showAdminAlert(result.msg || t.saveFailed || "Save failed", "error");
+                        }
+                    } catch (err) {
+                        window.showAdminAlert(t.saveFailed || "Save failed", "error");
+                    }
+                });
+            }
+        }
+
+        function initSocialLinksPage() {
+            if (!document.getElementById("socialLinksGrid")) return;
+            bindEvents();
+            loadSocialLinks();
+        }
+
+        document.addEventListener("astro:page-load", initSocialLinksPage);
+        initSocialLinksPage();
+    })();
+</script>
+
+<style>
+    .modal-input {
+        @apply w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700/50 bg-white/80 dark:bg-zinc-800/80 text-zinc-900 dark:text-zinc-100 outline-none transition-all duration-300 placeholder:text-zinc-400 dark:placeholder:text-zinc-500;
+        box-shadow:
+            0 1px 3px rgba(0, 0, 0, 0.04),
+            0 1px 2px rgba(0, 0, 0, 0.06);
+        backdrop-filter: blur(8px);
+    }
+
+    .modal-input:hover {
+        @apply border-zinc-300 dark:border-zinc-600;
+        box-shadow:
+            0 2px 8px rgba(0, 0, 0, 0.06),
+            0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    .modal-input:focus {
+        border-color: var(--primary);
+        box-shadow:
+            0 0 0 4px color-mix(in oklch, var(--primary) 18%, transparent),
+            0 2px 8px color-mix(in oklch, var(--primary) 30%, transparent);
+    }
+
+    :global(.dark) .modal-input:focus {
+        box-shadow:
+            0 0 0 4px color-mix(in oklch, var(--primary) 22%, transparent),
+            0 0 20px color-mix(in oklch, var(--primary) 30%, transparent);
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+        @apply bg-transparent;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        @apply bg-zinc-200 dark:bg-zinc-700 rounded-full;
+    }
+
+    #socialLinksGrid iconify-icon {
+        display: none;
+    }
+
+    #socialLinksGrid.iconify-ready iconify-icon {
+        display: block;
+    }
+</style>
