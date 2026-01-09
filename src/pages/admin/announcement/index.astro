@@ -32,11 +32,11 @@ const API_URL = getApiUrl();
                 class="p-4 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 flex items-center gap-3"
             >
                 <div
-                    class="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center"
+                    class="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center"
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        class="h-4 w-4 text-indigo-600 dark:text-indigo-400"
+                        class="h-4 w-4 text-[var(--primary)]"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -203,7 +203,7 @@ const API_URL = getApiUrl();
                     >
                         <button
                             type="submit"
-                            class="px-6 py-2.5 bg-[var(--primary)] dark:bg-zinc-800 text-white dark:text-zinc-100 rounded-xl hover:opacity-90 dark:hover:bg-zinc-700 transition-all font-medium shadow-lg hover:shadow-xl active:scale-95 dark:border dark:border-indigo-500/50 dark:shadow-[0_0_15px_rgba(99,102,241,0.3)]"
+                            class="px-6 py-2.5 bg-[var(--primary)] dark:bg-zinc-800 text-white dark:text-zinc-100 rounded-xl hover:opacity-90 dark:hover:bg-zinc-700 transition-all font-medium shadow-lg hover:shadow-xl active:scale-95 primary-glow"
                         >
                             保存配置
                         </button>
@@ -566,7 +566,7 @@ const API_URL = getApiUrl();
                     grid.innerHTML = items.map(function(item) {
                         var name = item.original_name || item.filename || "image";
                         return '' +
-                            '<button type="button" class="group text-left rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 hover:border-[var(--primary)]/50 transition-all" data-url="' + item.url + '" data-name="' + name + '">' +
+                            '<button type="button" class="group text-left rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 media-card-hover transition-all" data-url="' + item.url + '" data-name="' + name + '">' +
                                 '<div class="aspect-square bg-zinc-100 dark:bg-zinc-800 overflow-hidden">' +
                                     '<img src="' + item.url + '" alt="' + name + '" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform" />' +
                                 '</div>' +

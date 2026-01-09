@@ -21,6 +21,7 @@ from sqlalchemy.orm import Session
 import auth
 import models
 from database import engine, Base, get_db, SessionLocal, settings as db_settings
+from routes import posts, categories, tags, friends, social, settings, dashboard, logs, search, upload, backup, analytics, auth as auth_routes, totp
 from exception_handlers import register_exception_handlers
 from logging_config import (
     setup_logging,
@@ -31,7 +32,7 @@ from logging_config import (
 )
 from response_utils import build_error, normalize_payload, is_standard_payload
 from routes import posts, categories, tags, friends, social, settings, dashboard, logs, search, upload, backup, \
-    analytics, auth as auth_routes
+    analytics, auth as auth_routes, totp
 
 setup_logging()
 logger = logging.getLogger("firefly")
@@ -443,6 +444,7 @@ api_router.include_router(search.router)
 api_router.include_router(upload.router)
 api_router.include_router(backup.router)
 api_router.include_router(analytics.router)
+api_router.include_router(totp.router)
 
 
 @api_router.post("/token", summary="用户登录", tags=["认证"])
@@ -457,8 +459,16 @@ async def login(
     - **username**: 用户名
     - **password**: 密码
 
+    如果用户启用了两步验证(2FA)，首次请求会返回 202 状态码，
+    表示需要提供验证码。此时需要在请求头中添加：
+    - X-TOTP-Code: 验证器App中的6位验证码
+    - 或 X-Recovery-Code: 恢复码（8位）
+
     返回 JWT access_token 用于后续 API 认证
     """
+    import pyotp
+    import json
+
     # 查询用户
     user = db.query(models.Admin).filter(
         models.Admin.username == form_data.username
@@ -480,6 +490,96 @@ async def login(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    # === 2FA 两步验证检查 ===
+    if user.totp_enabled and user.totp_verified:
+        # 从请求头获取 TOTP 码或恢复码
+        totp_code = request.headers.get("X-TOTP-Code")
+        recovery_code = request.headers.get("X-Recovery-Code")
+
+        if not totp_code and not recovery_code:
+            # 需要 2FA 但未提供验证码，返回 202 表示需要继续验证
+            return JSONResponse(
+                status_code=202,
+                content={
+                    "code": 202,
+                    "msg": "需要两步验证",
+                    "data": {
+                        "requires_2fa": True,
+                        "username": user.username
+                    }
+                }
+            )
+
+        # 验证 TOTP 码
+        if totp_code:
+            totp_obj = pyotp.TOTP(user.totp_secret)
+            if not totp_obj.verify(totp_code, valid_window=1):
+                save_access_log(
+                    log_type="login_failed",
+                    request=request,
+                    username=user.username,
+                    status_code=401,
+                    detail="2FA验证码错误"
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="两步验证码错误",
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
+
+            # 防重放攻击：检查验证码是否已使用
+            if user.last_totp_used == totp_code:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="验证码已使用，请等待新验证码",
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
+            user.last_totp_used = totp_code
+
+        # 验证恢复码
+        elif recovery_code:
+            if not user.recovery_codes:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="恢复码无效",
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
+
+            # 验证并消费恢复码
+            try:
+                hashed_codes = json.loads(user.recovery_codes)
+            except:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="恢复码验证失败",
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
+
+            code_normalized = recovery_code.upper().replace("-", "").replace(" ", "")
+            matched_index = -1
+            for i, hashed in enumerate(hashed_codes):
+                if auth.verify_password(code_normalized, hashed):
+                    matched_index = i
+                    break
+
+            if matched_index == -1:
+                save_access_log(
+                    log_type="login_failed",
+                    request=request,
+                    username=user.username,
+                    status_code=401,
+                    detail="恢复码错误"
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="恢复码错误或已使用",
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
+
+            # 移除已使用的恢复码
+            hashed_codes.pop(matched_index)
+            user.recovery_codes = json.dumps(hashed_codes)
+
     # 记录登录成功日志
     save_access_log(
         log_type="login_success",
@@ -488,6 +588,9 @@ async def login(
         status_code=200,
         detail="登录成功"
     )
+
+    # 提交数据库更改（last_totp_used 或 recovery_codes）
+    db.commit()
 
     # 生成访问令牌
     access_token = auth.create_access_token(data={"sub": user.username})

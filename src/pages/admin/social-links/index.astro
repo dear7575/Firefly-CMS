@@ -25,7 +25,7 @@ const API_URL = getApiUrl();
             </div>
             <button
                 id="addSocialLinkBtn"
-                class="bg-[var(--primary)] dark:bg-zinc-800 hover:opacity-90 dark:hover:bg-zinc-700 text-white dark:text-zinc-100 px-6 py-2.5 rounded-xl font-medium transition-all shadow-lg hover:shadow-xl active:scale-95 flex items-center gap-2 dark:border dark:border-indigo-500/50 dark:shadow-[0_0_15px_rgba(99,102,241,0.3)] flex-shrink-0"
+                class="bg-[var(--primary)] dark:bg-zinc-800 hover:opacity-90 dark:hover:bg-zinc-700 text-white dark:text-zinc-100 px-6 py-2.5 rounded-xl font-medium transition-all shadow-lg hover:shadow-xl active:scale-95 flex items-center gap-2 primary-glow flex-shrink-0"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path
@@ -142,7 +142,7 @@ const API_URL = getApiUrl();
                 <button
                     type="submit"
                     form="socialLinkForm"
-                    class="px-6 py-2 bg-[var(--primary)] dark:bg-zinc-800 text-white dark:text-zinc-100 rounded-lg hover:opacity-90 dark:hover:bg-zinc-700 transition-colors dark:border dark:border-indigo-500/50 dark:shadow-[0_0_15px_rgba(99,102,241,0.3)]"
+                    class="px-6 py-2 bg-[var(--primary)] dark:bg-zinc-800 text-white dark:text-zinc-100 rounded-lg hover:opacity-90 dark:hover:bg-zinc-700 transition-colors primary-glow"
                 >
                     {i18n(I18nKey.adminSave)}
                 </button>
@@ -236,7 +236,7 @@ const API_URL = getApiUrl();
                     var name = escapeHtml(link.name || "");
                     var url = escapeHtml(link.url || "");
                     var badgeClass = link.show_name
-                        ? "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-300"
+                        ? "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-300"
                         : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500";
                     var badgeText = link.show_name
                         ? t.socialBadgeText || "Icon + Text"

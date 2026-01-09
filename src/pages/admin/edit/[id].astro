@@ -66,7 +66,7 @@ const API_URL = getApiUrl();
                 </button>
                 <button
                     id="saveBtn"
-                    class="bg-[var(--primary)] dark:bg-zinc-800 hover:opacity-90 dark:hover:bg-zinc-700 text-white dark:text-zinc-100 px-4 sm:px-6 py-2 rounded-xl font-bold transition-all shadow-md hover:shadow-lg active:scale-95 dark:border dark:border-indigo-500/50 dark:shadow-[0_0_15px_rgba(99,102,241,0.3)]"
+                    class="bg-[var(--primary)] dark:bg-zinc-800 hover:opacity-90 dark:hover:bg-zinc-700 text-white dark:text-zinc-100 px-4 sm:px-6 py-2 rounded-xl font-bold transition-all shadow-md hover:shadow-lg active:scale-95 primary-glow"
                     data-update-text={i18n(I18nKey.adminPostUpdate)}
                     data-updating-text={i18n(I18nKey.adminPostUpdating)}
                 >
@@ -314,13 +314,63 @@ const API_URL = getApiUrl();
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight">自定义发布时间</label>
-                                <input type="datetime-local" id="publishedAt" class="admin-input" />
-                                <p class="text-xs text-zinc-400 mt-2">可选：用于回填历史文章或调整发布时间。</p>
+                                <div class="flatpickr-wrapper">
+                                    <div class="flatpickr-input-group">
+                                        <input type="text" id="publishedAt" class="admin-input flatpickr-input" placeholder="点击选择时间" readonly />
+                                        <div class="flatpickr-input-icon">
+                                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="flatpickr-shortcuts">
+                                        <button type="button" class="shortcut-btn" data-action="now" data-target="publishedAt">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            现在
+                                        </button>
+                                        <button type="button" class="shortcut-btn" data-action="tomorrow" data-target="publishedAt">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                            明天
+                                        </button>
+                                        <button type="button" class="shortcut-btn shortcut-btn-clear" data-action="clear" data-target="publishedAt">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                            清除
+                                        </button>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-zinc-400 mt-2">可选：用于回填历史文章或自定义发布时间。</p>
                             </div>
                             <div id="scheduledWrapper" class="hidden">
                                 <label class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight">定时发布时间</label>
-                                <input type="datetime-local" id="scheduledAt" class="admin-input" />
-                                <p class="text-xs text-amber-500 mt-2">启用定时发布后系统将在指定时间自动发布。</p>
+                                <div class="flatpickr-wrapper">
+                                    <div class="flatpickr-input-group">
+                                        <input type="text" id="scheduledAt" class="admin-input flatpickr-input" placeholder="点击选择时间" readonly />
+                                        <div class="flatpickr-input-icon">
+                                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="flatpickr-shortcuts">
+                                        <button type="button" class="shortcut-btn" data-action="now" data-target="scheduledAt">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            现在
+                                        </button>
+                                        <button type="button" class="shortcut-btn" data-action="tomorrow" data-target="scheduledAt">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                            明天
+                                        </button>
+                                        <button type="button" class="shortcut-btn" data-action="week" data-target="scheduledAt">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                                            一周后
+                                        </button>
+                                        <button type="button" class="shortcut-btn shortcut-btn-clear" data-action="clear" data-target="scheduledAt">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                            清除
+                                        </button>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-amber-500 mt-2">启用定时发布后将于指定时间自动发布。</p>
                             </div>
                             <div id="autosaveNotice" class="hidden rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-900/20 p-3 space-y-2 text-xs text-amber-700 dark:text-amber-200">
                                 <div class="font-semibold">检测到未发布的自动保存内容</div>
@@ -358,6 +408,10 @@ const API_URL = getApiUrl();
             </div>
         </div>
     </div>
+
+    <link rel="stylesheet" href="/assets/vendor/flatpickr/flatpickr.min.css" />
+    <script is:inline src="/assets/vendor/flatpickr/flatpickr.min.js"></script>
+    <script is:inline src="/assets/vendor/flatpickr/zh.js"></script>
 
     <script is:inline define:vars={{ editI18n }}>
         window.editI18n = editI18n;
@@ -654,7 +708,7 @@ const API_URL = getApiUrl();
                     grid.innerHTML = items.map(function(item) {
                         var name = item.original_name || item.filename || "image";
                         return '' +
-                            '<button type="button" class="group text-left rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 hover:border-[var(--primary)]/50 transition-all" data-url="' + item.url + '" data-name="' + name + '">' +
+                            '<button type="button" class="group text-left rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 media-card-hover transition-all" data-url="' + item.url + '" data-name="' + name + '">' +
                                 '<div class="aspect-square bg-zinc-100 dark:bg-zinc-800 overflow-hidden">' +
                                     '<img src="' + item.url + '" alt="' + name + '" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform" />' +
                                 '</div>' +
@@ -1387,11 +1441,12 @@ const API_URL = getApiUrl();
 
                     postStatus = data.status || (data.is_draft ? "draft" : "published");
                     setStatusValue(postStatus);
-                    if (publishedAtInput) {
-                        publishedAtInput.value = formatDatetimeForInput(data.published_at);
+                    // 使用 Flatpickr 设置时间值
+                    if (data.published_at) {
+                        setFlatpickrValue('publishedAt', data.published_at);
                     }
-                    if (scheduledAtInput) {
-                        scheduledAtInput.value = formatDatetimeForInput(data.scheduled_at);
+                    if (data.scheduled_at) {
+                        setFlatpickrValue('scheduledAt', data.scheduled_at);
                     }
                     // Handle pinned status
                     if (data.pinned) {
@@ -1628,7 +1683,124 @@ const API_URL = getApiUrl();
             }
             vditor = null;
             initPasswordToggle();
+            initDatetimePickers();
             setTimeout(init, 100);
+        }
+
+        // Flatpickr 实例存储
+        var flatpickrInstances = {};
+
+        // 初始化 Flatpickr 时间选择器
+        function initDatetimePickers() {
+            // 确保 Flatpickr 已加载
+            if (typeof flatpickr === 'undefined') {
+                console.log('Flatpickr 未加载，等待中...');
+                setTimeout(initDatetimePickers, 100);
+                return;
+            }
+
+            // 设置中文语言
+            if (flatpickr.l10ns && flatpickr.l10ns.zh) {
+                flatpickr.localize(flatpickr.l10ns.zh);
+            }
+
+            // 通用配置
+            var commonConfig = {
+                enableTime: true,
+                time_24hr: true,
+                dateFormat: "Y-m-d H:i",
+                allowInput: false,
+                disableMobile: true,
+                animate: true,
+                locale: flatpickr.l10ns && flatpickr.l10ns.zh ? "zh" : "default"
+            };
+
+            // 初始化自定义发布时间
+            var publishedAtEl = document.getElementById('publishedAt');
+            if (publishedAtEl && !flatpickrInstances.publishedAt) {
+                flatpickrInstances.publishedAt = flatpickr(publishedAtEl, {
+                    ...commonConfig,
+                    onChange: function(selectedDates, dateStr) {
+                        publishedAtEl.dispatchEvent(new Event('change'));
+                    }
+                });
+            }
+
+            // 初始化定时发布时间
+            var scheduledAtEl = document.getElementById('scheduledAt');
+            if (scheduledAtEl && !flatpickrInstances.scheduledAt) {
+                flatpickrInstances.scheduledAt = flatpickr(scheduledAtEl, {
+                    ...commonConfig,
+                    minDate: "today",
+                    onChange: function(selectedDates, dateStr) {
+                        scheduledAtEl.dispatchEvent(new Event('change'));
+                    }
+                });
+            }
+
+            // 绑定快捷按钮事件
+            initShortcutButtons();
+        }
+
+        // 初始化快捷按钮
+        function initShortcutButtons() {
+            document.querySelectorAll('.shortcut-btn').forEach(function(btn) {
+                if (btn.dataset.bound === 'true') return;
+                btn.dataset.bound = 'true';
+
+                btn.addEventListener('click', function() {
+                    var action = this.dataset.action;
+                    var targetId = this.dataset.target;
+                    var instance = flatpickrInstances[targetId];
+
+                    if (!instance) return;
+
+                    var now = new Date();
+
+                    switch(action) {
+                        case 'now':
+                            instance.setDate(now, true);
+                            break;
+                        case 'tomorrow':
+                            var tomorrow = new Date(now);
+                            tomorrow.setDate(tomorrow.getDate() + 1);
+                            instance.setDate(tomorrow, true);
+                            break;
+                        case 'week':
+                            var nextWeek = new Date(now);
+                            nextWeek.setDate(nextWeek.getDate() + 7);
+                            instance.setDate(nextWeek, true);
+                            break;
+                        case 'clear':
+                            instance.clear();
+                            break;
+                    }
+                });
+            });
+        }
+
+        // 格式化日期为 Flatpickr 格式
+        function formatDatetimeForFlatpickr(value) {
+            if (!value) return "";
+            var date = new Date(value);
+            if (Number.isNaN(date.getTime())) return "";
+            var year = date.getFullYear();
+            var month = String(date.getMonth() + 1).padStart(2, '0');
+            var day = String(date.getDate()).padStart(2, '0');
+            var hours = String(date.getHours()).padStart(2, '0');
+            var minutes = String(date.getMinutes()).padStart(2, '0');
+            return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes;
+        }
+
+        // 设置 Flatpickr 的值
+        function setFlatpickrValue(targetId, value) {
+            var instance = flatpickrInstances[targetId];
+            if (instance && value) {
+                var formatted = formatDatetimeForFlatpickr(value);
+                if (formatted) {
+                    instance.setDate(formatted, false);
+                }
+            }
         }
 
         document.addEventListener('astro:page-load', triggerInit);
@@ -1695,6 +1867,193 @@ const API_URL = getApiUrl();
     </div>
 
     <style is:global>
+        /* Flatpickr 时间选择器自定义样式 */
+        .flatpickr-wrapper {
+            @apply flex flex-col gap-3;
+        }
+
+        .flatpickr-input-group {
+            @apply relative;
+        }
+
+        .flatpickr-input-group .flatpickr-input {
+            @apply cursor-pointer pr-12;
+        }
+
+        .flatpickr-input-icon {
+            @apply absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none transition-colors;
+        }
+
+        .flatpickr-input-group:hover .flatpickr-input-icon {
+            @apply text-zinc-600 dark:text-zinc-300;
+        }
+
+        .flatpickr-shortcuts {
+            @apply flex flex-wrap gap-1.5;
+        }
+
+        .shortcut-btn {
+            @apply inline-flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-medium rounded-lg border transition-all duration-200;
+            @apply bg-white dark:bg-zinc-800/80 border-zinc-200 dark:border-zinc-700;
+            @apply text-zinc-500 dark:text-zinc-400;
+            @apply hover:bg-zinc-100 dark:hover:bg-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600;
+            @apply hover:text-zinc-700 dark:hover:text-zinc-200;
+            @apply active:scale-95;
+        }
+
+        .shortcut-btn-clear {
+            @apply hover:text-red-500 hover:border-red-300 dark:hover:border-red-500/50;
+            @apply hover:bg-red-50 dark:hover:bg-red-900/20;
+        }
+
+        /* Flatpickr 日历弹窗样式覆盖 */
+        .flatpickr-calendar {
+            @apply rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-xl !important;
+            background: white !important;
+            font-family: inherit !important;
+        }
+
+        .dark .flatpickr-calendar {
+            background: rgb(24 24 27) !important;
+            border-color: rgb(63 63 70) !important;
+        }
+
+        .flatpickr-calendar.arrowTop:before,
+        .flatpickr-calendar.arrowTop:after,
+        .flatpickr-calendar.arrowBottom:before,
+        .flatpickr-calendar.arrowBottom:after {
+            display: none !important;
+        }
+
+        .flatpickr-months {
+            @apply pb-2 border-b border-zinc-100 dark:border-zinc-800 !important;
+        }
+
+        .flatpickr-months .flatpickr-month {
+            background: transparent !important;
+            height: 44px !important;
+        }
+
+        .flatpickr-current-month {
+            @apply text-zinc-800 dark:text-zinc-100 font-semibold !important;
+            font-size: 14px !important;
+        }
+
+        .flatpickr-current-month .flatpickr-monthDropdown-months {
+            @apply bg-transparent text-zinc-800 dark:text-zinc-100 font-semibold !important;
+        }
+
+        .flatpickr-current-month input.cur-year {
+            @apply text-zinc-800 dark:text-zinc-100 font-semibold !important;
+        }
+
+        .flatpickr-months .flatpickr-prev-month,
+        .flatpickr-months .flatpickr-next-month {
+            @apply text-zinc-500 hover:text-[var(--primary)] transition-colors !important;
+            fill: currentColor !important;
+        }
+
+        .flatpickr-months .flatpickr-prev-month svg,
+        .flatpickr-months .flatpickr-next-month svg {
+            fill: currentColor !important;
+        }
+
+        .dark .flatpickr-months .flatpickr-prev-month,
+        .dark .flatpickr-months .flatpickr-next-month {
+            @apply text-zinc-400 !important;
+        }
+
+        .flatpickr-weekdays {
+            background: transparent !important;
+        }
+
+        .flatpickr-weekday {
+            @apply text-zinc-400 dark:text-zinc-500 text-xs font-medium !important;
+            background: transparent !important;
+        }
+
+        .flatpickr-days {
+            border: none !important;
+        }
+
+        .dayContainer {
+            @apply gap-0.5 !important;
+        }
+
+        .flatpickr-day {
+            @apply text-zinc-700 dark:text-zinc-300 rounded-lg border-0 transition-all !important;
+            max-width: 36px !important;
+            height: 36px !important;
+            line-height: 36px !important;
+            font-size: 13px !important;
+        }
+
+        .flatpickr-day:hover {
+            background: color-mix(in srgb, var(--primary) 12%, transparent) !important;
+            border-color: transparent !important;
+        }
+
+        .flatpickr-day.today {
+            border: 1px solid var(--primary) !important;
+            background: transparent !important;
+        }
+
+        .flatpickr-day.selected,
+        .flatpickr-day.selected:hover {
+            background: var(--primary) !important;
+            @apply text-white !important;
+            border-color: var(--primary) !important;
+        }
+
+        .flatpickr-day.prevMonthDay,
+        .flatpickr-day.nextMonthDay {
+            @apply text-zinc-300 dark:text-zinc-600 !important;
+        }
+
+        .flatpickr-day.disabled,
+        .flatpickr-day.disabled:hover {
+            @apply text-zinc-300 dark:text-zinc-600 cursor-not-allowed !important;
+            background: transparent !important;
+        }
+
+        /* 时间选择器样式 */
+        .flatpickr-time {
+            @apply border-t border-zinc-100 dark:border-zinc-800 !important;
+            background: transparent !important;
+            max-height: none !important;
+        }
+
+        .flatpickr-time input {
+            @apply text-zinc-800 dark:text-zinc-100 font-medium !important;
+            background: transparent !important;
+        }
+
+        .flatpickr-time input:hover,
+        .flatpickr-time input:focus {
+            background: color-mix(in srgb, var(--primary) 10%, transparent) !important;
+        }
+
+        .flatpickr-time .flatpickr-time-separator,
+        .flatpickr-time .flatpickr-am-pm {
+            @apply text-zinc-400 dark:text-zinc-500 !important;
+        }
+
+        .flatpickr-time .flatpickr-am-pm:hover {
+            background: color-mix(in srgb, var(--primary) 10%, transparent) !important;
+        }
+
+        .numInputWrapper span {
+            @apply border-zinc-200 dark:border-zinc-700 !important;
+        }
+
+        .numInputWrapper span:hover {
+            background: color-mix(in srgb, var(--primary) 15%, transparent) !important;
+        }
+
+        .numInputWrapper span svg path {
+            fill: currentColor !important;
+        }
+
         .admin-input {
             @apply w-full px-4 py-3 bg-white dark:bg-zinc-900/80 border border-zinc-200 dark:border-zinc-700/50 rounded-xl text-sm text-zinc-900 dark:text-zinc-100 outline-none transition-all duration-300 placeholder:text-zinc-400 dark:placeholder:text-zinc-500;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);

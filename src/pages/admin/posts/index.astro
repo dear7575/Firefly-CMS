@@ -17,7 +17,7 @@ import { i18n } from "@/i18n/translation";
             </div>
             <button
                 id="newPostBtn"
-                class="bg-[var(--primary)] dark:bg-zinc-800 hover:brightness-110 dark:hover:bg-zinc-700 text-white dark:text-zinc-100 px-6 py-2.5 rounded-xl font-medium transition-all active:scale-95 flex items-center gap-2 shadow-lg hover:shadow-xl hover:-translate-y-0.5 dark:border dark:border-indigo-500/50 dark:shadow-[0_0_15px_rgba(99,102,241,0.3)] flex-shrink-0"
+                class="bg-[var(--primary)] dark:bg-zinc-800 hover:brightness-110 dark:hover:bg-zinc-700 text-white dark:text-zinc-100 px-6 py-2.5 rounded-xl font-medium transition-all active:scale-95 flex items-center gap-2 shadow-lg hover:shadow-xl hover:-translate-y-0.5 primary-glow flex-shrink-0"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
@@ -105,7 +105,7 @@ import { i18n } from "@/i18n/translation";
 
     .filter-tab.active {
         @apply bg-[var(--primary)] text-white;
-        @apply dark:bg-indigo-600 dark:text-white;
+        @apply dark:bg-[var(--primary)] dark:text-white;
     }
 
     .filter-count {

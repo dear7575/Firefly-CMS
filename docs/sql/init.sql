@@ -48,6 +48,12 @@ CREATE TABLE `admins`  (
   `id` varchar(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '管理员ID(UUID)',
   `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '登录用户名',
   `hashed_password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '密码哈希值(PBKDF2)',
+  `totp_secret` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT 'TOTP密钥(Base32编码)',
+  `totp_enabled` tinyint(1) NULL DEFAULT 0 COMMENT '是否启用2FA',
+  `totp_verified` tinyint(1) NULL DEFAULT 0 COMMENT '2FA设置是否已验证',
+  `recovery_codes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '恢复码(JSON数组,哈希存储)',
+  `last_totp_used` varchar(6) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '上次使用的TOTP(防重放)',
+  `totp_enabled_at` datetime NULL DEFAULT NULL COMMENT '2FA启用时间',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `ix_admins_username`(`username` ASC) USING BTREE,
   INDEX `ix_admins_id`(`id` ASC) USING BTREE

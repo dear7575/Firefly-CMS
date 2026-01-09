@@ -384,6 +384,15 @@ const adminMenuIcons = Object.fromEntries(
             };
 
             window.adminRequest = async function (url, options) {
+                options = options || {};
+                options.headers = options.headers || {};
+
+                // 自动添加 Authorization header
+                const token = localStorage.getItem('adminToken');
+                if (token && !options.headers['Authorization']) {
+                    options.headers['Authorization'] = 'Bearer ' + token;
+                }
+
                 const response = await fetch(url, options);
                 return window.parseApiResponse(response);
             };
@@ -1408,6 +1417,23 @@ const adminMenuIcons = Object.fromEntries(
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
+
+        /* 暗色模式下主题色边框和阴影 */
+        .dark .primary-glow {
+            border: 1px solid color-mix(in oklch, var(--primary) 50%, transparent);
+            box-shadow: 0 0 15px color-mix(in oklch, var(--primary) 30%, transparent);
+        }
+
+        /* 媒体选择器卡片的悬停效果 */
+        .media-card-hover:hover {
+            border-color: color-mix(in oklch, var(--primary) 50%, transparent);
+        }
+
+        /* 安全设置输入框焦点效果 */
+        .security-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 25%, transparent);
+        }
     </style>
     <link
             rel="stylesheet"
@@ -1416,7 +1442,7 @@ const adminMenuIcons = Object.fromEntries(
     <script src="/assets/vendor/chart.js/chart.umd.min.js" is:inline></script>
 </head>
 <body
-        class="min-h-screen font-sans selection:bg-indigo-100 dark:selection:bg-indigo-900/30"
+        class="min-h-screen font-sans"
         data-admin-layout
 >
 {hideNav ? (
@@ -1741,6 +1767,15 @@ const adminMenuIcons = Object.fromEntries(
                                     </svg>
                                     修改密码
                                 </button>
+                                <a href="/admin/settings/security"
+                                   class="w-full flex items-center gap-2 px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                         viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                                    </svg>
+                                    两步验证
+                                </a>
                                 <button id="logoutBtn"
                                         class="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
@@ -2180,7 +2215,7 @@ const adminMenuIcons = Object.fromEntries(
 </script>
 
 <!-- 全局美化弹框 -->
-<div id="adminModal" class="fixed inset-0 bg-black/50 z-[100] hidden items-center justify-center p-4 backdrop-blur-sm">
+<div id="adminModal" class="fixed inset-0 bg-black/50 z-[200] hidden items-center justify-center p-4 backdrop-blur-sm">
     <div class="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-sm shadow-2xl transform transition-all scale-95 opacity-0"
          id="adminModalContent">
         <div class="p-6 text-center">
@@ -2209,7 +2244,7 @@ const adminMenuIcons = Object.fromEntries(
                           d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
                 <!-- 确认图标 -->
-                <svg id="iconConfirm" class="hidden w-8 h-8 text-indigo-500" fill="none" viewBox="0 0 24 24"
+                <svg id="iconConfirm" class="hidden w-8 h-8 text-[var(--primary)]" fill="none" viewBox="0 0 24 24"
                      stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -2260,21 +2295,54 @@ const adminMenuIcons = Object.fromEntries(
             <form id="globalChangePasswordForm" class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">当前密码 *</label>
-                    <input type="password" id="globalCurrentPassword" required
-                           class="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-[var(--primary)] outline-none"
-                           placeholder="请输入当前密码"/>
+                    <div class="relative">
+                        <input type="password" id="globalCurrentPassword" required
+                               class="w-full px-4 py-2.5 pr-12 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-[var(--primary)] outline-none"
+                               placeholder="请输入当前密码"/>
+                        <button type="button" class="admin-password-toggle" data-target="globalCurrentPassword">
+                            <svg class="eye-open h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                            <svg class="eye-closed h-5 w-5 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">新密码 *</label>
-                    <input type="password" id="globalNewPassword" required
-                           class="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-[var(--primary)] outline-none"
-                           placeholder="请输入新密码（至少6位）"/>
+                    <div class="relative">
+                        <input type="password" id="globalNewPassword" required
+                               class="w-full px-4 py-2.5 pr-12 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-[var(--primary)] outline-none"
+                               placeholder="请输入新密码（至少6位）"/>
+                        <button type="button" class="admin-password-toggle" data-target="globalNewPassword">
+                            <svg class="eye-open h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                            <svg class="eye-closed h-5 w-5 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">确认新密码 *</label>
-                    <input type="password" id="globalConfirmPassword" required
-                           class="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-[var(--primary)] outline-none"
-                           placeholder="请再次输入新密码"/>
+                    <div class="relative">
+                        <input type="password" id="globalConfirmPassword" required
+                               class="w-full px-4 py-2.5 pr-12 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-[var(--primary)] outline-none"
+                               placeholder="请再次输入新密码"/>
+                        <button type="button" class="admin-password-toggle" data-target="globalConfirmPassword">
+                            <svg class="eye-open h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                            <svg class="eye-closed h-5 w-5 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
                 <div class="flex justify-end pt-2">
                     <button type="button" id="cancelChangePwBtn"
@@ -2477,6 +2545,29 @@ const adminMenuIcons = Object.fromEntries(
                     if (e.target === cpModal) closeCpModal();
                 });
             }
+
+            // ============== 密码可见性切换 ==============
+            document.querySelectorAll('.admin-password-toggle').forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    var targetId = btn.getAttribute('data-target');
+                    var input = document.getElementById(targetId);
+                    if (!input) return;
+
+                    var eyeOpen = btn.querySelector('.eye-open');
+                    var eyeClosed = btn.querySelector('.eye-closed');
+
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        if (eyeOpen) eyeOpen.classList.add('hidden');
+                        if (eyeClosed) eyeClosed.classList.remove('hidden');
+                    } else {
+                        input.type = 'password';
+                        if (eyeOpen) eyeOpen.classList.remove('hidden');
+                        if (eyeClosed) eyeClosed.classList.add('hidden');
+                    }
+                });
+            });
 
             if (cpForm) {
                 cpForm.addEventListener('submit', async function (e) {
@@ -2698,29 +2789,46 @@ const adminMenuIcons = Object.fromEntries(
     document.addEventListener('astro:page-load', () => {
         // ============== 全局美化弹框函数 ==============
         (function () {
-            if (window._adminModalInitialized) return;
-            window._adminModalInitialized = true;
-            var modal = document.getElementById('adminModal');
-            var modalContent = document.getElementById('adminModalContent');
-            var modalTitle = document.getElementById('adminModalTitle');
-            var modalMessage = document.getElementById('adminModalMessage');
-            var modalIcon = document.getElementById('adminModalIcon');
-            var modalInputWrapper = document.getElementById('adminModalInputWrapper');
-            var modalInput = document.getElementById('adminModalInput');
-            var confirmBtn = document.getElementById('adminModalConfirm');
-            var cancelBtn = document.getElementById('adminModalCancel');
+            // 使用动态获取 DOM 元素，避免页面切换后引用失效
             var resolveCallback = null;
             var currentMode = "alert";
 
-            var icons = {
-                success: {el: document.getElementById('iconSuccess'), bg: 'bg-green-100 dark:bg-green-900/30'},
-                error: {el: document.getElementById('iconError'), bg: 'bg-red-100 dark:bg-red-900/30'},
-                warning: {el: document.getElementById('iconWarning'), bg: 'bg-orange-100 dark:bg-orange-900/30'},
-                info: {el: document.getElementById('iconInfo'), bg: 'bg-blue-100 dark:bg-blue-900/30'},
-                confirm: {el: document.getElementById('iconConfirm'), bg: 'bg-indigo-100 dark:bg-indigo-900/30'}
+            var iconBgMap = {
+                success: 'bg-green-100 dark:bg-green-900/30',
+                error: 'bg-red-100 dark:bg-red-900/30',
+                warning: 'bg-orange-100 dark:bg-orange-900/30',
+                info: 'bg-blue-100 dark:bg-blue-900/30',
+                confirm: 'bg-zinc-100 dark:bg-zinc-800'
             };
 
+            function getElements() {
+                return {
+                    modal: document.getElementById('adminModal'),
+                    modalContent: document.getElementById('adminModalContent'),
+                    modalTitle: document.getElementById('adminModalTitle'),
+                    modalMessage: document.getElementById('adminModalMessage'),
+                    modalIcon: document.getElementById('adminModalIcon'),
+                    modalInputWrapper: document.getElementById('adminModalInputWrapper'),
+                    modalInput: document.getElementById('adminModalInput'),
+                    confirmBtn: document.getElementById('adminModalConfirm'),
+                    cancelBtn: document.getElementById('adminModalCancel'),
+                    icons: {
+                        success: document.getElementById('iconSuccess'),
+                        error: document.getElementById('iconError'),
+                        warning: document.getElementById('iconWarning'),
+                        info: document.getElementById('iconInfo'),
+                        confirm: document.getElementById('iconConfirm')
+                    }
+                };
+            }
+
             function showModal(options) {
+                var els = getElements();
+                if (!els.modal || !els.modalContent) {
+                    console.error('Modal elements not found');
+                    return Promise.resolve();
+                }
+
                 var type = options.type || 'info';
                 var title = options.title || '';
                 var message = options.message || '';
@@ -2731,48 +2839,50 @@ const adminMenuIcons = Object.fromEntries(
                 currentMode = options.mode || (inputOptions ? "prompt" : (showCancel ? "confirm" : "alert"));
 
                 // 设置内容
-                modalTitle.textContent = title;
-                modalMessage.textContent = message;
-                confirmBtn.textContent = confirmText;
-                cancelBtn.textContent = cancelText;
+                if (els.modalTitle) els.modalTitle.textContent = title;
+                if (els.modalMessage) els.modalMessage.textContent = message;
+                if (els.confirmBtn) els.confirmBtn.textContent = confirmText;
+                if (els.cancelBtn) els.cancelBtn.textContent = cancelText;
 
                 // 显示/隐藏取消按钮
-                if (showCancel) {
-                    cancelBtn.classList.remove('hidden');
-                } else {
-                    cancelBtn.classList.add('hidden');
+                if (els.cancelBtn) {
+                    if (showCancel) {
+                        els.cancelBtn.classList.remove('hidden');
+                    } else {
+                        els.cancelBtn.classList.add('hidden');
+                    }
                 }
 
-                if (inputOptions && modalInputWrapper && modalInput) {
-                    modalInputWrapper.classList.remove('hidden');
-                    modalInput.type = inputOptions.type || "text";
-                    modalInput.placeholder = inputOptions.placeholder || "";
-                    modalInput.value = inputOptions.value || "";
-                } else if (modalInputWrapper && modalInput) {
-                    modalInputWrapper.classList.add('hidden');
-                    modalInput.value = "";
+                if (inputOptions && els.modalInputWrapper && els.modalInput) {
+                    els.modalInputWrapper.classList.remove('hidden');
+                    els.modalInput.type = inputOptions.type || "text";
+                    els.modalInput.placeholder = inputOptions.placeholder || "";
+                    els.modalInput.value = inputOptions.value || "";
+                } else if (els.modalInputWrapper && els.modalInput) {
+                    els.modalInputWrapper.classList.add('hidden');
+                    els.modalInput.value = "";
                 }
 
                 // 设置图标
-                Object.keys(icons).forEach(function (key) {
-                    icons[key].el.classList.add('hidden');
+                Object.keys(els.icons).forEach(function (key) {
+                    if (els.icons[key]) els.icons[key].classList.add('hidden');
                 });
-                if (icons[type]) {
-                    icons[type].el.classList.remove('hidden');
-                    modalIcon.className = 'w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ' + icons[type].bg;
+                if (els.icons[type] && els.modalIcon) {
+                    els.icons[type].classList.remove('hidden');
+                    els.modalIcon.className = 'w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ' + iconBgMap[type];
                 }
 
                 // 显示弹框
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
+                els.modal.classList.remove('hidden');
+                els.modal.classList.add('flex');
 
                 // 动画
                 setTimeout(function () {
-                    modalContent.classList.remove('scale-95', 'opacity-0');
-                    modalContent.classList.add('scale-100', 'opacity-100');
-                    if (inputOptions && modalInput) {
-                        modalInput.focus();
-                        modalInput.select();
+                    els.modalContent.classList.remove('scale-95', 'opacity-0');
+                    els.modalContent.classList.add('scale-100', 'opacity-100');
+                    if (inputOptions && els.modalInput) {
+                        els.modalInput.focus();
+                        els.modalInput.select();
                     }
                 }, 10);
 
@@ -2782,16 +2892,19 @@ const adminMenuIcons = Object.fromEntries(
             }
 
             function hideModal(result) {
-                modalContent.classList.remove('scale-100', 'opacity-100');
-                modalContent.classList.add('scale-95', 'opacity-0');
+                var els = getElements();
+                if (!els.modal || !els.modalContent) return;
+
+                els.modalContent.classList.remove('scale-100', 'opacity-100');
+                els.modalContent.classList.add('scale-95', 'opacity-0');
 
                 setTimeout(function () {
-                    modal.classList.add('hidden');
-                    modal.classList.remove('flex');
+                    els.modal.classList.add('hidden');
+                    els.modal.classList.remove('flex');
                     if (resolveCallback) {
                         var finalResult = result;
                         if (currentMode === "prompt") {
-                            finalResult = result ? (modalInput ? modalInput.value : "") : null;
+                            finalResult = result ? (els.modalInput ? els.modalInput.value : "") : null;
                         }
                         resolveCallback(finalResult);
                         resolveCallback = null;
@@ -2800,30 +2913,28 @@ const adminMenuIcons = Object.fromEntries(
                 }, 200);
             }
 
-            // 事件绑定
-            if (confirmBtn) {
-                confirmBtn.addEventListener('click', function () {
-                    hideModal(true);
-                });
-            }
+            // 事件绑定 - 使用事件委托避免重复绑定
+            if (!window._adminModalEventsInitialized) {
+                window._adminModalEventsInitialized = true;
 
-            if (cancelBtn) {
-                cancelBtn.addEventListener('click', function () {
-                    hideModal(false);
-                });
-            }
-
-            if (modal) {
-                modal.addEventListener('click', function (e) {
-                    if (e.target === modal) {
+                document.addEventListener('click', function (e) {
+                    var target = e.target;
+                    // 确认按钮
+                    if (target.id === 'adminModalConfirm' || target.closest('#adminModalConfirm')) {
+                        hideModal(true);
+                    }
+                    // 取消按钮
+                    else if (target.id === 'adminModalCancel' || target.closest('#adminModalCancel')) {
+                        hideModal(false);
+                    }
+                    // 点击背景关闭
+                    else if (target.id === 'adminModal') {
                         hideModal(false);
                     }
                 });
-            }
 
-            if (modalInput) {
-                modalInput.addEventListener('keydown', function (e) {
-                    if (e.key === 'Enter') {
+                document.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter' && e.target.id === 'adminModalInput') {
                         e.preventDefault();
                         hideModal(true);
                     }
@@ -3347,7 +3458,7 @@ const adminMenuIcons = Object.fromEntries(
                                 // 置顶标签
                                 if (post.pinned)
                                     statusBadges.push(
-                                        '<span class="px-2 py-0.5 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 text-[10px] font-bold rounded uppercase tracking-wider">' + t.pinned + '</span>',
+                                        '<span class="px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 text-[var(--primary)] text-[10px] font-bold rounded uppercase tracking-wider">' + t.pinned + '</span>',
                                     );
                                 if (post.is_draft)
                                     statusBadges.push(
@@ -3626,7 +3737,7 @@ const adminMenuIcons = Object.fromEntries(
                             // 置顶标签
                             if (post.pinned)
                                 statusBadges.push(
-                                    '<span class="px-2 py-0.5 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 text-[10px] font-bold rounded uppercase tracking-wider">' + t.pinned + '</span>',
+                                    '<span class="px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 text-[var(--primary)] text-[10px] font-bold rounded uppercase tracking-wider">' + t.pinned + '</span>',
                                 );
                             if (post.is_draft)
                                 statusBadges.push(

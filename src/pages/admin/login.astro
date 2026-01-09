@@ -11,6 +11,9 @@ const API_URL = getApiUrl();
 const loginI18n = {
     loginFailed: i18n(I18nKey.adminLoginFailed),
     connectionFailed: i18n(I18nKey.adminPostLoadFailed),
+    totpRequired: "需要两步验证",
+    totpInvalid: "验证码错误",
+    recoveryInvalid: "恢复码错误或已使用",
 };
 ---
 
@@ -22,103 +25,309 @@ const loginI18n = {
         <div
             class="w-full max-w-md p-10 bg-white/90 dark:bg-zinc-900/90 rounded-3xl shadow-2xl border border-white/20 dark:border-zinc-700/50 backdrop-blur-xl onload-animation"
         >
-            <div class="text-center mb-10">
-                <div
-                    class="w-16 h-16 bg-[var(--primary)] text-white flex items-center justify-center rounded-2xl mx-auto mb-4 text-2xl font-bold shadow-lg"
-                >
-                    F
+            <!-- 登录表单区域 -->
+            <div id="loginSection">
+                <div class="text-center mb-10">
+                    <div
+                        class="w-16 h-16 bg-[var(--primary)] text-white flex items-center justify-center rounded-2xl mx-auto mb-4 text-2xl font-bold shadow-lg"
+                    >
+                        F
+                    </div>
+                    <h1
+                        class="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2"
+                    >
+                        {i18n(I18nKey.adminLoginTitle)}
+                    </h1>
+                    <p class="text-zinc-500 dark:text-zinc-400">
+                        {i18n(I18nKey.adminLoginSubtitle)}
+                    </p>
                 </div>
-                <h1
-                    class="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2"
-                >
-                    {i18n(I18nKey.adminLoginTitle)}
-                </h1>
-                <p class="text-zinc-500 dark:text-zinc-400">
-                    {i18n(I18nKey.adminLoginSubtitle)}
-                </p>
+
+                <form id="loginForm" class="space-y-6">
+                    <div>
+                        <label
+                            class="block text-sm font-bold text-zinc-700 dark:text-zinc-300 mb-2 uppercase tracking-wider"
+                            >{i18n(I18nKey.adminUsername)}</label
+                        >
+                        <input
+                            type="text"
+                            id="username"
+                            required
+                            placeholder="用户名"
+                            class="login-input"
+                        />
+                    </div>
+                    <div>
+                        <label
+                            class="block text-sm font-bold text-zinc-700 dark:text-zinc-300 mb-2 uppercase tracking-wider"
+                            >{i18n(I18nKey.adminPassword)}</label
+                        >
+                        <div style="position: relative;">
+                            <input
+                                type="password"
+                                id="password"
+                                required
+                                placeholder="密码"
+                                class="login-input"
+                                style="padding-right: 3rem;"
+                            />
+                            <button
+                                type="button"
+                                id="togglePassword"
+                                style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0.25rem; display: flex; align-items: center; justify-content: center;"
+                                class="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
+                                tabindex="-1"
+                            >
+                                <!-- 眼睛图标（显示密码） -->
+                                <svg id="eyeIcon" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                                <!-- 眼睛划线图标（隐藏密码） -->
+                                <svg id="eyeOffIcon" class="w-5 h-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <button
+                        type="submit"
+                        id="loginBtn"
+                        class="w-full py-4 bg-[var(--primary)] hover:opacity-90 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all active:scale-[0.98] primary-glow"
+                        data-login-text={i18n(I18nKey.adminLoginButton)}
+                        data-logging-in-text={i18n(I18nKey.adminLoggingIn)}
+                    >
+                        {i18n(I18nKey.adminLoginButton)}
+                    </button>
+                    <p
+                        id="errorMsg"
+                        class="text-red-500 text-sm font-medium hidden text-center"
+                    >
+                    </p>
+                </form>
             </div>
 
-            <form id="loginForm" class="space-y-6">
-                <div>
-                    <label
-                        class="block text-sm font-bold text-zinc-700 dark:text-zinc-300 mb-2 uppercase tracking-wider"
-                        >{i18n(I18nKey.adminUsername)}</label
+            <!-- 2FA 验证区域（初始隐藏） -->
+            <div id="totpSection" class="hidden">
+                <div class="text-center mb-8">
+                    <div
+                        class="w-16 h-16 bg-zinc-100 dark:bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-4"
                     >
-                    <input
-                        type="text"
-                        id="username"
-                        required
-                        placeholder="用户名"
-                        class="login-input"
-                    />
-                </div>
-                <div>
-                    <label
-                        class="block text-sm font-bold text-zinc-700 dark:text-zinc-300 mb-2 uppercase tracking-wider"
-                        >{i18n(I18nKey.adminPassword)}</label
+                        <svg
+                            class="w-8 h-8 text-[var(--primary)]"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                            ></path>
+                        </svg>
+                    </div>
+                    <h2
+                        class="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2"
                     >
-                    <input
-                        type="password"
-                        id="password"
-                        required
-                        placeholder="密码"
-                        class="login-input"
-                    />
+                        两步验证
+                    </h2>
+                    <p class="text-zinc-500 dark:text-zinc-400 text-sm">
+                        请输入验证器 App 中的 6 位数字
+                    </p>
                 </div>
-                <button
-                    type="submit"
-                    id="loginBtn"
-                    class="w-full py-4 bg-[var(--primary)] dark:bg-indigo-600 hover:opacity-90 dark:hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all active:scale-[0.98] dark:shadow-[0_0_20px_rgba(99,102,241,0.3)]"
-                    data-login-text={i18n(I18nKey.adminLoginButton)}
-                    data-logging-in-text={i18n(I18nKey.adminLoggingIn)}
-                >
-                    {i18n(I18nKey.adminLoginButton)}
-                </button>
-                <p
-                    id="errorMsg"
-                    class="text-red-500 text-sm font-medium hidden text-center animate-bounce"
-                >
-                </p>
-            </form>
+
+                <div class="space-y-6">
+                    <!-- TOTP 输入框 -->
+                    <div id="totpInputArea">
+                        <input
+                            type="text"
+                            id="totpCode"
+                            maxlength="6"
+                            pattern="\d{6}"
+                            inputmode="numeric"
+                            autocomplete="one-time-code"
+                            placeholder="000000"
+                            class="login-input text-center text-2xl tracking-[0.5em] font-mono"
+                        />
+                    </div>
+
+                    <!-- 恢复码输入框（初始隐藏） -->
+                    <div id="recoveryInputArea" class="hidden">
+                        <input
+                            type="text"
+                            id="recoveryCode"
+                            maxlength="10"
+                            placeholder="ABCD1234"
+                            class="login-input text-center text-xl tracking-widest font-mono uppercase"
+                        />
+                        <p class="text-xs text-zinc-500 mt-2 text-center">
+                            输入 8 位恢复码（不区分大小写）
+                        </p>
+                    </div>
+
+                    <button
+                        type="button"
+                        id="verifyTotpBtn"
+                        class="w-full py-4 bg-[var(--primary)] hover:opacity-90 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all active:scale-[0.98] primary-glow"
+                    >
+                        验证
+                    </button>
+
+                    <p
+                        id="totpErrorMsg"
+                        class="text-red-500 text-sm font-medium hidden text-center"
+                    >
+                    </p>
+
+                    <div class="flex items-center justify-between pt-4 border-t border-zinc-200 dark:border-zinc-700">
+                        <button
+                            type="button"
+                            id="useRecoveryBtn"
+                            class="text-sm text-[var(--primary)] hover:underline"
+                        >
+                            使用恢复码
+                        </button>
+                        <button
+                            type="button"
+                            id="backToLoginBtn"
+                            class="text-sm text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+                        >
+                            返回登录
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </AdminLayout>
 
 <script is:inline define:vars={{ loginI18n }}>
+    // 状态变量
+    let pendingUsername = null;
+    let pendingPassword = null;
+    let isUsingRecovery = false;
+
+    // DOM 元素
+    const loginSection = document.getElementById("loginSection");
+    const totpSection = document.getElementById("totpSection");
     const form = document.getElementById("loginForm");
     const errorMsg = document.getElementById("errorMsg");
     const loginBtn = document.getElementById("loginBtn");
+    const totpCode = document.getElementById("totpCode");
+    const recoveryCode = document.getElementById("recoveryCode");
+    const totpInputArea = document.getElementById("totpInputArea");
+    const recoveryInputArea = document.getElementById("recoveryInputArea");
+    const verifyTotpBtn = document.getElementById("verifyTotpBtn");
+    const totpErrorMsg = document.getElementById("totpErrorMsg");
+    const useRecoveryBtn = document.getElementById("useRecoveryBtn");
+    const backToLoginBtn = document.getElementById("backToLoginBtn");
+    const passwordInput = document.getElementById("password");
+    const togglePasswordBtn = document.getElementById("togglePassword");
+    const eyeIcon = document.getElementById("eyeIcon");
+    const eyeOffIcon = document.getElementById("eyeOffIcon");
 
+    // 切换密码显示/隐藏
+    togglePasswordBtn?.addEventListener("click", () => {
+        const isPassword = passwordInput.type === "password";
+        passwordInput.type = isPassword ? "text" : "password";
+        eyeIcon.classList.toggle("hidden", !isPassword);
+        eyeOffIcon.classList.toggle("hidden", isPassword);
+    });
+
+    // 显示 2FA 验证界面
+    function showTotpSection() {
+        loginSection.classList.add("hidden");
+        totpSection.classList.remove("hidden");
+        totpCode.focus();
+    }
+
+    // 返回登录界面
+    function showLoginSection() {
+        totpSection.classList.add("hidden");
+        loginSection.classList.remove("hidden");
+        totpCode.value = "";
+        recoveryCode.value = "";
+        totpErrorMsg.classList.add("hidden");
+        isUsingRecovery = false;
+        totpInputArea.classList.remove("hidden");
+        recoveryInputArea.classList.add("hidden");
+        useRecoveryBtn.textContent = "使用恢复码";
+    }
+
+    // 切换 TOTP/恢复码 输入
+    function toggleRecoveryMode() {
+        isUsingRecovery = !isUsingRecovery;
+        if (isUsingRecovery) {
+            totpInputArea.classList.add("hidden");
+            recoveryInputArea.classList.remove("hidden");
+            useRecoveryBtn.textContent = "使用验证码";
+            recoveryCode.focus();
+        } else {
+            totpInputArea.classList.remove("hidden");
+            recoveryInputArea.classList.add("hidden");
+            useRecoveryBtn.textContent = "使用恢复码";
+            totpCode.focus();
+        }
+        totpErrorMsg.classList.add("hidden");
+    }
+
+    // 显示错误信息
+    function showError(element, message) {
+        element.textContent = message;
+        element.classList.remove("hidden");
+    }
+
+    // 隐藏错误信息
+    function hideError(element) {
+        element.classList.add("hidden");
+    }
+
+    // 登录表单提交
     form?.addEventListener("submit", async (e) => {
         e.preventDefault();
         const username = document.getElementById("username").value;
         const password = document.getElementById("password").value;
 
-        // Show loading state
+        // 显示加载状态
         if (loginBtn) {
             loginBtn.textContent = loginBtn.dataset.loggingInText;
             loginBtn.disabled = true;
         }
+        hideError(errorMsg);
 
         const formData = new FormData();
         formData.append("username", username);
         formData.append("password", password);
 
         try {
-            const result = await window.adminRequest(`${window.API_URL}/token`, {
-                method: "POST",
-                body: formData,
-            });
+            const result = await window.adminRequest(
+                `${window.API_URL}/token`,
+                {
+                    method: "POST",
+                    body: formData,
+                }
+            );
 
+            // 检查是否需要 2FA
+            if (result.code === 202 && result.data?.requires_2fa) {
+                pendingUsername = username;
+                pendingPassword = password;
+                showTotpSection();
+                // 重置按钮
+                if (loginBtn) {
+                    loginBtn.textContent = loginBtn.dataset.loginText;
+                    loginBtn.disabled = false;
+                }
+                return;
+            }
+
+            // 正常登录成功
             if (result.ok && result.data && result.data.access_token) {
                 localStorage.setItem("adminToken", result.data.access_token);
                 window.location.href = "/admin/";
             } else {
-                if (errorMsg) {
-                    errorMsg.textContent = result.msg || loginI18n.loginFailed;
-                    errorMsg.classList.remove("hidden");
-                }
-                // Reset button
+                showError(errorMsg, result.msg || loginI18n.loginFailed);
                 if (loginBtn) {
                     loginBtn.textContent = loginBtn.dataset.loginText;
                     loginBtn.disabled = false;
@@ -126,15 +335,105 @@ const loginI18n = {
             }
         } catch (err) {
             console.error(err);
-            if (errorMsg) {
-                errorMsg.textContent = loginI18n.connectionFailed;
-                errorMsg.classList.remove("hidden");
-            }
-            // Reset button
+            showError(errorMsg, loginI18n.connectionFailed);
             if (loginBtn) {
                 loginBtn.textContent = loginBtn.dataset.loginText;
                 loginBtn.disabled = false;
             }
+        }
+    });
+
+    // 2FA 验证
+    verifyTotpBtn?.addEventListener("click", async () => {
+        const code = isUsingRecovery ? recoveryCode.value : totpCode.value;
+
+        if (!code) {
+            showError(
+                totpErrorMsg,
+                isUsingRecovery ? "请输入恢复码" : "请输入验证码"
+            );
+            return;
+        }
+
+        // 显示加载状态
+        verifyTotpBtn.textContent = "验证中...";
+        verifyTotpBtn.disabled = true;
+        hideError(totpErrorMsg);
+
+        const formData = new FormData();
+        formData.append("username", pendingUsername);
+        formData.append("password", pendingPassword);
+
+        const headers = {};
+        if (isUsingRecovery) {
+            headers["X-Recovery-Code"] = code;
+        } else {
+            headers["X-TOTP-Code"] = code;
+        }
+
+        try {
+            const result = await window.adminRequest(
+                `${window.API_URL}/token`,
+                {
+                    method: "POST",
+                    body: formData,
+                    headers: headers,
+                }
+            );
+
+            if (result.ok && result.data && result.data.access_token) {
+                localStorage.setItem("adminToken", result.data.access_token);
+                window.location.href = "/admin/";
+            } else {
+                showError(
+                    totpErrorMsg,
+                    result.msg ||
+                        (isUsingRecovery
+                            ? loginI18n.recoveryInvalid
+                            : loginI18n.totpInvalid)
+                );
+                verifyTotpBtn.textContent = "验证";
+                verifyTotpBtn.disabled = false;
+            }
+        } catch (err) {
+            console.error(err);
+            showError(totpErrorMsg, loginI18n.connectionFailed);
+            verifyTotpBtn.textContent = "验证";
+            verifyTotpBtn.disabled = false;
+        }
+    });
+
+    // TOTP 输入框自动提交（输入6位后自动验证）
+    totpCode?.addEventListener("input", (e) => {
+        // 只允许数字
+        e.target.value = e.target.value.replace(/\D/g, "");
+        if (e.target.value.length === 6) {
+            verifyTotpBtn.click();
+        }
+    });
+
+    // 恢复码输入框格式化
+    recoveryCode?.addEventListener("input", (e) => {
+        // 只允许字母和数字
+        e.target.value = e.target.value.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+    });
+
+    // 切换恢复码模式
+    useRecoveryBtn?.addEventListener("click", toggleRecoveryMode);
+
+    // 返回登录
+    backToLoginBtn?.addEventListener("click", showLoginSection);
+
+    // 支持 Enter 键提交
+    totpCode?.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+            verifyTotpBtn.click();
+        }
+    });
+
+    recoveryCode?.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+            verifyTotpBtn.click();
         }
     });
 </script>

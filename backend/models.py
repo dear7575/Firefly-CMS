@@ -205,6 +205,13 @@ class Admin(Base):
     id = Column(String(36), primary_key=True, default=generate_uuid, index=True, comment="管理员ID(UUID)")
     username = Column(String(50), unique=True, nullable=False, index=True, comment="登录用户名")
     hashed_password = Column(String(255), nullable=False, comment="密码哈希值(PBKDF2)")
+    # 2FA 两步验证字段
+    totp_secret = Column(String(32), nullable=True, comment="TOTP密钥(Base32编码)")
+    totp_enabled = Column(Boolean, default=False, comment="是否启用2FA")
+    totp_verified = Column(Boolean, default=False, comment="2FA设置是否已验证")
+    recovery_codes = Column(Text, nullable=True, comment="恢复码(JSON数组,哈希存储)")
+    last_totp_used = Column(String(6), nullable=True, comment="上次使用的TOTP(防重放)")
+    totp_enabled_at = Column(DateTime, nullable=True, comment="2FA启用时间")
 
 
 class FriendLink(Base):
