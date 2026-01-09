@@ -3,6 +3,7 @@
 提供图片和文件上传功能
 """
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Header, Query
+from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
@@ -16,6 +17,8 @@ from sqlalchemy import func, or_
 
 from database import get_db, settings
 import models
+from response_utils import build_error
+from media_usage import rebuild_media_usage
 
 router = APIRouter(prefix="/upload", tags=["文件上传"])
 
@@ -102,6 +105,20 @@ def build_media_path(filename: str, subdir: Optional[str]) -> str:
     if clean_subdir:
         return f"{clean_subdir}/{filename}"
     return filename
+
+
+def attach_usage_counts(files: list, subdir: str, db: Session) -> None:
+    """为文件列表补充引用次数"""
+    if not files:
+        return
+    paths = [build_media_path(file["filename"], subdir) for file in files]
+    media_rows = db.query(models.MediaFile).filter(
+        models.MediaFile.path.in_(paths)
+    ).all()
+    count_map = {row.path: row.usage_count for row in media_rows}
+    for file in files:
+        path = build_media_path(file["filename"], subdir)
+        file["usage_count"] = count_map.get(path, 0)
 
 
 def record_media_file(
@@ -366,41 +383,6 @@ async def rename_folder(
         raise HTTPException(status_code=500, detail=f"重命名失败: {str(e)}")
 
 
-@router.delete("/{subdir}/{filename}", summary="删除文件")
-async def delete_file(
-    subdir: str,
-    filename: str,
-    db: Session = Depends(get_db),
-    current_user: models.Admin = Depends(get_current_user)
-):
-    """
-    删除已上传的文件
-
-    - **subdir**: 子目录
-    - **filename**: 文件名
-    """
-    file_path = os.path.join(settings.UPLOAD_DIR, subdir, filename)
-
-    if not os.path.exists(file_path):
-        raise HTTPException(status_code=404, detail="文件不存在")
-
-    # 安全检查：确保路径在上传目录内
-    real_path = os.path.realpath(file_path)
-    upload_dir = os.path.realpath(settings.UPLOAD_DIR)
-    if not real_path.startswith(upload_dir):
-        raise HTTPException(status_code=403, detail="禁止访问")
-
-    try:
-        os.remove(file_path)
-        db.query(models.MediaFile).filter(
-            models.MediaFile.path == build_media_path(filename, subdir)
-        ).delete(synchronize_session=False)
-        db.commit()
-        return {"message": "文件删除成功", "filename": filename}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"删除失败: {str(e)}")
-
-
 @router.get("/media", summary="获取媒体文件列表")
 async def get_media_files(
     page: int = Query(1, ge=1, description="页码"),
@@ -479,6 +461,17 @@ async def delete_media_record(
     if not media:
         raise HTTPException(status_code=404, detail="媒体文件不存在")
 
+    if (media.usage_count or 0) > 0:
+        return JSONResponse(
+            status_code=409,
+            content=build_error(
+                409,
+                f"该媒体被 {media.usage_count} 篇文章引用，无法删除",
+                error_code="MEDIA_IN_USE",
+                details={"usage_count": media.usage_count}
+            )
+        )
+
     file_path = os.path.join(settings.UPLOAD_DIR, media.path.replace("/", os.sep))
     if os.path.exists(file_path):
         try:
@@ -491,9 +484,73 @@ async def delete_media_record(
     return {"message": "媒体文件已删除"}
 
 
+@router.post("/media/rebuild-usage", summary="重建媒体引用统计")
+async def rebuild_media_stats(
+    db: Session = Depends(get_db),
+    current_user: models.Admin = Depends(get_current_user)
+):
+    """重建媒体引用统计"""
+    stats = rebuild_media_usage(db)
+    return {"message": "媒体引用统计已重建", "stats": stats}
+
+
+@router.delete("/{subdir}/{filename}", summary="删除文件")
+async def delete_file(
+    subdir: str,
+    filename: str,
+    db: Session = Depends(get_db),
+    current_user: models.Admin = Depends(get_current_user)
+):
+    """
+    删除已上传的文件
+
+    - **subdir**: 子目录
+    - **filename**: 文件名
+    """
+    file_path = os.path.join(settings.UPLOAD_DIR, subdir, filename)
+
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="文件不存在")
+
+    # 安全检查：确保路径在上传目录内
+    real_path = os.path.realpath(file_path)
+    upload_dir = os.path.realpath(settings.UPLOAD_DIR)
+    if not real_path.startswith(upload_dir):
+        raise HTTPException(status_code=403, detail="禁止访问")
+
+    media_path = build_media_path(filename, subdir)
+    media_record = db.query(models.MediaFile).filter(
+        models.MediaFile.path == media_path
+    ).first()
+
+    if media_record and (media_record.usage_count or 0) > 0:
+        return JSONResponse(
+            status_code=409,
+            content=build_error(
+                409,
+                f"该文件被 {media_record.usage_count} 篇文章引用，无法删除",
+                error_code="MEDIA_IN_USE",
+                details={"usage_count": media_record.usage_count}
+            )
+        )
+
+    try:
+        os.remove(file_path)
+        if media_record:
+            db.query(models.PostMedia).filter(
+                models.PostMedia.media_id == media_record.id
+            ).delete(synchronize_session=False)
+            db.delete(media_record)
+        db.commit()
+        return {"message": "文件删除成功", "filename": filename}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"删除失败: {str(e)}")
+
+
 @router.get("/list", summary="列出根目录")
 async def list_root(
-    current_user: models.Admin = Depends(get_current_user)
+    current_user: models.Admin = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
     """列出上传根目录下的所有文件和文件夹"""
     dir_path = settings.UPLOAD_DIR
@@ -532,6 +589,8 @@ async def list_root(
     folders.sort(key=lambda x: x["name"])
     files.sort(key=lambda x: x["modified"], reverse=True)
 
+    attach_usage_counts(files, "", db)
+
     return {
         "files": files,
         "folders": folders,
@@ -543,7 +602,8 @@ async def list_root(
 @router.get("/list/{subdir:path}", summary="列出目录文件")
 async def list_files(
     subdir: str,
-    current_user: models.Admin = Depends(get_current_user)
+    current_user: models.Admin = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
     """
     列出指定目录下的所有文件和文件夹
@@ -598,6 +658,8 @@ async def list_files(
     # 文件夹按名称排序，文件按修改时间倒序
     folders.sort(key=lambda x: x["name"])
     files.sort(key=lambda x: x["modified"], reverse=True)
+
+    attach_usage_counts(files, subdir, db)
 
     return {
         "files": files,

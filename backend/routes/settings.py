@@ -59,6 +59,43 @@ class SettingBatchUpdate(BaseModel):
     settings: Dict[str, Any] = Field(..., description="设置键值对")
 
 
+# ============== 内部工具 ==============
+
+def ensure_backup_settings(db: Session) -> None:
+    """确保备份设置存在"""
+    defaults = [
+        {
+            "key": "backup_auto_enabled",
+            "value": "true",
+            "type": "boolean",
+            "group": "backup",
+            "label": "自动备份",
+            "description": "是否启用自动备份",
+            "sort_order": 100
+        },
+        {
+            "key": "backup_auto_interval_hours",
+            "value": "24",
+            "type": "number",
+            "group": "backup",
+            "label": "备份间隔(小时)",
+            "description": "自动备份执行间隔",
+            "sort_order": 99
+        }
+    ]
+
+    created = False
+    for setting_data in defaults:
+        exists = db.query(models.SiteSetting).filter(
+            models.SiteSetting.key == setting_data["key"]
+        ).first()
+        if not exists:
+            db.add(models.SiteSetting(**setting_data))
+            created = True
+    if created:
+        db.commit()
+
+
 # ============== 公开 API 接口（无需认证） ==============
 
 @router.get("/public", summary="获取公开站点配置")
@@ -188,6 +225,7 @@ def get_settings(
     db: Session = Depends(get_db)
 ):
     """获取所有站点设置"""
+    ensure_backup_settings(db)
     query = db.query(models.SiteSetting)
     if group:
         query = query.filter(models.SiteSetting.group == group)
@@ -213,6 +251,7 @@ class AnnouncementConfig(BaseModel):
     title: str = Field(default="公告", description="公告标题")
     content: str = Field(..., description="公告内容")
     closable: bool = Field(default=True, description="是否可关闭")
+    image: str = Field(default="", description="公告图片URL")
     link_enable: bool = Field(default=False, description="是否启用链接")
     link_text: str = Field(default="了解更多", description="链接文本")
     link_url: str = Field(default="/about", description="链接URL")
@@ -228,6 +267,7 @@ def get_announcement_config(db: Session = Depends(get_db)):
         "announcement_title",
         "announcement_content",
         "announcement_closable",
+        "announcement_image",
         "announcement_link_enable",
         "announcement_link_text",
         "announcement_link_url",
@@ -254,6 +294,7 @@ def get_announcement_config(db: Session = Depends(get_db)):
             "title": "公告",
             "content": "欢迎来到我的博客！这是一则示例公告。",
             "closable": True,
+            "image": "",
             "link": {
                 "enable": False,
                 "text": "了解更多",
@@ -267,6 +308,7 @@ def get_announcement_config(db: Session = Depends(get_db)):
         "title": settings_map.get("title", "公告"),
         "content": settings_map.get("content", ""),
         "closable": settings_map.get("closable", True),
+        "image": settings_map.get("image", ""),
         "link": {
             "enable": settings_map.get("link_enable", False),
             "text": settings_map.get("link_text", "了解更多"),
@@ -288,6 +330,7 @@ def update_announcement_config(
         "announcement_title": (config.title, "string", "announcement"),
         "announcement_content": (config.content, "string", "announcement"),
         "announcement_closable": (str(config.closable), "boolean", "announcement"),
+        "announcement_image": (config.image, "string", "announcement"),
         "announcement_link_enable": (str(config.link_enable), "boolean", "announcement"),
         "announcement_link_text": (config.link_text, "string", "announcement"),
         "announcement_link_url": (config.link_url, "string", "announcement"),
@@ -521,6 +564,14 @@ def init_default_settings(
         # 导航栏设置
         {"key": "brand_navbar_layout", "value": "space-between", "type": "string", "group": "brand", "label": "导航栏布局", "description": "left=左对齐, center=居中, space-between=两端对齐", "sort_order": 95},
         {"key": "brand_navbar_width_full", "value": "false", "type": "boolean", "group": "brand", "label": "导航栏全宽", "sort_order": 94},
+
+        # 统计埋点
+        {"key": "analytics_google_id", "value": "", "type": "string", "group": "analytics", "label": "Google Analytics ID", "description": "示例：G-XXXXXXXXXX", "sort_order": 100},
+        {"key": "analytics_clarity_id", "value": "", "type": "string", "group": "analytics", "label": "Microsoft Clarity ID", "description": "示例：abcd123456", "sort_order": 99},
+
+        # 备份设置
+        {"key": "backup_auto_enabled", "value": "true", "type": "boolean", "group": "backup", "label": "自动备份", "description": "是否启用自动备份", "sort_order": 100},
+        {"key": "backup_auto_interval_hours", "value": "24", "type": "number", "group": "backup", "label": "备份间隔(小时)", "description": "自动备份执行间隔", "sort_order": 99},
     ]
 
     created_count = 0

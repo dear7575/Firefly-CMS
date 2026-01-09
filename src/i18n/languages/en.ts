@@ -13,12 +13,22 @@ export const en: Translation = {
 	[Key.searchContent]: "Content",
 	[Key.searchViewMore]: "View more results ({count} more)",
 	[Key.other]: "Other",
+	[Key.all]: "All",
 
 	[Key.tags]: "Tags",
 	[Key.categories]: "Categories",
 	[Key.recentPosts]: "Recent Posts",
 	[Key.postList]: "Post List",
 	[Key.tableOfContents]: "Table of Contents",
+	[Key.postPasswordTitle]: "Protected post",
+	[Key.postPasswordDescription]: "Enter the password to view this content",
+	[Key.postPasswordPlaceholder]: "Enter password",
+	[Key.postPasswordUnlock]: "Unlock",
+	[Key.postPasswordRequired]: "Please enter a password",
+	[Key.postPasswordInvalid]: "Incorrect password",
+	[Key.postPasswordVerifyFailed]:
+		"Failed to verify password. Please try again later.",
+	[Key.postPasswordError]: "An error occurred. Please try again later.",
 
 	// Announcement
 	[Key.announcement]: "Announcement",
@@ -202,7 +212,7 @@ export const en: Translation = {
 	[Key.sponsorButtonText]:
 		"If this article helped you, please share or support!",
 
-	[Key.shareOnSocial]: "Share",
+	[Key.shareOnSocial]: "Share Article",
 	[Key.shareOnSocialDescription]:
 		"If this article helped you, please share it with others!",
 
@@ -216,6 +226,7 @@ export const en: Translation = {
 	[Key.siteStatsLastUpdate]: "Last Activity",
 	[Key.siteStatsDaysAgo]: "{days} days ago",
 	[Key.siteStatsDays]: "{days} days",
+	[Key.today]: "Today",
 
 	// Calendar Component
 	[Key.calendarSunday]: "Sun",
@@ -248,6 +259,7 @@ export const en: Translation = {
 	// Admin Panel
 	[Key.adminTitle]: "Admin Panel",
 	[Key.adminPostManagement]: "Post Management",
+	[Key.adminScheduledManagement]: "Scheduled",
 	[Key.adminNewPost]: "New Post",
 	[Key.adminPost]: "Post",
 	[Key.adminEditPost]: "Edit Post",
@@ -305,6 +317,8 @@ export const en: Translation = {
 	// Action Messages
 	[Key.adminConfirmDelete]:
 		"Are you sure you want to delete this post? This action cannot be undone.",
+	[Key.adminConfirmInitSettings]:
+		"Initialize default settings? Existing custom values will be kept.",
 	[Key.adminDeleteSuccess]: "Deleted successfully",
 	[Key.adminDeleteFailed]: "Delete failed, please try again later",
 	[Key.adminSaveSuccess]: "Saved successfully",
@@ -338,6 +352,7 @@ export const en: Translation = {
 	[Key.adminCategoryManagement]: "Categories",
 	[Key.adminTagManagement]: "Tags",
 	[Key.adminFriendManagement]: "Friends",
+	[Key.adminSocialManagement]: "Social Links",
 	[Key.adminSystemManagement]: "System",
 	[Key.adminLogManagement]: "Access Logs",
 
@@ -383,4 +398,64 @@ export const en: Translation = {
 	[Key.adminConfirmDeleteCategory]: "Delete category \"{name}\"?",
 	[Key.adminNoCategories]: "No categories",
 	[Key.adminPosts]: "posts",
+
+	// Social Links
+	[Key.adminManageSocialLinks]: "Manage social media icons and URLs",
+	[Key.adminSocialLink]: "Social Link",
+	[Key.adminSocialIcon]: "Icon",
+	[Key.adminSocialIconPlaceholder]: "e.g. fa6-brands:github",
+	[Key.adminSocialUrl]: "Link URL",
+	[Key.adminSocialUrlPlaceholder]: "https://, mailto: or /rss/",
+	[Key.adminSocialUrlInvalid]: "Invalid URL. Use https://, mailto:, or /path",
+	[Key.adminSocialShowName]: "Show label",
+	[Key.adminSocialShowNameDesc]: "Enable to display text next to the icon on the frontend",
+	[Key.adminSocialBadgeShowName]: "Icon + text",
+	[Key.adminSocialBadgeIconOnly]: "Icon only",
+	[Key.adminSocialEmpty]: "No social links yet. Add your first one!",
+	[Key.adminSocialLoadFailed]: "Failed to load social links",
+	[Key.adminBackupManagement]: "Backup",
+	[Key.adminManageBackups]: "Export or import site data",
+	[Key.adminBackupExportAll]: "Export all",
+	[Key.adminBackupExportPosts]: "Export posts only",
+	[Key.adminBackupImport]: "Import backup",
+	[Key.adminBackupImportHint]: "Import JSON backup file. Choose merge or overwrite.",
+	[Key.adminBackupSelectFile]: "Choose backup file",
+	[Key.adminBackupMerge]: "Merge import",
+	[Key.adminBackupMergeDesc]: "Keep existing data, import missing items only",
+	[Key.adminBackupOverwrite]: "Overwrite import",
+	[Key.adminBackupImporting]: "Importing...",
+	[Key.adminBackupImportSuccess]: "Import completed",
+	[Key.adminBackupImportFailed]: "Import failed",
+	[Key.adminBackupDownloadFailed]: "Download failed, please try again",
+	[Key.adminBackupNoFile]: "Please choose a backup file first",
+	[Key.adminBackupSummary]: "Import summary",
+	[Key.adminBackupExportHint]: "Export all data or posts only",
+	[Key.adminBackupFileEmpty]: "No file selected",
+	[Key.adminBackupImportConfirmMerge]: "Merge import this backup?",
+	[Key.adminBackupImportConfirmOverwrite]:
+		"Overwrite import this backup? Existing data may be replaced.",
+	[Key.adminBackupStatImported]: "Imported",
+	[Key.adminBackupStatSkipped]: "Skipped",
+	[Key.adminBackupStatErrors]: "Errors",
+	[Key.adminBackupHistory]: "Backup history",
+	[Key.adminBackupHistoryHint]: "View manual and automatic backups",
+	[Key.adminBackupHistoryRefresh]: "Refresh",
+	[Key.adminBackupHistoryLoading]: "Loading...",
+	[Key.adminBackupHistoryEmpty]: "No backup records",
+	[Key.adminBackupHistoryLoadFailed]: "Failed to load backup history",
+	[Key.adminBackupHistoryDownload]: "Download",
+	[Key.adminBackupHistoryDelete]: "Delete",
+	[Key.adminBackupHistoryDeleteConfirm]: "Delete this backup record and its file?",
+	[Key.adminBackupHistoryDeleteSuccess]: "Backup record deleted",
+	[Key.adminBackupHistoryDeleteFailed]: "Delete failed",
+	[Key.adminBackupHistoryType]: "Type",
+	[Key.adminBackupHistoryTypeFull]: "Full backup",
+	[Key.adminBackupHistoryTypePosts]: "Posts only",
+	[Key.adminBackupHistorySource]: "Source",
+	[Key.adminBackupHistorySourceAuto]: "Auto",
+	[Key.adminBackupHistorySourceManual]: "Manual",
+	[Key.adminBackupHistorySize]: "Size",
+	[Key.adminBackupHistoryTime]: "Time",
+	[Key.adminInitSettings]: "Initialize defaults",
+	[Key.adminConfirmDeleteSocialLink]: "Delete social link \"{name}\"?",
 };

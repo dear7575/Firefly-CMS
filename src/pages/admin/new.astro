@@ -20,14 +20,16 @@ const editorI18n = {
 ---
 
 <AdminLayout title={`${i18n(I18nKey.adminNewPost)} - ${siteConfig.title}`}>
-    <div class="h-[calc(100vh-64px)] overflow-hidden flex flex-col">
+    <div class="h-full flex flex-col overflow-hidden">
         <!-- Header -->
         <div
-                class="px-8 py-4 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between shadow-sm z-10"
+                class="sticky top-0 z-20 px-4 sm:px-6 lg:px-8 py-3 sm:py-4 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between shadow-sm"
+                data-editor-header
         >
             <div class="flex items-center gap-4">
                 <a
-                        href="/admin"
+                        href="/admin/posts"
+                        data-admin-back="posts"
                         class="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors text-zinc-500"
                 >
                     <svg
@@ -44,14 +46,21 @@ const editorI18n = {
                                 d="M15 19l-7-7 7-7"></path>
                     </svg>
                 </a>
-                <h1 class="text-xl font-bold text-zinc-900 dark:text-zinc-100">
+                <h1 class="text-lg sm:text-xl font-bold text-zinc-900 dark:text-zinc-100">
                     {i18n(I18nKey.adminNewPost)}
                 </h1>
             </div>
             <div class="flex items-center gap-3">
                 <button
+                        type="button"
+                        id="openEditorImagePicker"
+                        class="px-4 py-2 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-sm text-zinc-700 dark:text-zinc-300 font-medium transition-all"
+                >
+                    插入 图片
+                </button>
+                <button
                         id="saveBtn"
-                        class="bg-[var(--primary)] dark:bg-zinc-800 hover:opacity-90 dark:hover:bg-zinc-700 text-white dark:text-zinc-100 px-6 py-2 rounded-xl font-bold transition-all shadow-md hover:shadow-lg active:scale-95 dark:border dark:border-indigo-500/50 dark:shadow-[0_0_15px_rgba(99,102,241,0.3)]"
+                        class="bg-[var(--primary)] dark:bg-zinc-800 hover:opacity-90 dark:hover:bg-zinc-700 text-white dark:text-zinc-100 px-4 sm:px-6 py-2 rounded-xl font-bold transition-all shadow-md hover:shadow-lg active:scale-95 dark:border dark:border-indigo-500/50 dark:shadow-[0_0_15px_rgba(99,102,241,0.3)]"
                         data-publish-text={i18n(I18nKey.adminPostPublish)}
                         data-publishing-text={i18n(I18nKey.adminPostPublishing)}
                 >
@@ -60,23 +69,23 @@ const editorI18n = {
             </div>
         </div>
 
-        <div class="flex-1 flex overflow-hidden">
+        <div class="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0">
             <!-- Left Side: Editor -->
             <div
-                    class="flex-1 flex flex-col p-8 overflow-y-auto custom-scrollbar bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800"
+                    class="flex-1 min-h-0 flex flex-col p-4 sm:p-6 lg:p-8 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 lg:border-b-0 lg:border-r"
             >
                 <input
                         type="text"
                         id="title"
                         placeholder={i18n(I18nKey.adminPostTitlePlaceholder)}
-                        class="text-4xl font-bold bg-transparent border-none outline-none mb-6 placeholder:text-zinc-300 dark:placeholder:text-zinc-700 text-zinc-900 dark:text-zinc-100"
+                        class="text-2xl sm:text-3xl lg:text-4xl font-bold bg-transparent border-none outline-none mb-6 placeholder:text-zinc-300 dark:placeholder:text-zinc-700 text-zinc-900 dark:text-zinc-100"
                 />
-                <div id="vditor" class="flex-1 border-none shadow-none"></div>
+                <div id="vditor" class="flex-1 min-h-0 border-none shadow-none"></div>
             </div>
 
             <!-- Right Side: Settings -->
             <div
-                    class="w-80 bg-zinc-50/50 dark:bg-zinc-950/50 p-6 overflow-y-auto custom-scrollbar backdrop-blur-sm"
+                    class="w-full lg:w-80 min-h-0 overflow-y-auto bg-zinc-50/50 dark:bg-zinc-950/50 p-4 sm:p-6 lg:p-6 custom-scrollbar backdrop-blur-sm border-t border-zinc-200 dark:border-zinc-800 lg:border-t-0"
             >
                 <div class="space-y-8">
                     <!-- Basic Info Section -->
@@ -112,22 +121,23 @@ const editorI18n = {
                                         class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight"
                                 >{i18n(I18nKey.adminPostCategoryLabel)}</label
                                 >
-                                <!-- 自定义分类选择器 -->
-                                <div class="category-selector" id="categorySelector">
-                                    <div class="category-selector-trigger" id="categorySelectorTrigger">
-                                        <span class="category-selector-value" id="categoryValue">{i18n(I18nKey.adminPostCategoryPlaceholder)}</span>
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-zinc-400 transition-transform" id="categoryArrow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <div class="custom-select" id="categorySelector">
+                                    <div class="custom-select-trigger" id="categorySelectorTrigger">
+                                        <span class="custom-select-value placeholder" id="categoryValue" data-placeholder={i18n(I18nKey.adminPostCategoryPlaceholder)}>
+                                            {i18n(I18nKey.adminPostCategoryPlaceholder)}
+                                        </span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="custom-select-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                                         </svg>
                                     </div>
-                                    <div class="category-selector-dropdown hidden" id="categoryDropdown">
-                                        <div class="category-search-wrapper">
+                                    <div class="custom-select-dropdown hidden" id="categoryDropdown">
+                                        <div class="custom-select-search">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                             </svg>
-                                            <input type="text" class="category-search-input" id="categorySearch" placeholder="搜索分类..." />
+                                            <input type="text" id="categorySearch" placeholder="搜索分类..." />
                                         </div>
-                                        <div class="category-options" id="categoryOptions">
+                                        <div class="custom-select-options" id="categoryOptions">
                                             <!-- 分类选项会通过 JS 动态填充 -->
                                         </div>
                                     </div>
@@ -168,12 +178,21 @@ const editorI18n = {
                                     class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight"
                             >{i18n(I18nKey.adminPostImage)}</label
                             >
-                            <input
-                                    id="image"
-                                    type="text"
-                                    placeholder={i18n(I18nKey.adminPostImagePlaceholder)}
-                                    class="admin-input"
-                            />
+                            <div class="flex items-center gap-2">
+                                <input
+                                        id="image"
+                                        type="text"
+                                        placeholder={i18n(I18nKey.adminPostImagePlaceholder)}
+                                        class="admin-input flex-1"
+                                />
+                                <button
+                                        type="button"
+                                        id="openCoverPicker"
+                                        class="h-[46px] px-3 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-sm text-zinc-700 dark:text-zinc-300 text-sm font-medium transition-all flex items-center justify-center"
+                                >
+                                    从媒体库
+                                </button>
+                            </div>
                             <div
                                     id="imagePreview"
                                     class="mt-2 w-full aspect-video rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 hidden"
@@ -208,32 +227,40 @@ const editorI18n = {
                                         class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight"
                                 >{i18n(I18nKey.adminPostPassword)}</label
                                 >
-                                <input
-                                        id="password"
-                                        type="password"
-                                        placeholder={i18n(I18nKey.adminPostPasswordPlaceholder)}
-                                        class="admin-input"
-                                />
-                            </div>
-                            <!-- 置顶开关 -->
-                            <div
-                                    class="flex items-center gap-3 cursor-pointer group"
-                                    id="pinnedToggle"
-                            >
-                                <div
-                                        class="w-10 h-6 bg-zinc-200 dark:bg-zinc-800 rounded-full relative transition-colors duration-300"
-                                        id="pinnedToggleTrack"
-                                >
-                                    <div
-                                            class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 shadow-sm"
-                                            id="pinnedToggleHandle"
+                                <div class="relative">
+                                    <input
+                                            id="password"
+                                            type="password"
+                                            placeholder={i18n(I18nKey.adminPostPasswordPlaceholder)}
+                                            class="admin-input pr-12"
+                                    />
+                                    <button
+                                            type="button"
+                                            id="password-toggle"
+                                            class="admin-password-toggle"
+                                            aria-label="显示密码"
+                                            title="显示密码"
                                     >
-                                    </div>
+                                        <svg data-eye="show" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12z"></path>
+                                            <circle cx="12" cy="12" r="3.5"></circle>
+                                        </svg>
+                                        <svg data-eye="hide" class="w-5 h-5 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M3 3l18 18"></path>
+                                            <path d="M10.5 5.2A9.9 9.9 0 0 1 12 5c6 0 9.5 7 9.5 7a18.2 18.2 0 0 1-4 4.8"></path>
+                                            <path d="M6.4 6.4A18.4 18.4 0 0 0 2.5 12s3.5 6.5 9.5 6.5c1.6 0 3-.4 4.2-1"></path>
+                                            <path d="M9.9 9.9a3.5 3.5 0 0 0 4.2 4.2"></path>
+                                        </svg>
+                                    </button>
                                 </div>
-                                <span
-                                        class="text-sm font-medium text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 transition-colors"
-                                >{i18n(I18nKey.pinned)}</span
-                                >
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight">是否置顶</label>
+                                <button type="button" class="pinned-toggle" id="pinnedToggle" aria-pressed="false">
+                                    <span class="pinned-toggle-track" id="pinnedToggleTrack">
+                                        <span class="pinned-toggle-handle" id="pinnedToggleHandle"></span>
+                                    </span>
+                                </button>
                             </div>
                             <!-- 置顶排序 -->
                             <div id="pinOrderContainer" class="hidden">
@@ -252,11 +279,37 @@ const editorI18n = {
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight">发布状态</label>
-                                <select id="statusSelect" class="admin-input">
-                                    <option value="published">{i18n(I18nKey.adminPostPublish)}</option>
-                                    <option value="draft" selected>保存草稿</option>
-                                    <option value="scheduled">定时发布</option>
-                                </select>
+                                <div class="custom-select" id="statusSelector">
+                                    <div class="custom-select-trigger" id="statusTrigger">
+                                        <span class="custom-select-value" id="statusValue">保存草稿</span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="custom-select-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </div>
+                                    <div class="custom-select-dropdown hidden" id="statusDropdown">
+                                        <div class="custom-select-options" id="statusOptions">
+                                            <div class="custom-select-option" data-value="published">
+                                                <span class="custom-select-option-name">{i18n(I18nKey.adminPostPublish)}</span>
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="custom-select-option-check" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            </div>
+                                            <div class="custom-select-option selected" data-value="draft">
+                                                <span class="custom-select-option-name">保存草稿</span>
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="custom-select-option-check" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            </div>
+                                            <div class="custom-select-option" data-value="scheduled">
+                                                <span class="custom-select-option-name">定时发布</span>
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="custom-select-option-check" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="statusSelect" value="draft" />
                                 <p class="text-xs text-zinc-400 mt-2">选择文章发布方式，定时发布需要设置具体时间。</p>
                             </div>
                             <div>
@@ -287,6 +340,38 @@ const editorI18n = {
             </div>
         </div>
     </div>
+
+    <!-- 媒体库选择器 -->
+    <div id="mediaPickerModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-5xl border border-zinc-200 dark:border-zinc-800 shadow-2xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-bold text-zinc-900 dark:text-zinc-100">选择图片</h3>
+                    <p class="text-xs text-zinc-500">从媒体库选择插入或作为封面</p>
+                </div>
+                <button id="mediaPickerClose" class="w-9 h-9 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-500 hover:bg-zinc-200 dark:hover:bg-zinc-700 flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="p-4 flex flex-col gap-3">
+                <div class="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+                    <div class="relative w-full sm:w-72">
+                        <input id="mediaPickerSearch" type="text" placeholder="搜索图片..." class="w-full px-4 h-10 pl-10 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-sm focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent outline-none transition-all" />
+                        <svg class="w-5 h-5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </div>
+                    <div class="text-xs text-zinc-500" id="mediaPickerCount">0</div>
+                </div>
+                <div id="mediaPickerGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 min-h-[240px]">
+                    <div class="col-span-full text-center text-sm text-zinc-500 py-10">加载中...</div>
+                </div>
+                <div class="flex items-center justify-between text-sm text-zinc-500">
+                    <button id="mediaPickerPrev" class="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">上一页</button>
+                    <span id="mediaPickerPage">1/1</span>
+                    <button id="mediaPickerNext" class="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">下一页</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </AdminLayout>
 
 <script is:inline define:vars={{ editorI18n }}>
@@ -303,6 +388,8 @@ document.addEventListener('astro:page-load', function() {
         return;
     }
 
+    syncEditorHeaderHeight();
+
     // 清理之前的实例
     if (window._newPageVditor) {
         try {
@@ -315,6 +402,18 @@ document.addEventListener('astro:page-load', function() {
     // 开始初始化
     initNewPage();
 });
+
+function syncEditorHeaderHeight() {
+    var header = document.querySelector('[data-editor-header]');
+    if (!header) return;
+    var height = header.offsetHeight || 0;
+    document.documentElement.style.setProperty('--admin-editor-header-height', height + 'px');
+}
+
+if (!window._adminEditorHeaderBound) {
+    window._adminEditorHeaderBound = true;
+    window.addEventListener('resize', syncEditorHeaderHeight);
+}
 
 function initNewPage() {
     // 防止重复初始化
@@ -337,9 +436,47 @@ function initNewPage() {
     let allCategories = []; // 存储所有分类数据
     let selectedCategory = ''; // 当前选中的分类
     const statusSelect = document.getElementById("statusSelect");
+    const statusSelector = document.getElementById("statusSelector");
+    const statusTrigger = document.getElementById("statusTrigger");
+    const statusDropdown = document.getElementById("statusDropdown");
+    const statusValue = document.getElementById("statusValue");
+    const statusOptions = document.getElementById("statusOptions");
     const scheduledAtInput = document.getElementById("scheduledAt");
     const scheduledWrapper = document.getElementById("scheduledWrapper");
     const publishedAtInput = document.getElementById("publishedAt");
+    const passwordInput = document.getElementById("password");
+    const passwordToggle = document.getElementById("password-toggle");
+    const backButton = document.querySelector('[data-admin-back="posts"]');
+
+    function initPasswordToggle() {
+        if (!passwordInput || !passwordToggle) {
+            return;
+        }
+        if (passwordToggle.dataset.bound === "true") {
+            return;
+        }
+        passwordToggle.dataset.bound = "true";
+
+        const showIcon = passwordToggle.querySelector('[data-eye="show"]');
+        const hideIcon = passwordToggle.querySelector('[data-eye="hide"]');
+
+        function updatePasswordVisibility(isVisible) {
+            passwordInput.type = isVisible ? "text" : "password";
+            passwordToggle.setAttribute("aria-label", isVisible ? "隐藏密码" : "显示密码");
+            passwordToggle.setAttribute("title", isVisible ? "隐藏密码" : "显示密码");
+            if (showIcon) showIcon.classList.toggle("hidden", isVisible);
+            if (hideIcon) hideIcon.classList.toggle("hidden", !isVisible);
+        }
+
+        let isVisible = false;
+        updatePasswordVisibility(isVisible);
+
+        passwordToggle.addEventListener("click", function () {
+            isVisible = !isVisible;
+            updatePasswordVisibility(isVisible);
+            passwordInput.focus();
+        });
+    }
 
     function convertLocalToISO(value) {
         if (!value) return null;
@@ -361,9 +498,279 @@ function initNewPage() {
         }
     }
 
+    function syncStatusUI(value) {
+        updateStatusUI(value);
+        if (statusOptions) {
+            statusOptions.querySelectorAll(".custom-select-option").forEach(function(option) {
+                const isSelected = option.dataset.value === value;
+                option.classList.toggle("selected", isSelected);
+                if (isSelected && statusValue) {
+                    const labelEl = option.querySelector(".custom-select-option-name");
+                    statusValue.textContent = labelEl ? labelEl.textContent : value;
+                }
+            });
+        } else if (statusValue) {
+            statusValue.textContent = value;
+        }
+    }
+
+    function setStatusValue(value) {
+        if (!statusSelect) return;
+        const nextValue = value || "draft";
+        statusSelect.value = nextValue;
+        syncStatusUI(nextValue);
+    }
+
+    function openStatusDropdown() {
+        if (statusSelector) statusSelector.classList.add("open");
+        if (statusDropdown) statusDropdown.classList.remove("hidden");
+    }
+
+    function closeStatusDropdown() {
+        if (statusSelector) statusSelector.classList.remove("open");
+        if (statusDropdown) statusDropdown.classList.add("hidden");
+    }
+
+    function initStatusSelector() {
+        if (!statusSelector || !statusTrigger || !statusDropdown || !statusOptions) {
+            return;
+        }
+        if (statusSelector.dataset.bound === "true") {
+            return;
+        }
+        statusSelector.dataset.bound = "true";
+
+        statusTrigger.addEventListener("click", function(e) {
+            e.stopPropagation();
+            if (statusSelector.classList.contains("open")) {
+                closeStatusDropdown();
+            } else {
+                openStatusDropdown();
+            }
+        });
+
+        statusOptions.querySelectorAll(".custom-select-option").forEach(function(option) {
+            option.addEventListener("click", function() {
+                setStatusValue(option.dataset.value);
+                closeStatusDropdown();
+            });
+        });
+
+        document.addEventListener("click", function(e) {
+            if (!statusSelector.contains(e.target)) {
+                closeStatusDropdown();
+            }
+        });
+
+        setStatusValue(statusSelect ? statusSelect.value : postStatus);
+    }
+
+    function bindBackButton() {
+        if (!backButton || backButton.dataset.bound === "true") {
+            return;
+        }
+        backButton.dataset.bound = "true";
+        backButton.addEventListener("click", function (event) {
+            event.preventDefault();
+            if (window.__adminTabManager && typeof window.__adminTabManager.closeCurrentAndNavigate === "function") {
+                window.__adminTabManager.closeCurrentAndNavigate("/admin/posts");
+                return;
+            }
+            if (window.__adminTabManager && typeof window.__adminTabManager.close === "function") {
+                window.__adminTabManager.close(window.location.pathname);
+            }
+            if (window.__adminTabManager && typeof window.__adminTabManager.navigate === "function") {
+                window.__adminTabManager.navigate("/admin/posts");
+            } else {
+                window.location.href = "/admin/posts";
+            }
+        });
+    }
+
     statusSelect?.addEventListener("change", function (event) {
-        updateStatusUI(event.target.value);
+        syncStatusUI(event.target.value);
     });
+    bindBackButton();
+    initStatusSelector();
+    setupMediaPicker();
+
+    function setupMediaPicker() {
+        var modal = document.getElementById("mediaPickerModal");
+        if (!modal || modal.dataset.bound === "true") {
+            return;
+        }
+        modal.dataset.bound = "true";
+
+        var openCoverBtn = document.getElementById("openCoverPicker");
+        var openEditorBtn = document.getElementById("openEditorImagePicker");
+        var closeBtn = document.getElementById("mediaPickerClose");
+        var searchInput = document.getElementById("mediaPickerSearch");
+        var grid = document.getElementById("mediaPickerGrid");
+        var countEl = document.getElementById("mediaPickerCount");
+        var prevBtn = document.getElementById("mediaPickerPrev");
+        var nextBtn = document.getElementById("mediaPickerNext");
+        var pageEl = document.getElementById("mediaPickerPage");
+
+        var pickerMode = "cover";
+        var currentPage = 1;
+        var totalPages = 1;
+        var keyword = "";
+        var searchTimer = null;
+
+        function getEditorInstance() {
+            return window._newPageVditor || vditor;
+        }
+
+        function sanitizeAlt(text) {
+            return (text || "image").replace(/\]/g, "\\]");
+        }
+
+        function isImageItem(item) {
+            if (item.mime_type && item.mime_type.indexOf("image/") === 0) {
+                return true;
+            }
+            var name = item.filename || "";
+            var ext = name.toLowerCase().split(".").pop();
+            return ["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(ext);
+        }
+
+        function setCoverImage(url) {
+            var imageInput = document.getElementById("image");
+            if (!imageInput) return;
+            imageInput.value = url;
+            imageInput.dispatchEvent(new Event("input"));
+        }
+
+        function insertImageToEditor(url, name) {
+            var editor = getEditorInstance();
+            if (!editor || typeof editor.insertValue !== "function") {
+                window.showAdminAlert("编辑器尚未就绪，请稍后重试", "warning");
+                return;
+            }
+            var alt = sanitizeAlt(name || "image");
+            editor.insertValue("![" + alt + "](" + url + ")");
+        }
+
+        function openPicker(mode) {
+            pickerMode = mode;
+            currentPage = 1;
+            keyword = "";
+            if (searchInput) searchInput.value = "";
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+            loadMedia();
+        }
+
+        function closePicker() {
+            modal.classList.add("hidden");
+            modal.classList.remove("flex");
+        }
+
+        async function loadMedia() {
+            if (!grid) return;
+            grid.innerHTML = '<div class="col-span-full text-center text-sm text-zinc-500 py-10">加载中...</div>';
+
+            try {
+                var query = "page=" + currentPage + "&page_size=40";
+                if (keyword) {
+                    query += "&keyword=" + encodeURIComponent(keyword);
+                }
+                var result = await window.adminRequest(API_URL + "/upload/media?" + query, {
+                    headers: {
+                        "Authorization": "Bearer " + localStorage.getItem("adminToken")
+                    }
+                });
+
+                if (!result.ok) {
+                    throw new Error(result.msg || "加载失败");
+                }
+
+                var data = result.data || {};
+                var items = (data.items || []).filter(isImageItem);
+                var total = data.pagination ? data.pagination.total : items.length;
+                totalPages = data.pagination ? data.pagination.total_pages : 1;
+
+                if (countEl) {
+                    countEl.textContent = "共 " + total + " 张图片";
+                }
+                if (pageEl) {
+                    pageEl.textContent = currentPage + "/" + (totalPages || 1);
+                }
+                if (prevBtn) prevBtn.disabled = currentPage <= 1;
+                if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
+
+                if (items.length === 0) {
+                    grid.innerHTML = '<div class="col-span-full text-center text-sm text-zinc-500 py-10">暂无图片</div>';
+                    return;
+                }
+
+                grid.innerHTML = items.map(function(item) {
+                    var name = item.original_name || item.filename || "image";
+                    return '' +
+                        '<button type="button" class="group text-left rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 hover:border-[var(--primary)]/50 transition-all" data-url="' + item.url + '" data-name="' + name + '">' +
+                            '<div class="aspect-square bg-zinc-100 dark:bg-zinc-800 overflow-hidden">' +
+                                '<img src="' + item.url + '" alt="' + name + '" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform" />' +
+                            '</div>' +
+                            '<div class="px-2 py-1.5 text-xs text-zinc-600 dark:text-zinc-300 truncate">' + name + '</div>' +
+                        '</button>';
+                }).join("");
+
+                grid.querySelectorAll("button[data-url]").forEach(function(btn) {
+                    btn.addEventListener("click", function() {
+                        var url = this.dataset.url;
+                        var name = this.dataset.name || "image";
+                        if (pickerMode === "cover") {
+                            setCoverImage(url);
+                        } else {
+                            insertImageToEditor(url, name);
+                        }
+                        closePicker();
+                    });
+                });
+            } catch (err) {
+                console.error("加载媒体失败:", err);
+                grid.innerHTML = '<div class="col-span-full text-center text-sm text-red-500 py-10">加载失败</div>';
+            }
+        }
+
+        openCoverBtn?.addEventListener("click", function() {
+            openPicker("cover");
+        });
+
+        openEditorBtn?.addEventListener("click", function() {
+            openPicker("editor");
+        });
+
+        closeBtn?.addEventListener("click", closePicker);
+        modal?.addEventListener("click", function(e) {
+            if (e.target === modal) {
+                closePicker();
+            }
+        });
+
+        searchInput?.addEventListener("input", function() {
+            keyword = this.value.trim();
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(function() {
+                currentPage = 1;
+                loadMedia();
+            }, 300);
+        });
+
+        prevBtn?.addEventListener("click", function() {
+            if (currentPage > 1) {
+                currentPage -= 1;
+                loadMedia();
+            }
+        });
+
+        nextBtn?.addEventListener("click", function() {
+            if (currentPage < totalPages) {
+                currentPage += 1;
+                loadMedia();
+            }
+        });
+    }
 
     // 加载分类列表
     async function loadCategories() {
@@ -376,10 +783,15 @@ function initNewPage() {
                 allCategories = (result.data || []).filter(c => c.enabled);
                 renderCategoryOptions();
                 initCategorySelector();
+                const hasSelected = selectedCategory && allCategories.some(function(cat) { return cat.name === selectedCategory; });
+                if (!hasSelected && allCategories.length) {
+                    selectedCategory = allCategories[0].name || '';
+                }
+                selectCategory(selectedCategory);
             }
         } catch (err) {
             console.error('加载分类失败:', err);
-            categoryOptions.innerHTML = '<div class="category-empty">加载分类失败</div>';
+            categoryOptions.innerHTML = '<div class="custom-select-empty">加载分类失败</div>';
         }
     }
 
@@ -393,24 +805,21 @@ function initNewPage() {
             : allCategories;
 
         if (filtered.length === 0) {
-            categoryOptions.innerHTML = '<div class="category-empty">' + (filter ? '未找到匹配的分类' : '暂无可用分类') + '</div>';
+            categoryOptions.innerHTML = '<div class="custom-select-empty">' + (filter ? '未找到匹配的分类' : '暂无可用分类') + '</div>';
             return;
         }
 
         categoryOptions.innerHTML = filtered.map(function(cat) {
             const isSelected = selectedCategory === cat.name;
-            const color = cat.color || '#6366f1';
-            return '<div class="category-option' + (isSelected ? ' selected' : '') + '" data-value="' + cat.name + '">' +
-                '<div class="category-option-color" style="background-color: ' + color + '"></div>' +
-                '<span class="category-option-name">' + cat.name + '</span>' +
-                '<svg class="category-option-check" fill="none" viewBox="0 0 24 24" stroke="currentColor">' +
+            return '<div class="custom-select-option' + (isSelected ? ' selected' : '') + '" data-value="' + cat.name + '">' +
+                '<span class="custom-select-option-name">' + cat.name + '</span>' +
+                '<svg xmlns="http://www.w3.org/2000/svg" class="custom-select-option-check" fill="none" viewBox="0 0 24 24" stroke="currentColor">' +
                     '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />' +
                 '</svg>' +
             '</div>';
         }).join('');
 
-        // 绑定点击事件
-        categoryOptions.querySelectorAll('.category-option').forEach(function(option) {
+        categoryOptions.querySelectorAll('.custom-select-option').forEach(function(option) {
             option.addEventListener('click', function() {
                 selectCategory(option.dataset.value);
             });
@@ -419,14 +828,17 @@ function initNewPage() {
 
     // 选择分类
     function selectCategory(value) {
-        selectedCategory = value;
+        const normalized = value || '';
+        const exists = normalized && allCategories.some(function(cat) { return cat.name === normalized; });
+        selectedCategory = exists ? normalized : '';
         const categoryInput = document.getElementById('category');
         const categoryValue = document.getElementById('categoryValue');
+        const placeholder = categoryValue ? categoryValue.dataset.placeholder : '';
 
-        if (categoryInput) categoryInput.value = value;
+        if (categoryInput) categoryInput.value = selectedCategory;
         if (categoryValue) {
-            categoryValue.textContent = value || '默认分类';
-            categoryValue.classList.toggle('placeholder', !value);
+            categoryValue.textContent = selectedCategory || placeholder;
+            categoryValue.classList.toggle('placeholder', !selectedCategory);
         }
 
         renderCategoryOptions();
@@ -441,8 +853,9 @@ function initNewPage() {
         const searchInput = document.getElementById('categorySearch');
 
         if (!selector || !trigger || !dropdown) return;
+        if (selector.dataset.bound === 'true') return;
+        selector.dataset.bound = 'true';
 
-        // 点击触发器切换下拉
         trigger.addEventListener('click', function(e) {
             e.stopPropagation();
             if (selector.classList.contains('open')) {
@@ -452,14 +865,12 @@ function initNewPage() {
             }
         });
 
-        // 搜索过滤
         if (searchInput) {
             searchInput.addEventListener('input', function() {
                 renderCategoryOptions(searchInput.value);
             });
         }
 
-        // 点击外部关闭
         document.addEventListener('click', function(e) {
             if (!selector.contains(e.target)) {
                 closeCategoryDropdown();
@@ -679,16 +1090,17 @@ function initNewPage() {
         const track = document.getElementById("pinnedToggleTrack");
         const handle = document.getElementById("pinnedToggleHandle");
         const pinOrderContainer = document.getElementById("pinOrderContainer");
+        const toggleBtn = document.getElementById("pinnedToggle");
         if (isPinned) {
-            track?.classList.add("bg-indigo-500");
-            track?.classList.remove("bg-zinc-200", "dark:bg-zinc-800");
+            track?.classList.add("is-active");
             handle?.classList.add("translate-x-4");
             pinOrderContainer?.classList.remove("hidden");
+            toggleBtn?.setAttribute("aria-pressed", "true");
         } else {
-            track?.classList.remove("bg-indigo-500");
-            track?.classList.add("bg-zinc-200", "dark:bg-zinc-800");
+            track?.classList.remove("is-active");
             handle?.classList.remove("translate-x-4");
             pinOrderContainer?.classList.add("hidden");
+            toggleBtn?.setAttribute("aria-pressed", "false");
         }
     });
 
@@ -816,6 +1228,7 @@ function initNewPage() {
     initVditor();
     loadCategories();
     loadTags();
+    initPasswordToggle();
 }
 </script>
 
@@ -832,13 +1245,17 @@ function initNewPage() {
     }
 
     .admin-input:focus {
-        @apply border-indigo-400 dark:border-indigo-500/70 ring-4 ring-indigo-500/10 dark:ring-indigo-500/20;
-        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1), 0 2px 8px rgba(99, 102, 241, 0.15);
+        border-color: var(--primary);
+        box-shadow:
+            0 0 0 4px color-mix(in oklch, var(--primary) 18%, transparent),
+            0 2px 8px color-mix(in oklch, var(--primary) 30%, transparent);
     }
 
     /* 暗色模式下的炫光效果 */
     .dark .admin-input:focus {
-        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15), 0 0 20px rgba(99, 102, 241, 0.2);
+        box-shadow:
+            0 0 0 4px color-mix(in oklch, var(--primary) 22%, transparent),
+            0 0 20px color-mix(in oklch, var(--primary) 30%, transparent);
     }
 
     /* 输入框有内容时的样式 */
@@ -904,12 +1321,16 @@ function initNewPage() {
     }
 
     .category-selector.open .category-selector-trigger {
-        @apply border-indigo-400 dark:border-indigo-500/70 ring-4 ring-indigo-500/10 dark:ring-indigo-500/20;
-        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1), 0 2px 8px rgba(99, 102, 241, 0.15);
+        border-color: var(--primary);
+        box-shadow:
+            0 0 0 4px color-mix(in oklch, var(--primary) 18%, transparent),
+            0 2px 8px color-mix(in oklch, var(--primary) 30%, transparent);
     }
 
     .dark .category-selector.open .category-selector-trigger {
-        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15), 0 0 20px rgba(99, 102, 241, 0.2);
+        box-shadow:
+            0 0 0 4px color-mix(in oklch, var(--primary) 22%, transparent),
+            0 0 20px color-mix(in oklch, var(--primary) 30%, transparent);
     }
 
     .category-selector.open #categoryArrow {
@@ -1004,12 +1425,16 @@ function initNewPage() {
     }
 
     .tags-selector:focus-within {
-        @apply border-indigo-400 dark:border-indigo-500/70 ring-4 ring-indigo-500/10 dark:ring-indigo-500/20;
-        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1), 0 2px 8px rgba(99, 102, 241, 0.15);
+        border-color: var(--primary);
+        box-shadow:
+            0 0 0 4px color-mix(in oklch, var(--primary) 18%, transparent),
+            0 2px 8px color-mix(in oklch, var(--primary) 30%, transparent);
     }
 
     .dark .tags-selector:focus-within {
-        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15), 0 0 20px rgba(99, 102, 241, 0.2);
+        box-shadow:
+            0 0 0 4px color-mix(in oklch, var(--primary) 22%, transparent),
+            0 0 20px color-mix(in oklch, var(--primary) 30%, transparent);
     }
 
     /* 标签按钮样式 */
@@ -1026,6 +1451,22 @@ function initNewPage() {
     .tag-btn:active {
         transform: translateY(0);
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    .pinned-toggle {
+        @apply inline-flex items-center;
+    }
+
+    .pinned-toggle-track {
+        @apply w-10 h-6 rounded-full relative transition-colors duration-300 bg-zinc-200 dark:bg-zinc-800;
+    }
+
+    .pinned-toggle-track.is-active {
+        background-color: var(--primary);
+    }
+
+    .pinned-toggle-handle {
+        @apply absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 shadow-sm;
     }
 
     .custom-scrollbar::-webkit-scrollbar {
@@ -1096,6 +1537,9 @@ function initNewPage() {
 
     /* 工具栏样式 */
     #vditor .vditor-toolbar {
+        position: sticky !important;
+        top: 0;
+        z-index: 12;
         background-color: #fafafa !important;
         border-bottom: 1px solid #e4e4e7 !important;
     }

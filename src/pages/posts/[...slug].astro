@@ -27,10 +27,18 @@ import { processCoverImageSync } from "@/utils/image-utils";
 import { url } from "@/utils/url-utils";
 import { fetchSiteSettings } from "@/services/siteSettings";
 import { marked, Renderer } from "marked";
-import hljs from "highlight.js";
 import { getApiUrl } from "@/utils/api-utils";
 
 const API_URL = getApiUrl();
+
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
 
 export const prerender = false;
 
@@ -89,9 +97,11 @@ renderer.heading = function ({ tokens, depth }) {
 
 // 自定义代码块渲染 - 添加语法高亮
 renderer.code = function({ text, lang }) {
-  const language = lang && hljs.getLanguage(lang) ? lang : 'plaintext';
-  const highlighted = hljs.highlight(text, { language }).value;
-  const langLabel = lang || 'text';
+  const normalizedLang = lang ? lang.toLowerCase() : "";
+  const safeLanguage = normalizedLang.replace(/[^a-z0-9-]/g, "");
+  const language = safeLanguage || "plaintext";
+  const highlighted = escapeHtml(text);
+  const langLabel = escapeHtml(lang || "text");
 
   // 复制图标 SVG - 与静态页面结���一致
   const copyIcon = `<svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg" class="copy-btn-icon copy-icon"><path d="M368.37-237.37q-34.48 0-58.74-24.26-24.26-24.26-24.26-58.74v-474.26q0-34.48 24.26-58.74 24.26-24.26 58.74-24.26h378.26q34.48 0 58.74 24.26 24.26 24.26 24.26 58.74v474.26q0 34.48-24.26 58.74-24.26 24.26-58.74 24.26H368.37Zm0-83h378.26v-474.26H368.37v474.26Zm-155 238q-34.48 0-58.74-24.26-24.26-24.26-24.26-58.74v-515.76q0-17.45 11.96-29.48 11.97-12.02 29.33-12.02t29.54 12.02q12.17 12.03 12.17 29.48v515.76h419.76q17.45 0 29.48 11.96 12.02 11.97 12.02 29.33t-12.02 29.54q-12.03 12.17-29.48 12.17H213.37Zm155-238v-474.26 474.26Z"/></svg>`;
@@ -248,6 +258,10 @@ const jsonLd = {
         <div
           id="password-overlay"
           data-post-id={postId}
+          data-msg-required={i18n(I18nKey.postPasswordRequired)}
+          data-msg-invalid={i18n(I18nKey.postPasswordInvalid)}
+          data-msg-verify-failed={i18n(I18nKey.postPasswordVerifyFailed)}
+          data-msg-error={i18n(I18nKey.postPasswordError)}
           class="absolute inset-0 z-50 bg-white/95 dark:bg-black/95 backdrop-blur-md flex items-center justify-center"
         >
           <div class="card-base p-8 max-w-md w-full mx-4">
@@ -266,30 +280,49 @@ const jsonLd = {
                 </svg>
               </div>
               <h2 class="text-2xl font-bold text-black/90 dark:text-white/90 mb-2">
-                受保护的帖子
+                {i18n(I18nKey.postPasswordTitle)}
               </h2>
               <p class="text-sm text-black/60 dark:text-white/60">
-                请输入密码才能查看此内容
+                {i18n(I18nKey.postPasswordDescription)}
               </p>
             </div>
-            <form id="password-form" class="space-y-4">
-              <div>
+            <div id="password-form" class="space-y-4">
+              <div class="relative">
                 <input
                   type="password"
                   id="post-password"
-                  placeholder="Password"
-                  class="w-full px-4 py-3 rounded-lg border border-black/10 dark:border-white/10 bg-white dark:bg-black/50 text-black/90 dark:text-white/90 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all"
+                  placeholder={i18n(I18nKey.postPasswordPlaceholder)}
+                  class="w-full px-4 py-3 pr-12 rounded-lg border border-black/10 dark:border-white/10 bg-white dark:bg-black/50 text-black/90 dark:text-white/90 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all"
                   autocomplete="off"
                 />
+                <button
+                  type="button"
+                  id="post-password-toggle"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-black/40 dark:text-white/50 hover:text-[var(--primary)] transition-colors"
+                  aria-label="显示密码"
+                  title="显示密码"
+                >
+                  <svg data-eye="show" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12z"></path>
+                    <circle cx="12" cy="12" r="3.5"></circle>
+                  </svg>
+                  <svg data-eye="hide" class="w-5 h-5 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 3l18 18"></path>
+                    <path d="M10.5 5.2A9.9 9.9 0 0 1 12 5c6 0 9.5 7 9.5 7a18.2 18.2 0 0 1-4 4.8"></path>
+                    <path d="M6.4 6.4A18.4 18.4 0 0 0 2.5 12s3.5 6.5 9.5 6.5c1.6 0 3-.4 4.2-1"></path>
+                    <path d="M9.9 9.9a3.5 3.5 0 0 0 4.2 4.2"></path>
+                  </svg>
+                </button>
               </div>
               <div id="password-error" class="text-sm text-red-500 hidden" />
               <button
-                type="submit"
+                type="button"
+                id="password-submit"
                 class="w-full px-6 py-3 bg-[var(--primary)] text-white dark:text-black/70 rounded-lg font-medium hover:opacity-90 active:scale-95 transition-all"
               >
-                解锁
+                {i18n(I18nKey.postPasswordUnlock)}
               </button>
-            </form>
+            </div>
           </div>
         </div>
       )
@@ -392,69 +425,71 @@ const jsonLd = {
       </Markdown>
 
       {/* 赞助按钮 & 分享按钮 */}
-      <div class="mb-6 rounded-xl onload-animation">
-        <div class="p-6 bg-[var(--license-block-bg)] rounded-xl">
-          <div
-            class="flex flex-col sm:flex-row items-center justify-between gap-4"
-          >
-            <div class="flex items-center gap-3 flex-1">
-              <div
-                class="h-12 w-12 rounded-lg bg-[var(--primary)] flex items-center justify-center text-white dark:text-black/70 flex-shrink-0"
-              >
-                <Icon
-                  name={sponsorConfig.showButtonInPost &&
-                  siteConfig.pages.sponsor
-                    ? "material-symbols:favorite"
-                    : "material-symbols:share"}
-                  class="text-2xl"
-                />
-              </div>
-              <div>
-                <h3
-                  class="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-1"
-                >
+      {
+        (siteConfig.sharePoster || (sponsorConfig.showButtonInPost && siteConfig.pages.sponsor)) && (
+          <div class="mb-6 rounded-xl onload-animation">
+            <div class="p-6 bg-[var(--license-block-bg)] rounded-xl">
+              <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3 flex-1">
+                  <div class="h-12 w-12 rounded-lg bg-[var(--primary)] flex items-center justify-center text-white dark:text-black/70 flex-shrink-0">
+                    <Icon
+                      name={sponsorConfig.showButtonInPost &&
+                      siteConfig.pages.sponsor
+                        ? "material-symbols:favorite"
+                        : "material-symbols:share"}
+                      class="text-2xl"
+                    />
+                  </div>
+                  <div>
+                    <h3 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-1">
+                      {
+                        sponsorConfig.showButtonInPost && siteConfig.pages.sponsor
+                          ? i18n(I18nKey.sponsorButton)
+                          : i18n(I18nKey.shareOnSocial)
+                      }
+                    </h3>
+                    <p class="text-sm text-neutral-600 dark:text-neutral-400">
+                      {
+                        sponsorConfig.showButtonInPost && siteConfig.pages.sponsor
+                          ? i18n(I18nKey.sponsorButtonText)
+                          : i18n(I18nKey.shareOnSocialDescription)
+                      }
+                    </p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-3">
                   {
-                    sponsorConfig.showButtonInPost && siteConfig.pages.sponsor
-                      ? i18n(I18nKey.sponsorButton)
-                      : i18n(I18nKey.shareOnSocial)
+                    siteConfig.sharePoster && (
+                      <SharePoster
+                        client:load
+                        title={entry.data.title}
+                        author={authorName}
+                        description={entry.data.description || entry.data.title}
+                        pubDate={formatDateToYYYYMMDD(entry.data.published)}
+                        coverImage={posterCoverUrl}
+                        url={Astro.url.href}
+                        siteTitle={dynamicSiteTitle}
+                        avatar={authorAvatar}
+                      />
+                    )
                   }
-                </h3>
-                <p class="text-sm text-neutral-600 dark:text-neutral-400">
                   {
-                    sponsorConfig.showButtonInPost && siteConfig.pages.sponsor
-                      ? i18n(I18nKey.sponsorButtonText)
-                      : i18n(I18nKey.shareOnSocialDescription)
+                    sponsorConfig.showButtonInPost && siteConfig.pages.sponsor && (
+                      <a
+                        href={url("/sponsor/")}
+                        class="inline-flex items-center gap-2 px-6 py-3 bg-[var(--primary)] text-white dark:text-black/70 rounded-lg font-medium hover:bg-[var(--primary)]/80 hover:scale-105 active:scale-95 transition-all whitespace-nowrap"
+                      >
+                        <span>{i18n(I18nKey.sponsor)}</span>
+                        <Icon name="fa6-solid:arrow-right" class="text-sm" />
+                      </a>
+                    )
                   }
-                </p>
+                </div>
               </div>
-            </div>
-            <div class="flex items-center gap-3">
-              <SharePoster
-                client:load
-                title={entry.data.title}
-                author={authorName}
-                description={entry.data.description || entry.data.title}
-                pubDate={formatDateToYYYYMMDD(entry.data.published)}
-                coverImage={posterCoverUrl}
-                url={Astro.url.href}
-                siteTitle={dynamicSiteTitle}
-                avatar={authorAvatar}
-              />
-              {
-                sponsorConfig.showButtonInPost && siteConfig.pages.sponsor && (
-                  <a
-                    href={url("/sponsor/")}
-                    class="inline-flex items-center gap-2 px-6 py-3 bg-[var(--primary)] text-white dark:text-black/70 rounded-lg font-medium hover:bg-[var(--primary)]/80 hover:scale-105 active:scale-95 transition-all whitespace-nowrap"
-                  >
-                    <span>{i18n(I18nKey.sponsor)}</span>
-                    <Icon name="fa6-solid:arrow-right" class="text-sm" />
-                  </a>
-                )
-              }
             </div>
           </div>
-        </div>
-      </div>
+        )
+      }
 
       {
         licenseConfig.enable && (
@@ -569,174 +604,14 @@ const jsonLd = {
   </div>
 
   <!-- 评论 -->
-  <Comment post={entry} />
+  {((entry.data as any).comment ?? true) && <Comment post={entry} />}
 </MainGridLayout>
-
-<script>
-  const overlay = document.getElementById("password-overlay");
-  const form = document.getElementById("password-form");
-  const postContainer = document.getElementById("post-container");
-  const errorDiv = document.getElementById("password-error");
-
-  if (overlay && form) {
-    const postId = overlay.dataset.postId;
-    const storageKey = `post-password-${postId}`;
-
-    // Check if password is already stored
-    const storedPassword = sessionStorage.getItem(storageKey);
-    if (storedPassword && postId) {
-      // Validate stored password
-      validatePassword(postId, storedPassword, true);
-    }
-
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const passwordInput = document.getElementById(
-        "post-password",
-      ) as HTMLInputElement;
-      const password = passwordInput.value;
-
-      if (!password) {
-        showError("Please enter a password");
-        return;
-      }
-
-      if (postId) {
-        await validatePassword(postId, password, false);
-      }
-    });
-
-    async function validatePassword(
-      postId: string,
-      password: string,
-      silent: boolean,
-    ) {
-      try {
-        const response = await fetch(
-          `${(window as any).API_URL}/posts/${postId}/verify-password`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ password }),
-          },
-        );
-
-        if (!response.ok) {
-          if (!silent) showError("Failed to verify password");
-          return;
-        }
-
-        const payload = await response.json();
-        const data = payload && payload.data !== undefined ? payload.data : payload;
-
-        if (data.valid) {
-          // Password correct - store and reveal content
-          sessionStorage.setItem(storageKey, password);
-          overlay?.classList.add("opacity-0", "pointer-events-none");
-          postContainer?.classList.remove("blur-sm", "pointer-events-none");
-          setTimeout(() => overlay?.remove(), 300);
-        } else {
-          if (!silent) {
-            showError("Incorrect password");
-            sessionStorage.removeItem(storageKey);
-          }
-        }
-      } catch (err) {
-        console.error("Password validation error:", err);
-        if (!silent) showError("An error occurred");
-      }
-    }
-
-    function showError(message: string) {
-      if (errorDiv) {
-        errorDiv.textContent = message;
-        errorDiv.classList.remove("hidden");
-        setTimeout(() => errorDiv.classList.add("hidden"), 3000);
-      }
-    }
-  }
-</script>
 
 <style>
   #password-overlay {
     transition: opacity 0.3s ease;
   }
 </style>
-
-<script>
-  // 动态代码块复制按钮事件
-  function initDynamicCodeCopy() {
-    document.querySelectorAll('.expressive-code-dynamic .copy-btn').forEach(btn => {
-      // 避免重复绑定
-      if (btn.dataset.copyBound) return;
-      btn.dataset.copyBound = 'true';
-
-      btn.addEventListener('click', async function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-
-        const figure = this.closest('.expressive-code-dynamic');
-        const codeEl = figure?.querySelector('code');
-
-        if (codeEl) {
-          const code = codeEl.textContent || '';
-
-          try {
-            // 优先使用 clipboard API
-            if (navigator.clipboard && window.isSecureContext) {
-              await navigator.clipboard.writeText(code);
-            } else {
-              // fallback: 使用 textarea
-              const textarea = document.createElement('textarea');
-              textarea.value = code;
-              textarea.style.position = 'fixed';
-              textarea.style.left = '-9999px';
-              document.body.appendChild(textarea);
-              textarea.select();
-              document.execCommand('copy');
-              document.body.removeChild(textarea);
-            }
-
-            // 切换图标 - 使用 success 类（与静态页面一致）
-            this.classList.add('success');
-
-            setTimeout(() => {
-              this.classList.remove('success');
-            }, 2000);
-          } catch (err) {
-            console.error('复制失败:', err);
-            // 最后的 fallback
-            const textarea = document.createElement('textarea');
-            textarea.value = code;
-            textarea.style.position = 'fixed';
-            textarea.style.left = '-9999px';
-            document.body.appendChild(textarea);
-            textarea.select();
-            try {
-              document.execCommand('copy');
-              this.classList.add('success');
-              setTimeout(() => {
-                this.classList.remove('success');
-              }, 2000);
-            } catch (e2) {
-              console.error('execCommand 复制也失败:', e2);
-            }
-            document.body.removeChild(textarea);
-          }
-        }
-      });
-    });
-  }
-
-  // 页面加载时初始化
-  document.addEventListener('astro:page-load', initDynamicCodeCopy);
-  // 首次加载也执行
-  if (document.readyState === 'complete') {
-    initDynamicCodeCopy();
-  } else {
-    document.addEventListener('DOMContentLoaded', initDynamicCodeCopy);
-  }
-</script>
 
 <script is:inline define:vars={{ analyticsPostId: postId, analyticsPostSlug: slug }}>
 document.addEventListener('astro:page-load', function() {

@@ -106,12 +106,35 @@ class Settings(BaseSettings):
     # 上传文件存储路径
     UPLOAD_DIR: str = "uploads"
 
+    # 备份文件存储路径
+    BACKUP_DIR: str = "backups"
+
+    # 自动备份开关
+    AUTO_BACKUP_ENABLED: bool = True
+
+    # 自动备份间隔（小时）
+    AUTO_BACKUP_INTERVAL_HOURS: int = 24
+
     # 最大上传文件大小（MB）
     MAX_UPLOAD_SIZE: int = 10
 
     # API 频率限制（每分钟请求数）
     # 开发环境建议设置较大值，生产环境可根据实际情况调整
     RATE_LIMIT_PER_MINUTE: int = 500
+
+    # 系统日志配置
+    # 日志等级
+    LOG_LEVEL: str = "INFO"
+    # 日志堆栈跟踪
+    LOG_STACKTRACE: bool = True
+    # 日志目录
+    LOG_DIR: str = "logs"
+    # 日志文件名称
+    LOG_FILE: str = "app.log"
+    # 日志最大小
+    LOG_MAX_BYTES: int = 10485760
+    # 日志备份天数
+    LOG_BACKUP_COUNT: int = 7
 
     # 从 .env 文件加载配置，并忽略不属于本模型的字段
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")

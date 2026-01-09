@@ -4,6 +4,7 @@ import ImageWrapper from "@/components/misc/ImageWrapper.astro";
 import { profileConfig } from "@/config/profileConfig";
 import { url } from "@/utils/url-utils";
 import { fetchSiteSettings } from "@/services/siteSettings";
+import { fetchSocialLinks } from "@/services/socialLinks";
 
 // 尝试从 API 获取动态配置
 let dynamicSettings: Record<string, any> = {};
@@ -17,8 +18,21 @@ try {
 const avatar = dynamicSettings.profile_avatar || profileConfig.avatar;
 const name = dynamicSettings.profile_name || profileConfig.name;
 const bio = dynamicSettings.profile_bio || profileConfig.bio;
-// 链接配置暂时只使用静态配置（后续可以扩展到数据库）
-const links = profileConfig.links;
+let remoteLinks = null;
+try {
+	remoteLinks = await fetchSocialLinks(true);
+} catch (error) {
+	console.warn("无法获取社交链接，使用静态配置");
+}
+
+const links = Array.isArray(remoteLinks)
+	? remoteLinks.map((link) => ({
+			name: link.name,
+			icon: link.icon,
+			url: link.url,
+			showName: link.show_name,
+		}))
+	: profileConfig.links;
 ---
 
 <div class="card-base p-3">

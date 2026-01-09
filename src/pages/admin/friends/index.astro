@@ -14,9 +14,9 @@ const API_URL = getApiUrl();
 >
     <div class="p-6 lg:p-8">
         <div
-            class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6"
+            class="flex items-center justify-between gap-3 mb-6"
         >
-            <div>
+            <div class="min-w-0">
                 <h1 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
                     {i18n(I18nKey.adminFriendManagement)}
                 </h1>
@@ -26,7 +26,7 @@ const API_URL = getApiUrl();
             </div>
             <button
                 id="addFriendBtn"
-                class="bg-[var(--primary)] dark:bg-zinc-800 hover:opacity-90 dark:hover:bg-zinc-700 text-white dark:text-zinc-100 px-6 py-2.5 rounded-xl font-medium transition-all shadow-lg hover:shadow-xl active:scale-95 flex items-center gap-2 dark:border dark:border-indigo-500/50 dark:shadow-[0_0_15px_rgba(99,102,241,0.3)]"
+                class="bg-[var(--primary)] dark:bg-zinc-800 hover:opacity-90 dark:hover:bg-zinc-700 text-white dark:text-zinc-100 px-6 py-2.5 rounded-xl font-medium transition-all shadow-lg hover:shadow-xl active:scale-95 flex items-center gap-2 dark:border dark:border-indigo-500/50 dark:shadow-[0_0_15px_rgba(99,102,241,0.3)] flex-shrink-0"
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -110,12 +110,24 @@ const API_URL = getApiUrl();
                         class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2"
                         >{i18n(I18nKey.adminPostImage)}</label
                     >
-                    <input
-                        type="url"
-                        id="friendAvatar"
-                        class="modal-input"
-                        placeholder="https://"
-                    />
+                    <div class="flex items-center gap-2">
+                        <input
+                            type="url"
+                            id="friendAvatar"
+                            class="modal-input flex-1"
+                            placeholder="https://"
+                        />
+                        <button
+                            type="button"
+                            id="openFriendAvatarPicker"
+                            class="h-[46px] px-3 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-sm text-zinc-700 dark:text-zinc-300 text-sm font-medium transition-all flex items-center justify-center"
+                        >
+                            从媒体库
+                        </button>
+                    </div>
+                    <div id="friendAvatarPreview" class="hidden mt-3 w-full rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800">
+                        <img id="friendAvatarPreviewImg" src="" alt="头像预览" class="w-full max-h-40 object-cover" />
+                    </div>
                 </div>
                 <div>
                     <label
@@ -171,6 +183,38 @@ const API_URL = getApiUrl();
             </div>
         </div>
     </div>
+
+    <!-- 媒体库选择器 -->
+    <div id="mediaPickerModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-5xl border border-zinc-200 dark:border-zinc-800 shadow-2xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-bold text-zinc-900 dark:text-zinc-100">选择图片</h3>
+                    <p class="text-xs text-zinc-500">从媒体库选择头像图片</p>
+                </div>
+                <button id="mediaPickerClose" class="w-9 h-9 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-500 hover:bg-zinc-200 dark:hover:bg-zinc-700 flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="p-4 flex flex-col gap-3">
+                <div class="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+                    <div class="relative w-full sm:w-72">
+                        <input id="mediaPickerSearch" type="text" placeholder="搜索图片..." class="w-full px-4 h-10 pl-10 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-sm focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent outline-none transition-all" />
+                        <svg class="w-5 h-5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </div>
+                    <div class="text-xs text-zinc-500" id="mediaPickerCount">0</div>
+                </div>
+                <div id="mediaPickerGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 min-h-[240px]">
+                    <div class="col-span-full text-center text-sm text-zinc-500 py-10">加载中...</div>
+                </div>
+                <div class="flex items-center justify-between text-sm text-zinc-500">
+                    <button id="mediaPickerPrev" class="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">上一页</button>
+                    <span id="mediaPickerPage">1/1</span>
+                    <button id="mediaPickerNext" class="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">下一页</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </AdminLayout>
 
 <script is:inline>
@@ -179,6 +223,9 @@ const API_URL = getApiUrl();
         var API_URL = window.API_URL;
 
         var t = window.adminI18n || {};
+        var avatarPickerReady = false;
+
+        setupMediaPicker();
 
         async function loadFriends() {
             var grid = document.getElementById("friendsGrid");
@@ -309,6 +356,7 @@ const API_URL = getApiUrl();
                 friendModal.classList.remove("hidden");
                 friendModal.classList.add("flex");
             }
+            updateAvatarPreview();
         }
 
         function hideModal() {
@@ -321,6 +369,172 @@ const API_URL = getApiUrl();
             }
             if (friendForm) friendForm.reset();
             if (friendId) friendId.value = "";
+            updateAvatarPreview();
+        }
+
+        function updateAvatarPreview() {
+            var previewWrap = document.getElementById("friendAvatarPreview");
+            var previewImg = document.getElementById("friendAvatarPreviewImg");
+            var avatarInput = document.getElementById("friendAvatar");
+            if (!previewWrap || !previewImg || !avatarInput) return;
+
+            var value = avatarInput.value || "";
+            if (!value) {
+                previewWrap.classList.add("hidden");
+                previewImg.src = "";
+                return;
+            }
+            previewWrap.classList.remove("hidden");
+            previewImg.onerror = function () {
+                previewWrap.classList.add("hidden");
+            };
+            previewImg.src = value;
+        }
+
+        function setupMediaPicker() {
+            var modal = document.getElementById("mediaPickerModal");
+            if (!modal || avatarPickerReady) return;
+            avatarPickerReady = true;
+
+            var openBtn = document.getElementById("openFriendAvatarPicker");
+            var closeBtn = document.getElementById("mediaPickerClose");
+            var searchInput = document.getElementById("mediaPickerSearch");
+            var grid = document.getElementById("mediaPickerGrid");
+            var countEl = document.getElementById("mediaPickerCount");
+            var prevBtn = document.getElementById("mediaPickerPrev");
+            var nextBtn = document.getElementById("mediaPickerNext");
+            var pageEl = document.getElementById("mediaPickerPage");
+
+            var currentPage = 1;
+            var totalPages = 1;
+            var keyword = "";
+            var searchTimer = null;
+
+            function isImageItem(item) {
+                if (item.mime_type && item.mime_type.indexOf("image/") === 0) {
+                    return true;
+                }
+                var name = item.filename || "";
+                var ext = name.toLowerCase().split(".").pop();
+                return ["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(ext);
+            }
+
+            function openPicker() {
+                currentPage = 1;
+                keyword = "";
+                if (searchInput) searchInput.value = "";
+                modal.classList.remove("hidden");
+                modal.classList.add("flex");
+                loadMedia();
+            }
+
+            function closePicker() {
+                modal.classList.add("hidden");
+                modal.classList.remove("flex");
+            }
+
+            async function loadMedia() {
+                if (!grid) return;
+                grid.innerHTML = '<div class="col-span-full text-center text-sm text-zinc-500 py-10">加载中...</div>';
+
+                try {
+                    var query = "page=" + currentPage + "&page_size=40";
+                    if (keyword) {
+                        query += "&keyword=" + encodeURIComponent(keyword);
+                    }
+                    var result = await window.adminRequest(API_URL + "/upload/media?" + query, {
+                        headers: {
+                            "Authorization": "Bearer " + localStorage.getItem("adminToken")
+                        }
+                    });
+
+                    if (!result.ok) {
+                        throw new Error(result.msg || "加载失败");
+                    }
+
+                    var data = result.data || {};
+                    var items = (data.items || []).filter(isImageItem);
+                    var total = data.pagination ? data.pagination.total : items.length;
+                    totalPages = data.pagination ? data.pagination.total_pages : 1;
+
+                    if (countEl) {
+                        countEl.textContent = "共 " + total + " 张图片";
+                    }
+                    if (pageEl) {
+                        pageEl.textContent = currentPage + "/" + (totalPages || 1);
+                    }
+                    if (prevBtn) prevBtn.disabled = currentPage <= 1;
+                    if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
+
+                    if (items.length === 0) {
+                        grid.innerHTML = '<div class="col-span-full text-center text-sm text-zinc-500 py-10">暂无图片</div>';
+                        return;
+                    }
+
+                    grid.innerHTML = items.map(function(item) {
+                        var name = item.original_name || item.filename || "image";
+                        return '' +
+                            '<button type="button" class="group text-left rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 hover:border-[var(--primary)]/50 transition-all" data-url="' + item.url + '" data-name="' + name + '">' +
+                                '<div class="aspect-square bg-zinc-100 dark:bg-zinc-800 overflow-hidden">' +
+                                    '<img src="' + item.url + '" alt="' + name + '" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform" />' +
+                                '</div>' +
+                                '<div class="px-2 py-1.5 text-xs text-zinc-600 dark:text-zinc-300 truncate">' + name + '</div>' +
+                            '</button>';
+                    }).join("");
+
+                    grid.querySelectorAll("button[data-url]").forEach(function(btn) {
+                        btn.addEventListener("click", function() {
+                            var url = this.dataset.url;
+                            var avatarInput = document.getElementById("friendAvatar");
+                            if (avatarInput) {
+                                avatarInput.value = url;
+                                avatarInput.dispatchEvent(new Event("input"));
+                            }
+                            updateAvatarPreview();
+                            closePicker();
+                        });
+                    });
+                } catch (err) {
+                    console.error("加载媒体失败:", err);
+                    grid.innerHTML = '<div class="col-span-full text-center text-sm text-red-500 py-10">加载失败</div>';
+                }
+            }
+
+            openBtn?.addEventListener("click", openPicker);
+            closeBtn?.addEventListener("click", closePicker);
+            modal?.addEventListener("click", function(e) {
+                if (e.target === modal) {
+                    closePicker();
+                }
+            });
+
+            searchInput?.addEventListener("input", function() {
+                keyword = this.value.trim();
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(function() {
+                    currentPage = 1;
+                    loadMedia();
+                }, 300);
+            });
+
+            prevBtn?.addEventListener("click", function() {
+                if (currentPage > 1) {
+                    currentPage -= 1;
+                    loadMedia();
+                }
+            });
+
+            nextBtn?.addEventListener("click", function() {
+                if (currentPage < totalPages) {
+                    currentPage += 1;
+                    loadMedia();
+                }
+            });
+
+            var avatarInput = document.getElementById("friendAvatar");
+            if (avatarInput) {
+                avatarInput.addEventListener("input", updateAvatarPreview);
+            }
         }
 
         window.editFriend = function (id) {
@@ -359,6 +573,7 @@ const API_URL = getApiUrl();
                 }
             }
 
+            updateAvatarPreview();
             showModal(true);
         };
 
@@ -523,16 +738,16 @@ const API_URL = getApiUrl();
     }
 
     .modal-input:focus {
-        @apply border-indigo-400 dark:border-indigo-500/70 ring-4 ring-indigo-500/10 dark:ring-indigo-500/20;
+        border-color: var(--primary);
         box-shadow:
-            0 0 0 4px rgba(99, 102, 241, 0.1),
-            0 2px 8px rgba(99, 102, 241, 0.15);
+            0 0 0 4px color-mix(in oklch, var(--primary) 18%, transparent),
+            0 2px 8px color-mix(in oklch, var(--primary) 30%, transparent);
     }
 
     :global(.dark) .modal-input:focus {
         box-shadow:
-            0 0 0 4px rgba(99, 102, 241, 0.15),
-            0 0 20px rgba(99, 102, 241, 0.2);
+            0 0 0 4px color-mix(in oklch, var(--primary) 22%, transparent),
+            0 0 20px color-mix(in oklch, var(--primary) 30%, transparent);
     }
 
     input[type="number"].modal-input {

@@ -2,6 +2,8 @@
 import { adConfig1, adConfig2 } from "@/config/adConfig";
 import type { AdConfig } from "@/types/config";
 import { url } from "@/utils/url-utils";
+import { getApiUrl } from "@/utils/api-utils";
+import { parseApiResponse } from "@/utils/api-response";
 
 export interface Props {
 	class?: string;
@@ -22,7 +24,31 @@ const getAdConfig = (id?: string): AdConfig => {
 	}
 };
 
-const currentAdConfig = getAdConfig(configId);
+let currentAdConfig = getAdConfig(configId);
+
+// 尝试从后端设置覆盖广告图片
+try {
+  const API_URL = getApiUrl();
+  const response = await fetch(`${API_URL}/settings/public`);
+  if (response.ok) {
+    const payload = await parseApiResponse(response);
+    const settings = payload.data || {};
+    const imageKey = configId === "ad2" ? "ad2_image" : "ad1_image";
+    const overrideImage = settings[imageKey];
+    if (overrideImage) {
+      currentAdConfig = {
+        ...currentAdConfig,
+        image: {
+          ...(currentAdConfig.image || {}),
+          src: overrideImage,
+          alt: (currentAdConfig.image && currentAdConfig.image.alt) || "广告图片",
+        },
+      };
+    }
+  }
+} catch (error) {
+  console.error("Failed to load ad settings:", error);
+}
 
 // 检查广告是否过期
 const isExpired = currentAdConfig.expireDate

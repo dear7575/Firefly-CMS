@@ -13,12 +13,23 @@ export const ja: Translation = {
 	[Key.searchContent]: "内容",
 	[Key.searchViewMore]: "さらに結果を表示 ({count} 件)",
 	[Key.other]: "その他",
+	[Key.all]: "すべて",
 
 	[Key.tags]: "タグ",
 	[Key.categories]: "カテゴリ",
 	[Key.recentPosts]: "最近の投稿",
 	[Key.postList]: "投稿リスト",
 	[Key.tableOfContents]: "目次",
+	[Key.postPasswordTitle]: "保護された投稿",
+	[Key.postPasswordDescription]: "閲覧するにはパスワードを入力してください",
+	[Key.postPasswordPlaceholder]: "パスワードを入力",
+	[Key.postPasswordUnlock]: "ロック解除",
+	[Key.postPasswordRequired]: "パスワードを入力してください",
+	[Key.postPasswordInvalid]: "パスワードが正しくありません",
+	[Key.postPasswordVerifyFailed]:
+		"検証に失敗しました。しばらくしてからもう一度お試しください",
+	[Key.postPasswordError]:
+		"エラーが発生しました。しばらくしてからもう一度お試しください",
 
 	// お知らせ
 	[Key.announcement]: "お知らせ",
@@ -201,7 +212,7 @@ export const ja: Translation = {
 	[Key.sponsorButtonText]:
 		"この記事が役に立ったなら、共有またはサポートをお願いします！",
 
-	[Key.shareOnSocial]: "共有",
+	[Key.shareOnSocial]: "記事を共有",
 	[Key.shareOnSocialDescription]:
 		"この記事が役に立ったなら、ぜひ他の人と共有してください！",
 
@@ -215,6 +226,7 @@ export const ja: Translation = {
 	[Key.siteStatsLastUpdate]: "最終活動",
 	[Key.siteStatsDaysAgo]: "{days} 日前",
 	[Key.siteStatsDays]: "{days} 日",
+	[Key.today]: "今日",
 
 	// カレンダーコンポーネント
 	[Key.calendarSunday]: "日",
@@ -247,6 +259,7 @@ export const ja: Translation = {
 	// 管理画面
 	[Key.adminTitle]: "管理画面",
 	[Key.adminPostManagement]: "記事管理",
+	[Key.adminScheduledManagement]: "予約投稿",
 	[Key.adminNewPost]: "新規記事",
 	[Key.adminPost]: "記事",
 	[Key.adminEditPost]: "記事を編集",
@@ -300,6 +313,7 @@ export const ja: Translation = {
 
 	// 操作メッセージ
 	[Key.adminConfirmDelete]: "この記事を削除してもよろしいですか？この操作は元に戻せません。",
+	[Key.adminConfirmInitSettings]: "既定の設定を初期化しますか？既存の値は上書きされません。",
 	[Key.adminDeleteSuccess]: "削除しました",
 	[Key.adminDeleteFailed]: "削除に失敗しました。後でもう一度お試しください",
 	[Key.adminSaveSuccess]: "保存しました",
@@ -333,6 +347,7 @@ export const ja: Translation = {
 	[Key.adminCategoryManagement]: "カテゴリ管理",
 	[Key.adminTagManagement]: "タグ管理",
 	[Key.adminFriendManagement]: "フレンド管理",
+	[Key.adminSocialManagement]: "ソーシャルリンク管理",
 	[Key.adminSystemManagement]: "システム管理",
 	[Key.adminLogManagement]: "アクセスログ",
 
@@ -359,4 +374,67 @@ export const ja: Translation = {
 	[Key.adminLogTotalLogs]: "総ログ数",
 	[Key.adminLogTodayLogs]: "今日のログ",
 	[Key.adminLogUniqueIps]: "ユニークIP数",
+
+	// ソーシャルリンク
+	[Key.adminManageSocialLinks]: "ソーシャルメディアのアイコンとリンクを管理",
+	[Key.adminSocialLink]: "ソーシャルリンク",
+	[Key.adminSocialIcon]: "アイコン",
+	[Key.adminSocialIconPlaceholder]: "例: fa6-brands:github",
+	[Key.adminSocialUrl]: "リンクURL",
+	[Key.adminSocialUrlPlaceholder]: "https://、mailto: または /rss/",
+	[Key.adminSocialUrlInvalid]:
+		"リンク形式が正しくありません。https://、mailto:、または /path を使用してください",
+	[Key.adminSocialShowName]: "ラベルを表示",
+	[Key.adminSocialShowNameDesc]:
+		"有効にするとフロントでアイコンとテキストを並べて表示します",
+	[Key.adminSocialBadgeShowName]: "アイコン + テキスト",
+	[Key.adminSocialBadgeIconOnly]: "アイコンのみ",
+	[Key.adminSocialEmpty]: "ソーシャルリンクがまだありません。追加してください",
+	[Key.adminSocialLoadFailed]: "ソーシャルリンクの読み込みに失敗しました",
+	[Key.adminBackupManagement]: "バックアップ",
+	[Key.adminManageBackups]: "サイトデータのエクスポート/インポート",
+	[Key.adminBackupExportAll]: "すべてエクスポート",
+	[Key.adminBackupExportPosts]: "投稿のみエクスポート",
+	[Key.adminBackupImport]: "バックアップをインポート",
+	[Key.adminBackupImportHint]:
+		"JSON バックアップをインポートします。合併または上書きを選択できます。",
+	[Key.adminBackupSelectFile]: "バックアップファイルを選択",
+	[Key.adminBackupMerge]: "合併インポート",
+	[Key.adminBackupMergeDesc]: "既存データを保持し、不足分のみ追加します",
+	[Key.adminBackupOverwrite]: "上書きインポート",
+	[Key.adminBackupImporting]: "インポート中...",
+	[Key.adminBackupImportSuccess]: "インポート完了",
+	[Key.adminBackupImportFailed]: "インポート失敗",
+	[Key.adminBackupDownloadFailed]: "ダウンロードに失敗しました",
+	[Key.adminBackupNoFile]: "バックアップファイルを選択してください",
+	[Key.adminBackupSummary]: "インポート結果",
+	[Key.adminBackupExportHint]: "全データまたは投稿のみをエクスポート",
+	[Key.adminBackupFileEmpty]: "ファイルが選択されていません",
+	[Key.adminBackupImportConfirmMerge]: "このバックアップを合併インポートしますか？",
+	[Key.adminBackupImportConfirmOverwrite]:
+		"このバックアップを上書きインポートしますか？既存データが置き換わる可能性があります。",
+	[Key.adminBackupStatImported]: "インポート",
+	[Key.adminBackupStatSkipped]: "スキップ",
+	[Key.adminBackupStatErrors]: "エラー",
+	[Key.adminBackupHistory]: "バックアップ履歴",
+	[Key.adminBackupHistoryHint]: "手動・自動バックアップの履歴を確認",
+	[Key.adminBackupHistoryRefresh]: "更新",
+	[Key.adminBackupHistoryLoading]: "読み込み中...",
+	[Key.adminBackupHistoryEmpty]: "バックアップ履歴はありません",
+	[Key.adminBackupHistoryLoadFailed]: "バックアップ履歴の読み込みに失敗しました",
+	[Key.adminBackupHistoryDownload]: "ダウンロード",
+	[Key.adminBackupHistoryDelete]: "削除",
+	[Key.adminBackupHistoryDeleteConfirm]: "このバックアップを削除しますか？ファイルも削除されます。",
+	[Key.adminBackupHistoryDeleteSuccess]: "バックアップを削除しました",
+	[Key.adminBackupHistoryDeleteFailed]: "削除に失敗しました",
+	[Key.adminBackupHistoryType]: "種類",
+	[Key.adminBackupHistoryTypeFull]: "フルバックアップ",
+	[Key.adminBackupHistoryTypePosts]: "投稿のみ",
+	[Key.adminBackupHistorySource]: "作成元",
+	[Key.adminBackupHistorySourceAuto]: "自動",
+	[Key.adminBackupHistorySourceManual]: "手動",
+	[Key.adminBackupHistorySize]: "サイズ",
+	[Key.adminBackupHistoryTime]: "時間",
+	[Key.adminInitSettings]: "初期設定を初期化",
+	[Key.adminConfirmDeleteSocialLink]: "ソーシャルリンク「{name}」を削除しますか？",
 };

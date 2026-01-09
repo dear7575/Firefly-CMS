@@ -1,4 +1,6 @@
 ---
+import GoogleAnalytics from "@components/analytics/GoogleAnalytics.astro";
+import MicrosoftClarity from "@components/analytics/MicrosoftClarity.astro";
 import FancyboxManager from "@components/effects/FancyboxManager.astro";
 import KatexManager from "@components/effects/KatexManager.astro";
 import SakuraEffect from "@components/effects/SakuraEffect.astro";
@@ -6,7 +8,12 @@ import FontManager from "@components/interactive/FontManager.astro";
 import ConfigCarrier from "@components/layout/ConfigCarrier.astro";
 import MusicPlayer from "@components/widget/MusicPlayer.astro";
 
-import { expressiveCodeConfig, profileConfig, siteConfig } from "@/config";
+import {
+	backgroundWallpaper,
+	expressiveCodeConfig,
+	profileConfig,
+	siteConfig,
+} from "@/config";
 import {
   BANNER_HEIGHT,
   BANNER_HEIGHT_EXTEND,
@@ -54,6 +61,13 @@ const siteKeywords = dynamicSettings.site_keywords
 const siteLangConfig = dynamicSettings.site_lang || siteConfig.lang;
 const authorName = dynamicSettings.profile_name || profileConfig.name;
 const siteUrl = dynamicSettings.site_url || siteConfig.site_url;
+const googleAnalyticsId =
+  dynamicSettings.analytics_google_id ||
+  siteConfig.analytics?.googleAnalyticsId;
+const microsoftClarityId =
+  dynamicSettings.analytics_clarity_id ||
+  siteConfig.analytics?.microsoftClarityId ||
+  siteConfig.analytics?.clarityId;
 
 // 主题配置
 const themeFixed = dynamicSettings.theme_fixed ?? siteConfig.themeColor.fixed;
@@ -73,7 +87,7 @@ const configHue = dynamicSettings.theme_hue ?? siteConfig.themeColor.hue;
 
 // 获取导航栏透明模式配置
 const navbarTransparentMode =
-  siteConfig.backgroundWallpaper?.banner?.navbar?.transparentMode || "semi";
+  backgroundWallpaper.banner?.navbar?.transparentMode || "semi";
 // 判断是否应该显示顶部高光效果（只在full和semifull模式下显示）
 const shouldShowTopHighlight =
   navbarTransparentMode === "full" || navbarTransparentMode === "semifull";
@@ -85,7 +99,7 @@ if (!banner || typeof banner !== "string" || banner.trim() === "") {
 // TODO don't use post cover as banner for now
 banner = getDefaultBackground();
 
-const enableBanner = siteConfig.backgroundWallpaper.mode === "banner";
+const enableBanner = backgroundWallpaper.mode === "banner";
 
 let pageTitle: string;
 if (title) {
@@ -130,37 +144,12 @@ const PUBLIC_API_URL = import.meta.env.PUBLIC_API_URL;
 <!doctype html>
 <html lang={siteLang} class="bg-[var(--page-bg)] text-[14px] md:text-[16px]">
   <head>
-    <!-- Google Tag Manager -->
-    <!-- <script is:inline data-swup-ignore-script>
-      (function (w, d, s, l, i) {
-        w[l] = w[l] || [];
-        w[l].push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
-        var f = d.getElementsByTagName(s)[0],
-          j = d.createElement(s),
-          dl = l != "dataLayer" ? "&l=" + l : "";
-        j.async = true;
-        j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
-        f.parentNode.insertBefore(j, f);
-      })(window, document, "script", "dataLayer", "GTM-P53R3M9S");
-    </script> -->
-    <!-- End Google Tag Manager -->
-    <!-- Microsoft Clarity -->
-    <!-- <script is:inline data-swup-ignore-script type="text/javascript">
-      (function (c, l, a, r, i, t, y) {
-        c[a] =
-          c[a] ||
-          function () {
-            (c[a].q = c[a].q || []).push(arguments);
-          };
-        t = l.createElement(r);
-        t.async = 1;
-        t.src = "https://www.clarity.ms/tag/" + i;
-        y = l.getElementsByTagName(r)[0];
-        y.parentNode.insertBefore(t, y);
-      })(window, document, "clarity", "script", "tx9equrgr6");
-    </script> -->
-    <!-- End Microsoft Clarity -->
-
+    {googleAnalyticsId && (
+      <GoogleAnalytics analyticsId={googleAnalyticsId} />
+    )}
+    {microsoftClarityId && (
+      <MicrosoftClarity clarityId={microsoftClarityId} />
+    )}
     <title>{pageTitle}</title>
 
     <meta charset="UTF-8" />
@@ -220,9 +209,9 @@ const PUBLIC_API_URL = import.meta.env.PUBLIC_API_URL;
         PAGE_WIDTH,
         configHue,
         defaultMode: themeDefaultMode,
-        defaultWallpaperMode: siteConfig.backgroundWallpaper.mode,
+        defaultWallpaperMode: backgroundWallpaper.mode,
         isWallpaperSwitchable:
-          siteConfig.backgroundWallpaper.switchable ?? true,
+          backgroundWallpaper.switchable ?? true,
         darkTheme: expressiveCodeConfig.darkTheme,
         lightTheme: expressiveCodeConfig.lightTheme,
         baseUrl: import.meta.env.BASE_URL,
@@ -490,13 +479,6 @@ const PUBLIC_API_URL = import.meta.env.PUBLIC_API_URL;
         : []),
     ]}
   >
-    <noscript
-      ><iframe
-        src="https://www.googletagmanager.com/ns.html?id=GTM-KRX3XGVH"
-        height="0"
-        width="0"
-        style="display:none;visibility:hidden"></iframe></noscript
-    >
 
     <!-- 页面顶部渐变高光效果 - 只在full和semifull模式下显示 -->
     {shouldShowTopHighlight && <div class="top-gradient-highlight" />}
@@ -572,7 +554,7 @@ const PUBLIC_API_URL = import.meta.env.PUBLIC_API_URL;
     BANNER_HEIGHT_EXTEND,
     // MAIN_PANEL_OVERLAPS_BANNER_HEIGHT,
   } from "@/constants/constants";
-  import { siteConfig, expressiveCodeConfig } from "@/config";
+  import { backgroundWallpaper, expressiveCodeConfig, siteConfig } from "@/config";
 
   /* Preload fonts */
   // (async function() {
@@ -621,18 +603,19 @@ function disableAnimation() {
   const bannerEnabled = !!document.getElementById("banner-wrapper");
 
   function setClickOutsideToClose(panel: string, ignores: string[]) {
-    document.addEventListener("click", (event) => {
-      let panelDom = document.getElementById(panel);
-      let tDom = event.target;
-      if (!(tDom instanceof Node)) return; // Ensure the event target is an HTML Node
-      for (let ig of ignores) {
-        let ie = document.getElementById(ig);
-        if (ie == tDom || ie?.contains(tDom)) {
-          return;
-        }
-      }
-      panelDom!.classList.add("float-panel-closed");
-    });
+      document.addEventListener("click", (event) => {
+          let panelDom = document.getElementById(panel);
+          if (!panelDom) return;
+          let tDom = event.target;
+          if (!(tDom instanceof Node)) return; // Ensure the event target is an HTML Node
+          for (let ig of ignores) {
+              let ie = document.getElementById(ig);
+              if (ie == tDom || ie?.contains(tDom)) {
+                  return;
+              }
+          }
+          panelDom.classList.add("float-panel-closed");
+      });
   }
   setClickOutsideToClose("display-setting", [
     "display-setting",
@@ -678,8 +661,431 @@ function disableAnimation() {
     });
   }
 
+  const POST_PASSWORD_TTL_MS = 24 * 60 * 60 * 1000;
+
+  function getPasswordContext() {
+    const overlay = document.getElementById("password-overlay");
+    const postContainer = document.getElementById("post-container");
+    const errorDiv = document.getElementById("password-error");
+    const passwordInput = document.getElementById(
+      "post-password",
+    ) as HTMLInputElement | null;
+
+    if (!overlay || !passwordInput) {
+      return null;
+    }
+
+    const postId = overlay.dataset.postId;
+    if (!postId) {
+      return null;
+    }
+
+    const messages = {
+      required:
+        overlay.dataset.msgRequired || "Please enter a password",
+      invalid:
+        overlay.dataset.msgInvalid || "Incorrect password",
+      verifyFailed:
+        overlay.dataset.msgVerifyFailed ||
+        "Failed to verify password. Please try again later.",
+      error:
+        overlay.dataset.msgError ||
+        "An error occurred. Please try again later.",
+    };
+
+    return {
+      overlay,
+      postContainer,
+      errorDiv,
+      passwordInput,
+      postId,
+      storageKey: `post-access-${postId}`,
+      legacyKey: `post-password-${postId}`,
+      messages,
+    };
+  }
+
+  function readStoredAccess(context: ReturnType<typeof getPasswordContext>) {
+    if (!context) {
+      return false;
+    }
+    try {
+      const raw = localStorage.getItem(context.storageKey);
+      if (raw) {
+        const payload = JSON.parse(raw);
+        if (payload && typeof payload === "object") {
+          const verified = payload.verified === true;
+          const expiresAt = Number(payload.expiresAt);
+          if (verified && expiresAt && Date.now() <= expiresAt) {
+            return true;
+          }
+        }
+        localStorage.removeItem(context.storageKey);
+      }
+
+      const legacyRaw = localStorage.getItem(context.legacyKey);
+      if (!legacyRaw) {
+        return false;
+      }
+      const legacyPayload = JSON.parse(legacyRaw);
+      if (!legacyPayload || typeof legacyPayload !== "object") {
+        localStorage.removeItem(context.legacyKey);
+        return false;
+      }
+      const expiresAt = Number(legacyPayload.expiresAt);
+      if (!expiresAt || Date.now() > expiresAt) {
+        localStorage.removeItem(context.legacyKey);
+        return false;
+      }
+      storeAccess(context);
+      localStorage.removeItem(context.legacyKey);
+      return true;
+    } catch (err) {
+      localStorage.removeItem(context.storageKey);
+      localStorage.removeItem(context.legacyKey);
+      return false;
+    }
+  }
+
+  function storeAccess(context: ReturnType<typeof getPasswordContext>) {
+    if (!context) {
+      return;
+    }
+    const expiresAt = Date.now() + POST_PASSWORD_TTL_MS;
+    localStorage.setItem(
+      context.storageKey,
+      JSON.stringify({ verified: true, expiresAt }),
+    );
+  }
+
+  function unlockContent(context: ReturnType<typeof getPasswordContext>) {
+    if (!context) {
+      return;
+    }
+    context.overlay?.classList.add("opacity-0", "pointer-events-none");
+    context.postContainer?.classList.remove("blur-sm", "pointer-events-none");
+    setTimeout(() => context.overlay?.remove(), 300);
+  }
+
+  function updatePasswordToggleState(
+    passwordInput: HTMLInputElement,
+    toggle: HTMLElement,
+  ) {
+    const isVisible = passwordInput.type === "text";
+    toggle.setAttribute("aria-label", isVisible ? "隐藏密码" : "显示密码");
+    toggle.setAttribute("title", isVisible ? "隐藏密码" : "显示密码");
+    const showIcon = toggle.querySelector('[data-eye="show"]');
+    const hideIcon = toggle.querySelector('[data-eye="hide"]');
+    if (showIcon) {
+      showIcon.classList.toggle("hidden", isVisible);
+    }
+    if (hideIcon) {
+      hideIcon.classList.toggle("hidden", !isVisible);
+    }
+  }
+
+  function initPasswordToggle(context: ReturnType<typeof getPasswordContext>) {
+    const toggle = document.getElementById("post-password-toggle");
+    if (!context?.passwordInput || !toggle) {
+      return;
+    }
+    if ((toggle as HTMLElement).dataset.bound === "true") {
+      updatePasswordToggleState(context.passwordInput, toggle);
+      return;
+    }
+    (toggle as HTMLElement).dataset.bound = "true";
+
+    toggle.addEventListener(
+      "click",
+      (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        context.passwordInput.type =
+          context.passwordInput.type === "password" ? "text" : "password";
+        updatePasswordToggleState(context.passwordInput, toggle);
+        context.passwordInput.focus();
+      },
+      true,
+    );
+
+    updatePasswordToggleState(context.passwordInput, toggle);
+  }
+
+  function showError(
+    context: ReturnType<typeof getPasswordContext>,
+    message: string,
+  ) {
+    if (!context?.errorDiv) {
+      return;
+    }
+    context.errorDiv.textContent = message;
+    context.errorDiv.classList.remove("hidden");
+    setTimeout(() => context.errorDiv?.classList.add("hidden"), 3000);
+  }
+
+  async function validatePassword(
+    context: ReturnType<typeof getPasswordContext>,
+    password: string,
+    silent: boolean,
+  ) {
+    if (!context) {
+      return;
+    }
+    try {
+      const apiUrl = (window as any).API_URL;
+      if (!apiUrl) {
+        if (!silent) {
+          showError(context, context.messages.verifyFailed);
+        }
+        return;
+      }
+
+      const response = await fetch(
+        `${apiUrl}/posts/${context.postId}/verify-password`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ password }),
+        },
+      );
+
+      if (!response.ok) {
+        if (!silent) {
+          showError(context, context.messages.verifyFailed);
+        }
+        return;
+      }
+
+      const payload = await response.json();
+      const data = payload && payload.data !== undefined ? payload.data : payload;
+
+      if (data?.valid === true) {
+        storeAccess(context);
+        unlockContent(context);
+      } else if (data?.valid === false) {
+        if (!silent) {
+          showError(context, context.messages.invalid);
+        }
+        localStorage.removeItem(context.storageKey);
+        localStorage.removeItem(context.legacyKey);
+      } else if (!silent) {
+        showError(context, context.messages.verifyFailed);
+      }
+    } catch (err) {
+      console.error("Password validation error:", err);
+      if (!silent) {
+        showError(context, context.messages.error);
+      }
+    }
+  }
+
+  function initPasswordOverlay() {
+    ensurePasswordHandlers();
+    const context = getPasswordContext();
+    if (!context) {
+      return;
+    }
+    initPasswordToggle(context);
+    if (readStoredAccess(context)) {
+      unlockContent(context);
+    }
+  }
+
+  function handlePasswordSubmit(event: Event) {
+    const context = getPasswordContext();
+    if (!context) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const password = context.passwordInput.value;
+    if (!password) {
+      showError(context, context.messages.required);
+      return;
+    }
+
+    validatePassword(context, password, false);
+  }
+
+  function getEventElement(target: EventTarget | null) {
+    if (!target) {
+      return null;
+    }
+    if ((target as Node).nodeType === 3) {
+      return (target as Node).parentElement;
+    }
+    return target as HTMLElement;
+  }
+
+  function ensurePasswordHandlers() {
+    if ((window as any).__passwordOverlayHandlersBound) {
+      return;
+    }
+    (window as any).__passwordOverlayHandlersBound = true;
+
+    document.addEventListener(
+      "click",
+      (event) => {
+        const target = getEventElement(event.target);
+        if (target && target.closest && target.closest("#password-submit")) {
+          handlePasswordSubmit(event);
+        }
+      },
+      true,
+    );
+
+    document.addEventListener(
+      "keydown",
+      (event) => {
+        if (event.key !== "Enter") {
+          return;
+        }
+        const target = getEventElement(event.target);
+        if (target && target.id === "post-password") {
+          event.preventDefault();
+          handlePasswordSubmit(event);
+        }
+      },
+      true,
+    );
+  }
+
+  function initDynamicCodeCopy() {
+    document
+      .querySelectorAll(".expressive-code-dynamic .copy-btn")
+      .forEach((btn) => {
+        if ((btn as HTMLElement).dataset.copyBound) {
+          return;
+        }
+        (btn as HTMLElement).dataset.copyBound = "true";
+
+        btn.addEventListener("click", async function (event) {
+          event.preventDefault();
+          event.stopPropagation();
+
+          const figure = (this as HTMLElement).closest(
+            ".expressive-code-dynamic",
+          );
+          const codeEl = figure?.querySelector("code");
+
+          if (!codeEl) {
+            return;
+          }
+
+          const code = codeEl.textContent || "";
+
+          try {
+            if (navigator.clipboard && window.isSecureContext) {
+              await navigator.clipboard.writeText(code);
+            } else {
+              const textarea = document.createElement("textarea");
+              textarea.value = code;
+              textarea.style.position = "fixed";
+              textarea.style.left = "-9999px";
+              document.body.appendChild(textarea);
+              textarea.select();
+              document.execCommand("copy");
+              document.body.removeChild(textarea);
+            }
+
+            (this as HTMLElement).classList.add("success");
+
+            setTimeout(() => {
+              (this as HTMLElement).classList.remove("success");
+            }, 2000);
+          } catch (err) {
+            console.error("复制失败:", err);
+            const textarea = document.createElement("textarea");
+            textarea.value = code;
+            textarea.style.position = "fixed";
+            textarea.style.left = "-9999px";
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+              document.execCommand("copy");
+              (this as HTMLElement).classList.add("success");
+              setTimeout(() => {
+                (this as HTMLElement).classList.remove("success");
+              }, 2000);
+            } catch (e2) {
+              console.error("execCommand 复制也失败:", e2);
+            }
+            document.body.removeChild(textarea);
+          }
+        });
+      });
+  }
+
+  function loadHighlightScript() {
+    if ((window as any).hljs) {
+      return Promise.resolve((window as any).hljs);
+    }
+
+    const existing = document.querySelector(
+      'script[data-hljs-script="true"]',
+    ) as HTMLScriptElement | null;
+    if (existing) {
+      return new Promise((resolve, reject) => {
+        existing.addEventListener("load", () => resolve((window as any).hljs));
+        existing.addEventListener("error", () =>
+          reject(new Error("highlight.js 加载失败")),
+        );
+      });
+    }
+
+    return new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "/assets/js/highlight.min.js";
+      script.async = true;
+      script.dataset.hljsScript = "true";
+      script.onload = () => resolve((window as any).hljs);
+      script.onerror = () => reject(new Error("highlight.js 加载失败"));
+      document.head.appendChild(script);
+    });
+  }
+
+  function highlightDynamicBlocks() {
+    const blocks = document.querySelectorAll(
+      ".expressive-code-dynamic pre code",
+    ) as NodeListOf<HTMLElement>;
+    if (!blocks.length) {
+      return;
+    }
+
+    loadHighlightScript()
+      .then((hljs) => {
+        if (!hljs || !hljs.highlightElement) {
+          return;
+        }
+        blocks.forEach((block) => {
+          if (block.dataset.hljsApplied) {
+            return;
+          }
+          hljs.highlightElement(block);
+          block.dataset.hljsApplied = "true";
+        });
+      })
+      .catch((err) => {
+        console.warn("语法高亮加载失败", err);
+      });
+  }
+
+  function initPostEnhancements() {
+    initPasswordOverlay();
+    initDynamicCodeCopy();
+    highlightDynamicBlocks();
+  }
+
+  function schedulePostEnhancements() {
+    requestAnimationFrame(() => {
+      initPostEnhancements();
+    });
+  }
+
   function showBanner() {
-    const isBannerMode = siteConfig.backgroundWallpaper.mode === "banner";
+    const isBannerMode = backgroundWallpaper.mode === "banner";
     if (!isBannerMode) return;
 
     // 使用requestAnimationFrame优化DOM操作
@@ -734,8 +1140,25 @@ function disableAnimation() {
       }
     });
     window.swup.hooks.on("content:replace", () => {
+      // 更新主网格布局类名
+      const gridClassCarrier = document.getElementById("grid-class-carrier");
+      if (gridClassCarrier) {
+        const gridClass = gridClassCarrier.getAttribute("data-grid-class");
+        const mainGrid = document.getElementById("main-grid");
+        if (mainGrid && gridClass) {
+
+          const currentClasses = mainGrid.className.split(" ");
+          const newClasses = currentClasses.filter(c => !c.startsWith("lg:grid-cols-") && !c.startsWith("md:grid-cols-") && !c.startsWith("grid-cols-"));
+          
+          // 添加新的网格类
+          const gridClasses = gridClass.split(" ");
+          mainGrid.className = [...newClasses, ...gridClasses].join(" ");
+        }
+      }
+
       // 只处理katex元素的容器，使用浏览器原生滚动条
       initCustomScrollbar();
+      schedulePostEnhancements();
 
       // 重新初始化图标加载器
       import("@/utils/icon-loader").then(({ initIconLoader }) => {
@@ -771,31 +1194,7 @@ function disableAnimation() {
         }
       }
 
-      // 在页面切换后恢复布局状态（支持文章详情页的布局切换）
-      setTimeout(() => {
-        const savedLayout = localStorage.getItem("postListLayout");
-        if (savedLayout) {
-          const rightSidebar = document.getElementById("right-sidebar");
-          const mainGrid = document.getElementById("main-grid");
-
-          // 根据保存的布局状态调整侧边栏显示
-          if (savedLayout === "grid") {
-            if (rightSidebar) {
-              rightSidebar.style.display = "none";
-            }
-            if (mainGrid) {
-              mainGrid.classList.add("grid-layout-active");
-            }
-          } else {
-            if (rightSidebar) {
-              rightSidebar.style.display = "";
-            }
-            if (mainGrid) {
-              mainGrid.classList.remove("grid-layout-active");
-            }
-          }
-        }
-      }, 50);
+      // 布局状态由 PostPage 自身恢复，这里不再额外控制侧边栏显示
     });
     window.swup.hooks.on("visit:start", (visit: { to: { url: string } }) => {
       // change banner height immediately when a link is clicked
@@ -927,7 +1326,7 @@ function disableAnimation() {
       }
 
       // 同步主题状态 - 解决从首页进入文章页面时代码块渲染问题
-      const storedTheme = localStorage.getItem("theme") || "light";
+      const storedTheme = localStorage.getItem("theme") || siteConfig.themeColor.defaultMode || "light";
       let isDark = false;
 
       // 处理 system 模式
@@ -986,8 +1385,6 @@ function disableAnimation() {
     // 全局布局切换监听器 - 支持在任何页面（包括文章详情页）切换布局
     window.addEventListener("layoutChange", (event: CustomEvent) => {
       const newLayout = event.detail.layout;
-      const rightSidebar = document.getElementById("right-sidebar");
-      const mainGrid = document.getElementById("main-grid");
       const postContainer = document.getElementById("post-container");
       const swupContainer = document.getElementById("swup-container");
 
@@ -1007,43 +1404,7 @@ function disableAnimation() {
         }, 500);
       }
 
-      // 根据新布局状态调整侧边栏显示
-      if (newLayout === "grid") {
-        if (rightSidebar) {
-          // 简洁的淡出动画
-          rightSidebar.style.transition =
-            "opacity 0.35s ease-in-out, transform 0.35s ease-in-out";
-          rightSidebar.style.opacity = "0";
-          rightSidebar.style.transform = "translateX(15px)";
-          setTimeout(() => {
-            rightSidebar.style.display = "none";
-            rightSidebar.style.opacity = "";
-            rightSidebar.style.transform = "";
-          }, 350);
-        }
-        if (mainGrid) {
-          mainGrid.classList.add("grid-layout-active");
-        }
-      } else {
-        if (rightSidebar) {
-          // 简洁的淡入动画
-          rightSidebar.style.display = "";
-          rightSidebar.style.transition =
-            "opacity 0.35s ease-in-out, transform 0.35s ease-in-out";
-          rightSidebar.style.opacity = "0";
-          rightSidebar.style.transform = "translateX(15px)";
-          setTimeout(() => {
-            rightSidebar.style.opacity = "1";
-            rightSidebar.style.transform = "translateX(0)";
-          }, 50);
-          setTimeout(() => {
-            rightSidebar.style.transition = "";
-          }, 400);
-        }
-        if (mainGrid) {
-          mainGrid.classList.remove("grid-layout-active");
-        }
-      }
+      // 切换布局时不隐藏右侧栏，保持统计/日历显示
     });
   };
   if (window?.swup?.hooks) {
@@ -1136,10 +1497,12 @@ function disableAnimation() {
     document.addEventListener("DOMContentLoaded", () => {
       showBanner();
       initCustomScrollbar();
+      schedulePostEnhancements();
     });
   } else {
     showBanner();
     initCustomScrollbar();
+    schedulePostEnhancements();
   }
 
   // Initialize wallpaper mode

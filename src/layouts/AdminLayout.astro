@@ -1,5 +1,5 @@
 ---
-import {siteConfig} from "@/config";
+import {backgroundWallpaper, siteConfig} from "@/config";
 import "@/styles/layout-styles.css";
 import {ClientRouter} from 'astro:transitions';
 import "@/styles/waves.css";
@@ -29,7 +29,11 @@ try {
 }
 
 // 获取站点标题（动态配置优先）
-const adminSiteTitle = dynamicSettings.brand_navbar_title || dynamicSettings.site_title || siteConfig.navbarTitle || siteConfig.title;
+const adminSiteTitle =
+    dynamicSettings.brand_navbar_title ||
+    dynamicSettings.site_title ||
+    siteConfig.navbar?.title ||
+    siteConfig.title;
 
 // 处理页面标题：将静态的 siteConfig.title 替换为动态标题
 const pageTitle = title.replace(siteConfig.title, adminSiteTitle).replace('Firefly', adminSiteTitle);
@@ -47,10 +51,10 @@ const PUBLIC_API_URL = import.meta.env.PUBLIC_API_URL;
 const backgroundImages = getBackgroundImages();
 
 // 获取波浪效果配置
-const wavesConfig = siteConfig.backgroundWallpaper.banner?.waves?.enable;
+const wavesConfig = backgroundWallpaper.banner?.waves?.enable;
 const wavesEnabledOnDesktop = typeof wavesConfig === "object" ? wavesConfig.desktop : wavesConfig;
 const wavesEnabledOnMobile = typeof wavesConfig === "object" ? wavesConfig.mobile : wavesConfig;
-const performanceConfig = siteConfig.backgroundWallpaper.banner?.waves?.performance;
+const performanceConfig = backgroundWallpaper.banner?.waves?.performance;
 const waveQuality = performanceConfig?.quality || "high";
 const hardwareAcceleration = performanceConfig?.hardwareAcceleration ?? true;
 
@@ -67,7 +71,9 @@ const adminI18n = {
     uncategorized: i18n(I18nKey.adminPostUncategorized),
     empty: i18n(I18nKey.adminPostEmpty),
     loadFailed: i18n(I18nKey.adminPostLoadFailed),
+    adminLoading: i18n(I18nKey.adminLoading),
     confirmDelete: i18n(I18nKey.adminConfirmDelete),
+    initSettingsConfirm: i18n(I18nKey.adminConfirmInitSettings),
     loginExpired: i18n(I18nKey.adminLoginExpired),
     deleteFailed: i18n(I18nKey.adminDeleteFailed),
     // 分页翻译
@@ -79,9 +85,12 @@ const adminI18n = {
     add: i18n(I18nKey.adminAdd),
     edit: i18n(I18nKey.adminEdit),
     categories: i18n(I18nKey.categories),
+    tags: i18n(I18nKey.tags),
     active: i18n(I18nKey.adminActive),
     disabled: i18n(I18nKey.adminDisabled),
     posts: i18n(I18nKey.adminPosts),
+    adminPost: i18n(I18nKey.adminPost),
+    adminSettings: i18n(I18nKey.adminSettings),
     noCategories: i18n(I18nKey.adminNoCategories),
     noCategoriesYet: i18n(I18nKey.adminNoCategoriesYet),
     categoryLoadFailed: i18n(I18nKey.adminCategoryLoadFailed),
@@ -89,6 +98,56 @@ const adminI18n = {
     saveFailed: i18n(I18nKey.adminSaveFailed),
     other: i18n(I18nKey.other),
     friends: i18n(I18nKey.friends),
+    socialLink: i18n(I18nKey.adminSocialLink),
+    socialLinksEmpty: i18n(I18nKey.adminSocialEmpty),
+    socialLinksFailed: i18n(I18nKey.adminSocialLoadFailed),
+    socialBadgeText: i18n(I18nKey.adminSocialBadgeShowName),
+    socialBadgeIconOnly: i18n(I18nKey.adminSocialBadgeIconOnly),
+    socialShowName: i18n(I18nKey.adminSocialShowName),
+    confirmDeleteSocialLink: i18n(I18nKey.adminConfirmDeleteSocialLink),
+    socialUrlInvalid: i18n(I18nKey.adminSocialUrlInvalid),
+    backupTitle: i18n(I18nKey.adminBackupManagement),
+    backupHint: i18n(I18nKey.adminManageBackups),
+    backupExportAll: i18n(I18nKey.adminBackupExportAll),
+    backupExportPosts: i18n(I18nKey.adminBackupExportPosts),
+    backupImport: i18n(I18nKey.adminBackupImport),
+    backupImportHint: i18n(I18nKey.adminBackupImportHint),
+    backupSelectFile: i18n(I18nKey.adminBackupSelectFile),
+    backupMerge: i18n(I18nKey.adminBackupMerge),
+    backupMergeDesc: i18n(I18nKey.adminBackupMergeDesc),
+    backupOverwrite: i18n(I18nKey.adminBackupOverwrite),
+    backupImporting: i18n(I18nKey.adminBackupImporting),
+    backupImportSuccess: i18n(I18nKey.adminBackupImportSuccess),
+    backupImportFailed: i18n(I18nKey.adminBackupImportFailed),
+    backupDownloadFailed: i18n(I18nKey.adminBackupDownloadFailed),
+    backupNoFile: i18n(I18nKey.adminBackupNoFile),
+    backupSummary: i18n(I18nKey.adminBackupSummary),
+    backupExportHint: i18n(I18nKey.adminBackupExportHint),
+    backupFileEmpty: i18n(I18nKey.adminBackupFileEmpty),
+    backupImportConfirmMerge: i18n(I18nKey.adminBackupImportConfirmMerge),
+    backupImportConfirmOverwrite: i18n(I18nKey.adminBackupImportConfirmOverwrite),
+    backupStatImported: i18n(I18nKey.adminBackupStatImported),
+    backupStatSkipped: i18n(I18nKey.adminBackupStatSkipped),
+    backupStatErrors: i18n(I18nKey.adminBackupStatErrors),
+    backupHistory: i18n(I18nKey.adminBackupHistory),
+    backupHistoryHint: i18n(I18nKey.adminBackupHistoryHint),
+    backupHistoryRefresh: i18n(I18nKey.adminBackupHistoryRefresh),
+    backupHistoryLoading: i18n(I18nKey.adminBackupHistoryLoading),
+    backupHistoryEmpty: i18n(I18nKey.adminBackupHistoryEmpty),
+    backupHistoryLoadFailed: i18n(I18nKey.adminBackupHistoryLoadFailed),
+    backupHistoryDownload: i18n(I18nKey.adminBackupHistoryDownload),
+    backupHistoryDelete: i18n(I18nKey.adminBackupHistoryDelete),
+    backupHistoryDeleteConfirm: i18n(I18nKey.adminBackupHistoryDeleteConfirm),
+    backupHistoryDeleteSuccess: i18n(I18nKey.adminBackupHistoryDeleteSuccess),
+    backupHistoryDeleteFailed: i18n(I18nKey.adminBackupHistoryDeleteFailed),
+    backupHistoryType: i18n(I18nKey.adminBackupHistoryType),
+    backupHistoryTypeFull: i18n(I18nKey.adminBackupHistoryTypeFull),
+    backupHistoryTypePosts: i18n(I18nKey.adminBackupHistoryTypePosts),
+    backupHistorySource: i18n(I18nKey.adminBackupHistorySource),
+    backupHistorySourceAuto: i18n(I18nKey.adminBackupHistorySourceAuto),
+    backupHistorySourceManual: i18n(I18nKey.adminBackupHistorySourceManual),
+    backupHistorySize: i18n(I18nKey.adminBackupHistorySize),
+    backupHistoryTime: i18n(I18nKey.adminBackupHistoryTime),
     all: i18n(I18nKey.bangumiFilterAll),
     contentEmpty: i18n(I18nKey.adminContentEmpty),
     delete: i18n(I18nKey.adminDelete),
@@ -119,6 +178,12 @@ const menuItems = [
         href: "/admin/posts"
     },
     {
+        id: "scheduled",
+        label: i18n(I18nKey.adminScheduledManagement),
+        icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z",
+        href: "/admin/scheduled"
+    },
+    {
         id: "categories",
         label: i18n(I18nKey.adminCategoryManagement),
         icon: "M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10",
@@ -137,6 +202,12 @@ const menuItems = [
         href: "/admin/friends"
     },
     {
+        id: "social-links",
+        label: i18n(I18nKey.adminSocialManagement),
+        icon: "M21 8V7a2 2 0 00-2-2H5a2 2 0 00-2 2v1m18 0l-8.228 5.485a2 2 0 01-2.344 0L3 8m18 0v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8",
+        href: "/admin/social-links"
+    },
+    {
         id: "media",
         label: "文件管理",
         icon: "M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z",
@@ -153,6 +224,12 @@ const menuItems = [
         label: i18n(I18nKey.adminLogManagement),
         icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01",
         href: "/admin/logs"
+    },
+    {
+        id: "backup",
+        label: i18n(I18nKey.adminBackupManagement),
+        icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z",
+        href: "/admin/backup"
     },
     {
         id: "settings",
@@ -175,7 +252,7 @@ const adminMenuIcons = Object.fromEntries(
 <html
         lang="en"
         class="text-zinc-900 dark:text-zinc-100"
-        style={`--configHue: ${configHue}; --hue: ${configHue}; --primary: oklch(0.70 0.14 ${configHue}); --primary-light: oklch(0.75 0.14 ${configHue}); --primary-dark: oklch(0.65 0.14 ${configHue}); --page-bg: oklch(0.95 0.01 ${configHue}); --page-bg-dark: oklch(0.16 0.014 ${configHue}); --card-bg: white; --card-bg-dark: oklch(0.23 0.015 ${configHue}); --btn-bg: oklch(0.95 0.025 ${configHue}); --btn-bg-hover: oklch(0.9 0.05 ${configHue}); --btn-bg-dark: oklch(0.33 0.035 ${configHue}); --btn-bg-hover-dark: oklch(0.38 0.04 ${configHue}); --sidebar-bg: oklch(0.98 0.008 ${configHue}); --sidebar-bg-dark: oklch(0.18 0.012 ${configHue}); --primary-rgb: 79, 70, 229;`}
+        style={`--configHue: ${configHue}; --hue: ${configHue}; --primary: oklch(0.70 0.14 ${configHue}); --primary-light: oklch(0.75 0.14 ${configHue}); --primary-dark: oklch(0.65 0.14 ${configHue}); --page-bg: oklch(0.97 0.012 ${configHue}); --page-bg-dark: oklch(0.16 0.015 ${configHue}); --card-bg: white; --card-bg-dark: oklch(0.23 0.015 ${configHue}); --btn-bg: oklch(0.95 0.025 ${configHue}); --btn-bg-hover: oklch(0.9 0.05 ${configHue}); --btn-bg-dark: oklch(0.33 0.035 ${configHue}); --btn-bg-hover-dark: oklch(0.38 0.04 ${configHue}); --sidebar-bg: oklch(0.98 0.008 ${configHue}); --sidebar-bg-dark: oklch(0.18 0.012 ${configHue}); --primary-rgb: 79, 70, 229;`}
 >
 <head>
     <ClientRouter/>
@@ -386,6 +463,28 @@ const adminMenuIcons = Object.fromEntries(
             border: 1px solid transparent;
             background: transparent;
             transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .admin-tab-pill::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(135deg, transparent 0%, oklch(0.9 0.05 var(--hue)) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .dark .admin-tab-pill::before {
+            background: linear-gradient(135deg, transparent 0%, oklch(0.3 0.04 var(--hue)) 100%);
+        }
+
+        .admin-tab-pill > * {
+            position: relative;
+            z-index: 1;
         }
 
         .admin-tab-trigger {
@@ -405,22 +504,79 @@ const adminMenuIcons = Object.fromEntries(
             color: oklch(0.83 0.01 var(--hue));
         }
 
-        .admin-tab-pill:hover {
-            border-color: rgba(15, 23, 42, 0.2);
-            background: rgba(15, 23, 42, 0.06);
+        .admin-tab-pill:not(.admin-tab-pill-active):hover {
+            background: oklch(0.97 0.01 var(--hue));
             color: oklch(0.32 0.01 var(--hue));
         }
 
-        .dark .admin-tab-pill:hover {
-            border-color: rgba(255, 255, 255, 0.15);
-            background: rgba(255, 255, 255, 0.08);
+        .dark .admin-tab-pill:not(.admin-tab-pill-active):hover {
+            background: oklch(0.25 0.02 var(--hue));
             color: oklch(0.95 0.02 var(--hue));
+        }
+
+        .admin-tab-pill:hover::before {
+            opacity: 1;
+        }
+
+        .admin-tab-pill-active::before {
+            opacity: 0;
+        }
+
+        .admin-tab-pill-active:hover::before {
+            opacity: 1;
         }
 
         .admin-tab-pill-active {
             color: #fff;
             background: linear-gradient(120deg, oklch(0.69 0.14 var(--hue)) 0%, oklch(0.62 0.13 var(--hue)) 100%);
             box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+        }
+
+        body[data-admin-layout] button:not(.admin-tab-trigger):not(.admin-tab-close):not(.admin-password-toggle):not(.pinned-toggle):not(.vditor-tooltipped) {
+            position: relative;
+            overflow: hidden;
+        }
+
+        body[data-admin-layout] button:not(.admin-tab-trigger):not(.admin-tab-close):not(.admin-password-toggle):not(.pinned-toggle):not(.vditor-tooltipped)::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(135deg, transparent 0%, oklch(0.9 0.05 var(--hue)) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .dark body[data-admin-layout] button:not(.admin-tab-trigger):not(.admin-tab-close):not(.admin-password-toggle):not(.pinned-toggle):not(.vditor-tooltipped)::before {
+            background: linear-gradient(135deg, transparent 0%, oklch(0.3 0.04 var(--hue)) 100%);
+        }
+
+        body[data-admin-layout] button:not(.admin-tab-trigger):not(.admin-tab-close):not(.admin-password-toggle):not(.pinned-toggle):not(.vditor-tooltipped):hover::before {
+            opacity: 1;
+        }
+
+        body[data-admin-layout] button[class*="bg-red"]:not(.admin-tab-trigger):not(.admin-tab-close):not(.admin-password-toggle):not(.pinned-toggle):not(.vditor-tooltipped)::before {
+            opacity: 0;
+        }
+
+        body[data-admin-layout] button:not(.admin-tab-trigger):not(.admin-tab-close):not(.admin-password-toggle):not(.pinned-toggle):not(.vditor-tooltipped) {
+            translate: 0 0;
+            transition: translate 0.2s ease, filter 0.2s ease;
+        }
+
+        body[data-admin-layout] button:not(.admin-tab-trigger):not(.admin-tab-close):not(.admin-password-toggle):not(.pinned-toggle):not(.vditor-tooltipped):hover {
+            translate: 0 -1px;
+            filter: drop-shadow(0 8px 16px rgba(15, 23, 42, 0.12));
+        }
+
+        .dark body[data-admin-layout] button:not(.admin-tab-trigger):not(.admin-tab-close):not(.admin-password-toggle):not(.pinned-toggle):not(.vditor-tooltipped):hover {
+            filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.35));
+        }
+
+        body[data-admin-layout] button:not(.admin-tab-trigger):not(.admin-tab-close):not(.admin-password-toggle):not(.pinned-toggle):not(.vditor-tooltipped):active {
+            translate: 0 0;
+            filter: none;
         }
 
         .admin-tab-pill-icon {
@@ -669,12 +825,50 @@ const adminMenuIcons = Object.fromEntries(
 
         .admin-input-enhanced:focus {
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px oklch(0.7 0.14 var(--hue) / 0.15), 0 2px 8px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 18%, transparent),
+                0 2px 8px rgba(0, 0, 0, 0.05);
         }
 
         .dark .admin-input-enhanced {
             background: oklch(0.22 0.015 var(--hue));
             border: 1px solid oklch(0.3 0.02 var(--hue));
+        }
+
+        .admin-password-toggle {
+            position: absolute;
+            right: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 2rem;
+            height: 2rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: oklch(0.55 0.02 var(--hue));
+            transition: color 0.2s ease;
+        }
+
+        .admin-password-toggle:hover {
+            color: var(--primary);
+        }
+
+        /* 统一后台输入框焦点色为主题色 */
+        .admin-input:focus,
+        .modal-input:focus,
+        .category-selector.open .category-selector-trigger,
+        .tags-selector:focus-within {
+            border-color: var(--primary) !important;
+            box-shadow: 0 0 0 4px color-mix(in oklch, var(--primary) 18%, transparent),
+                0 2px 8px color-mix(in oklch, var(--primary) 30%, transparent) !important;
+            --tw-ring-color: color-mix(in oklch, var(--primary) 18%, transparent);
+        }
+
+        .dark .admin-input:focus,
+        .dark .modal-input:focus,
+        .dark .category-selector.open .category-selector-trigger,
+        .dark .tags-selector:focus-within {
+            box-shadow: 0 0 0 4px color-mix(in oklch, var(--primary) 22%, transparent),
+                0 0 20px color-mix(in oklch, var(--primary) 30%, transparent) !important;
         }
 
         /* 统计卡片美化 */
@@ -714,7 +908,7 @@ const adminMenuIcons = Object.fromEntries(
 
         select:focus {
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px oklch(0.7 0.14 var(--hue) / 0.15);
+            box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 18%, transparent);
         }
 
         .dark select {
@@ -794,7 +988,7 @@ const adminMenuIcons = Object.fromEntries(
 
         .custom-select.open .custom-select-trigger {
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px oklch(0.7 0.14 var(--hue) / 0.15);
+            box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 18%, transparent);
         }
 
         .custom-select.open .custom-select-arrow {
@@ -1219,10 +1413,11 @@ const adminMenuIcons = Object.fromEntries(
             rel="stylesheet"
             href="/assets/vendor/vditor/index.css"
     />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" is:inline></script>
+    <script src="/assets/vendor/chart.js/chart.umd.min.js" is:inline></script>
 </head>
 <body
         class="min-h-screen font-sans selection:bg-indigo-100 dark:selection:bg-indigo-900/30"
+        data-admin-layout
 >
 {hideNav ? (
     <!-- 无导航布局（登录页面等）- 带背景图片和波浪效果 -->
@@ -1234,14 +1429,14 @@ const adminMenuIcons = Object.fromEntries(
                         alt="Mobile background"
                         class="block lg:hidden object-cover h-full w-full"
                         src={typeof backgroundImages.mobile === 'string' ? backgroundImages.mobile : (typeof backgroundImages.desktop === 'string' ? backgroundImages.desktop : '')}
-                        position={siteConfig.backgroundWallpaper.banner?.position}
+                        position={backgroundWallpaper.banner?.position}
                 />
                 <!-- Desktop background -->
                 <ImageWrapper
                         alt="Desktop background"
                         class="hidden lg:block object-cover h-full w-full"
                         src={typeof backgroundImages.desktop === 'string' ? backgroundImages.desktop : (typeof backgroundImages.mobile === 'string' ? backgroundImages.mobile : '')}
-                        position={siteConfig.backgroundWallpaper.banner?.position}
+                        position={backgroundWallpaper.banner?.position}
                 />
                 <!-- 暗色遮罩层 -->
                 <div class="absolute inset-0 bg-black/30 dark:bg-black/50"></div>
@@ -1908,6 +2103,34 @@ const adminMenuIcons = Object.fromEntries(
                 renderTabs();
             }
 
+            function closeCurrentAndNavigate(targetPath) {
+                var target = normalize(targetPath || defaultTab.path);
+                var current = activePath;
+                var index = tabs.findIndex(function (tab) {
+                    return normalize(tab.path) === current;
+                });
+                if (index !== -1 && tabs[index].closable !== false) {
+                    tabs.splice(index, 1);
+                }
+                if (!tabs.length) {
+                    tabs = [defaultTab];
+                }
+                if (!tabs.some(function (tab) {
+                    return normalize(tab.path) === target;
+                })) {
+                    tabs.push({
+                        path: target,
+                        title: resolveTitle(target),
+                        closable: target !== defaultTab.path
+                    });
+                    limitTabs();
+                }
+                activePath = target;
+                persist();
+                renderTabs();
+                navigate(target, { skipRender: true });
+            }
+
             function navigate(path, options) {
                 var normalized = normalize(path);
                 activePath = normalized;
@@ -1933,6 +2156,7 @@ const adminMenuIcons = Object.fromEntries(
             window.__adminTabManager = {
                 close: closeTab,
                 closeOthers: closeOthers,
+                closeCurrentAndNavigate: closeCurrentAndNavigate,
                 navigate: navigate,
                 refresh: function () {
                     window.location.reload();
@@ -2086,11 +2310,16 @@ const adminMenuIcons = Object.fromEntries(
             var display = document.getElementById('currentHueDisplay');
             var resetBtn = document.getElementById('resetThemeBtn');
             var toggleBtn = document.getElementById('themeToggle');
+            var defaultHue = "165";
 
             // Sync with local storage on load (SPA persistence)
             var stored = localStorage.getItem('hue');
             if (stored) {
                 updateTheme(stored);
+            } else {
+                var style = getComputedStyle(document.documentElement);
+                var currentHue = style.getPropertyValue('--hue').trim() || defaultHue;
+                updateResetState(currentHue);
             }
 
             if (btn && dropdown) {
@@ -2125,18 +2354,40 @@ const adminMenuIcons = Object.fromEntries(
                 if (display) display.textContent = val;
             }
 
+            function updateResetState(val) {
+                if (!resetBtn) return;
+                var isDefault = String(val) === defaultHue;
+                resetBtn.disabled = isDefault;
+                resetBtn.setAttribute('aria-disabled', isDefault ? 'true' : 'false');
+                resetBtn.classList.toggle('hidden', isDefault);
+                resetBtn.classList.toggle('opacity-40', isDefault);
+                resetBtn.classList.toggle('cursor-not-allowed', isDefault);
+                resetBtn.classList.toggle('pointer-events-none', isDefault);
+            }
+
             function updateTheme(val) {
-                document.documentElement.style.setProperty('--hue', val);
-                document.documentElement.style.setProperty('--configHue', val);
-                document.documentElement.style.setProperty('--primary', `oklch(0.70 0.14 ${val})`);
-                document.documentElement.style.setProperty('--primary-light', `oklch(0.75 0.14 ${val})`);
-                document.documentElement.style.setProperty('--primary-dark', `oklch(0.65 0.14 ${val})`);
+                var hue = String(val);
+                document.documentElement.style.setProperty('--hue', hue);
+                document.documentElement.style.setProperty('--configHue', hue);
+                document.documentElement.style.setProperty('--primary', `oklch(0.70 0.14 ${hue})`);
+                document.documentElement.style.setProperty('--primary-light', `oklch(0.75 0.14 ${hue})`);
+                document.documentElement.style.setProperty('--primary-dark', `oklch(0.65 0.14 ${hue})`);
+                document.documentElement.style.setProperty('--page-bg', `oklch(0.97 0.012 ${hue})`);
+                document.documentElement.style.setProperty('--page-bg-dark', `oklch(0.16 0.015 ${hue})`);
+                document.documentElement.style.setProperty('--sidebar-bg', `oklch(0.98 0.008 ${hue})`);
+                document.documentElement.style.setProperty('--sidebar-bg-dark', `oklch(0.18 0.012 ${hue})`);
+                document.documentElement.style.setProperty('--btn-bg', `oklch(0.95 0.025 ${hue})`);
+                document.documentElement.style.setProperty('--btn-bg-hover', `oklch(0.9 0.05 ${hue})`);
+                document.documentElement.style.setProperty('--btn-bg-dark', `oklch(0.33 0.035 ${hue})`);
+                document.documentElement.style.setProperty('--btn-bg-hover-dark', `oklch(0.38 0.04 ${hue})`);
+                updateResetState(hue);
             }
 
             var timeout;
 
             function saveTheme(val) {
-                localStorage.setItem('hue', val);
+                var hue = String(val);
+                localStorage.setItem('hue', hue);
                 if (timeout) clearTimeout(timeout);
                 timeout = setTimeout(async function () {
                     try {
@@ -2150,7 +2401,7 @@ const adminMenuIcons = Object.fromEntries(
                                 'Authorization': 'Bearer ' + token
                             },
                             body: JSON.stringify({
-                                value: val
+                                value: hue
                             })
                         });
                     } catch (e) {
@@ -2170,7 +2421,7 @@ const adminMenuIcons = Object.fromEntries(
 
             if (resetBtn) {
                 resetBtn.addEventListener('click', function () {
-                    var val = 200;
+                    var val = defaultHue;
                     if (slider) {
                         slider.value = val;
                         updateThumb(val);
@@ -3116,25 +3367,37 @@ const adminMenuIcons = Object.fromEntries(
                                     ? '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg>'
                                     : '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg>';
 
+                                const dateLabel = new Date(post.published_at).toLocaleDateString();
+                                const mobileMeta = `
+                                    <div class="flex flex-wrap items-center gap-2 mt-2 text-[11px] text-zinc-500 md:hidden">
+                                        <div class="flex flex-wrap gap-1">${statusBadges.join("")}</div>
+                                        <span class="px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded">
+                                            ${post.category || t.uncategorized}
+                                        </span>
+                                        <span class="text-zinc-400">${dateLabel}</span>
+                                    </div>
+                                `;
+
                                 return `
                                         <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors ${post.pinned ? 'pinned-row' : ''}">
-                                            <td class="px-6 py-4">
+                                            <td class="px-4 md:px-6 py-4 align-top">
                                                 <div class="font-medium text-zinc-900 dark:text-zinc-100">${post.title}</div>
                                                 <div class="text-xs text-zinc-400 font-mono mt-1">${post.slug}</div>
+                                                ${mobileMeta}
                                             </td>
-                                            <td class="px-6 py-4 text-center">
+                                            <td class="px-4 md:px-6 py-4 text-center hidden md:table-cell">
                                                 <div class="flex flex-wrap gap-1 justify-center">${statusBadges.join("")}</div>
                                             </td>
-                                            <td class="px-6 py-4 text-center">
+                                            <td class="px-4 md:px-6 py-4 text-center hidden md:table-cell">
                                                 <span class="px-2 py-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-xs rounded">
                                                     ${post.category || t.uncategorized}
                                                 </span>
                                             </td>
-                                            <td class="px-6 py-4 text-sm text-zinc-500 text-center">
-                                                ${new Date(post.published_at).toLocaleDateString()}
+                                            <td class="px-4 md:px-6 py-4 text-sm text-zinc-500 text-center hidden md:table-cell">
+                                                ${dateLabel}
                                             </td>
-                                            <td class="px-6 py-4 text-center">
-                                                <div class="flex items-center gap-1 justify-center">
+                                            <td class="px-4 md:px-6 py-4 text-center">
+                                                <div class="flex items-center gap-1 justify-start md:justify-center">
                                                     <button onclick="togglePin('${post.id}')" class="p-2 ${post.pinned ? 'text-[var(--primary)]' : 'text-zinc-400'} hover:bg-[var(--primary)]/10 rounded-lg transition-colors" title="${post.pinned ? '取消置顶' : '置顶'}">
                                                         ${pinIcon}
                                                     </button>
@@ -3383,25 +3646,37 @@ const adminMenuIcons = Object.fromEntries(
                                 ? '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg>'
                                 : '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg>';
 
+                            const dateLabel = new Date(post.published_at).toLocaleDateString();
+                            const mobileMeta = `
+                                <div class="flex flex-wrap items-center gap-2 mt-2 text-[11px] text-zinc-500 md:hidden">
+                                    <div class="flex flex-wrap gap-1">${statusBadges.join("")}</div>
+                                    <span class="px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded">
+                                        ${post.category || t.uncategorized}
+                                    </span>
+                                    <span class="text-zinc-400">${dateLabel}</span>
+                                </div>
+                            `;
+
                             return `
                             <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors ${post.pinned ? 'pinned-row' : ''}">
-                                <td class="px-6 py-4">
+                                <td class="px-4 md:px-6 py-4 align-top">
                                     <div class="font-medium text-zinc-900 dark:text-zinc-100">${post.title}</div>
                                     <div class="text-xs text-zinc-400 font-mono mt-1">${post.slug}</div>
+                                    ${mobileMeta}
                                 </td>
-                                <td class="px-6 py-4 text-center">
+                                <td class="px-4 md:px-6 py-4 text-center hidden md:table-cell">
                                     <div class="flex flex-wrap gap-1 justify-center">${statusBadges.join("")}</div>
                                 </td>
-                                <td class="px-6 py-4 text-center">
+                                <td class="px-4 md:px-6 py-4 text-center hidden md:table-cell">
                                     <span class="px-2 py-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-xs rounded">
                                         ${post.category || t.uncategorized}
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 text-sm text-zinc-500 text-center">
-                                    ${new Date(post.published_at).toLocaleDateString()}
+                                <td class="px-4 md:px-6 py-4 text-sm text-zinc-500 text-center hidden md:table-cell">
+                                    ${dateLabel}
                                 </td>
-                                <td class="px-6 py-4 text-center">
-                                    <div class="flex items-center gap-1 justify-center">
+                                <td class="px-4 md:px-6 py-4 text-center">
+                                    <div class="flex items-center gap-1 justify-start md:justify-center">
                                         <button onclick="togglePin('${post.id}')" class="p-2 ${post.pinned ? 'text-[var(--primary)]' : 'text-zinc-400'} hover:bg-[var(--primary)]/10 rounded-lg transition-colors" title="${post.pinned ? '取消置顶' : '置顶'}">
                                             ${pinIcon}
                                         </button>

@@ -18,6 +18,11 @@ html {
     scroll-behavior: smooth;
 }
 
+body {
+    background-color: var(--page-bg);
+    transition: background-color var(--duration-medium, 0.3s) var(--ease-standard);
+}
+
 /* 页面顶部渐变高光效果 */
 .top-gradient-highlight {
     position: fixed;

@@ -25,15 +25,17 @@ const API_URL = getApiUrl();
     <div
         id="editorContainer"
         data-post-id={id}
-        class="h-[calc(100vh-64px)] overflow-hidden flex flex-col"
+        class="h-full flex flex-col overflow-hidden"
     >
         <!-- Header -->
         <div
-            class="px-8 py-4 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between shadow-sm z-10"
+            class="sticky top-0 z-20 px-4 sm:px-6 lg:px-8 py-3 sm:py-4 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between shadow-sm"
+            data-editor-header
         >
             <div class="flex items-center gap-4">
                 <a
-                    href="/admin"
+                    href="/admin/posts"
+                    data-admin-back="posts"
                     class="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors text-zinc-500"
                 >
                     <svg
@@ -50,14 +52,21 @@ const API_URL = getApiUrl();
                             d="M15 19l-7-7 7-7"></path>
                     </svg>
                 </a>
-                <h1 class="text-xl font-bold text-zinc-900 dark:text-zinc-100">
+                <h1 class="text-lg sm:text-xl font-bold text-zinc-900 dark:text-zinc-100">
                     {i18n(I18nKey.adminEditPost)}
                 </h1>
             </div>
             <div class="flex items-center gap-3">
                 <button
+                    type="button"
+                    id="openEditorImagePicker"
+                    class="px-4 py-2 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-sm text-zinc-700 dark:text-zinc-300 font-medium transition-all"
+                >
+                    插入 图片
+                </button>
+                <button
                     id="saveBtn"
-                    class="bg-[var(--primary)] dark:bg-zinc-800 hover:opacity-90 dark:hover:bg-zinc-700 text-white dark:text-zinc-100 px-6 py-2 rounded-xl font-bold transition-all shadow-md hover:shadow-lg active:scale-95 dark:border dark:border-indigo-500/50 dark:shadow-[0_0_15px_rgba(99,102,241,0.3)]"
+                    class="bg-[var(--primary)] dark:bg-zinc-800 hover:opacity-90 dark:hover:bg-zinc-700 text-white dark:text-zinc-100 px-4 sm:px-6 py-2 rounded-xl font-bold transition-all shadow-md hover:shadow-lg active:scale-95 dark:border dark:border-indigo-500/50 dark:shadow-[0_0_15px_rgba(99,102,241,0.3)]"
                     data-update-text={i18n(I18nKey.adminPostUpdate)}
                     data-updating-text={i18n(I18nKey.adminPostUpdating)}
                 >
@@ -66,23 +75,23 @@ const API_URL = getApiUrl();
             </div>
         </div>
 
-        <div class="flex-1 flex overflow-hidden">
+        <div class="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0">
             <!-- Left Side: Editor -->
             <div
-                class="flex-1 flex flex-col p-8 overflow-y-auto custom-scrollbar bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800"
+                class="flex-1 min-h-0 flex flex-col p-4 sm:p-6 lg:p-8 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 lg:border-b-0 lg:border-r"
             >
                 <input
                     type="text"
                     id="title"
                     placeholder={i18n(I18nKey.adminPostTitlePlaceholder)}
-                    class="text-4xl font-bold bg-transparent border-none outline-none mb-6 placeholder:text-zinc-300 dark:placeholder:text-zinc-700 text-zinc-900 dark:text-zinc-100"
+                    class="text-2xl sm:text-3xl lg:text-4xl font-bold bg-transparent border-none outline-none mb-6 placeholder:text-zinc-300 dark:placeholder:text-zinc-700 text-zinc-900 dark:text-zinc-100"
                 />
-                <div id="vditor" class="flex-1 border-none shadow-none"></div>
+                <div id="vditor" class="flex-1 min-h-0 border-none shadow-none"></div>
             </div>
 
             <!-- Right Side: Settings -->
             <div
-                class="w-80 bg-zinc-50/50 dark:bg-zinc-950/50 p-6 overflow-y-auto custom-scrollbar backdrop-blur-sm"
+                class="w-full lg:w-80 min-h-0 overflow-y-auto bg-zinc-50/50 dark:bg-zinc-950/50 p-4 sm:p-6 lg:p-6 custom-scrollbar backdrop-blur-sm border-t border-zinc-200 dark:border-zinc-800 lg:border-t-0"
             >
                 <div class="space-y-8">
                     <!-- Basic Info Section -->
@@ -116,12 +125,28 @@ const API_URL = getApiUrl();
                                     class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight"
                                     >{i18n(I18nKey.adminPostCategoryLabel)}</label
                                 >
-                                <select
-                                    id="category"
-                                    class="admin-input"
-                                >
-                                    <option value="">{i18n(I18nKey.adminPostCategoryPlaceholder)}</option>
-                                </select>
+                                <div class="custom-select" id="categorySelector">
+                                    <div class="custom-select-trigger" id="categorySelectorTrigger">
+                                        <span class="custom-select-value placeholder" id="categoryValue" data-placeholder={i18n(I18nKey.adminPostCategoryPlaceholder)}>
+                                            {i18n(I18nKey.adminPostCategoryPlaceholder)}
+                                        </span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="custom-select-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </div>
+                                    <div class="custom-select-dropdown hidden" id="categoryDropdown">
+                                        <div class="custom-select-search">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                            </svg>
+                                            <input type="text" id="categorySearch" placeholder="搜索分类..." />
+                                        </div>
+                                        <div class="custom-select-options" id="categoryOptions">
+                                            <!-- 分类选项会通过 JS 动态填充 -->
+                                        </div>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="category" value="" />
                             </div>
                             <div>
                                 <label
@@ -155,12 +180,21 @@ const API_URL = getApiUrl();
                                 class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight"
                                 >{i18n(I18nKey.adminPostImage)}</label
                             >
-                            <input
-                                id="image"
-                                type="text"
-                                placeholder={i18n(I18nKey.adminPostImagePlaceholder)}
-                                class="admin-input"
-                            />
+                            <div class="flex items-center gap-2">
+                                <input
+                                    id="image"
+                                    type="text"
+                                    placeholder={i18n(I18nKey.adminPostImagePlaceholder)}
+                                    class="admin-input flex-1"
+                                />
+                                <button
+                                    type="button"
+                                    id="openCoverPicker"
+                                    class="h-[46px] px-3 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-sm text-zinc-700 dark:text-zinc-300 text-sm font-medium transition-all flex items-center justify-center"
+                                >
+                                    从媒体库
+                                </button>
+                            </div>
                             <div
                                 id="imagePreview"
                                 class="mt-2 w-full aspect-video rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 hidden"
@@ -193,32 +227,40 @@ const API_URL = getApiUrl();
                                     class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight"
                                     >{i18n(I18nKey.adminPostPassword)}</label
                                 >
-                                <input
-                                    id="password"
-                                    type="password"
-                                    placeholder={i18n(I18nKey.adminPostPasswordPlaceholder)}
-                                    class="admin-input"
-                                />
-                            </div>
-                            <!-- 置顶开关 -->
-                            <div
-                                class="flex items-center gap-3 cursor-pointer group"
-                                id="pinnedToggle"
-                            >
-                                <div
-                                    class="w-10 h-6 bg-zinc-200 dark:bg-zinc-800 rounded-full relative transition-colors duration-300"
-                                    id="pinnedToggleTrack"
-                                >
-                                    <div
-                                        class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 shadow-sm"
-                                        id="pinnedToggleHandle"
+                                <div class="relative">
+                                    <input
+                                        id="password"
+                                        type="password"
+                                        placeholder={i18n(I18nKey.adminPostPasswordPlaceholder)}
+                                        class="admin-input pr-12"
+                                    />
+                                    <button
+                                        type="button"
+                                        id="password-toggle"
+                                        class="admin-password-toggle"
+                                        aria-label="显示密码"
+                                        title="显示密码"
                                     >
-                                    </div>
+                                        <svg data-eye="show" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12z"></path>
+                                            <circle cx="12" cy="12" r="3.5"></circle>
+                                        </svg>
+                                        <svg data-eye="hide" class="w-5 h-5 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M3 3l18 18"></path>
+                                            <path d="M10.5 5.2A9.9 9.9 0 0 1 12 5c6 0 9.5 7 9.5 7a18.2 18.2 0 0 1-4 4.8"></path>
+                                            <path d="M6.4 6.4A18.4 18.4 0 0 0 2.5 12s3.5 6.5 9.5 6.5c1.6 0 3-.4 4.2-1"></path>
+                                            <path d="M9.9 9.9a3.5 3.5 0 0 0 4.2 4.2"></path>
+                                        </svg>
+                                    </button>
                                 </div>
-                                <span
-                                    class="text-sm font-medium text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 transition-colors"
-                                    >{i18n(I18nKey.pinned)}</span
-                                >
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight">是否置顶</label>
+                                <button type="button" class="pinned-toggle" id="pinnedToggle" aria-pressed="false">
+                                    <span class="pinned-toggle-track" id="pinnedToggleTrack">
+                                        <span class="pinned-toggle-handle" id="pinnedToggleHandle"></span>
+                                    </span>
+                                </button>
                             </div>
                             <!-- 置顶排序 -->
                             <div id="pinOrderContainer" class="hidden">
@@ -237,11 +279,37 @@ const API_URL = getApiUrl();
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight">发布状态</label>
-                                <select id="statusSelect" class="admin-input">
-                                    <option value="published">{i18n(I18nKey.adminPostPublish)}</option>
-                                    <option value="draft">保存草稿</option>
-                                    <option value="scheduled">定时发布</option>
-                                </select>
+                                <div class="custom-select" id="statusSelector">
+                                    <div class="custom-select-trigger" id="statusTrigger">
+                                        <span class="custom-select-value" id="statusValue">保存草稿</span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="custom-select-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </div>
+                                    <div class="custom-select-dropdown hidden" id="statusDropdown">
+                                        <div class="custom-select-options" id="statusOptions">
+                                            <div class="custom-select-option" data-value="published">
+                                                <span class="custom-select-option-name">{i18n(I18nKey.adminPostPublish)}</span>
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="custom-select-option-check" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            </div>
+                                            <div class="custom-select-option selected" data-value="draft">
+                                                <span class="custom-select-option-name">保存草稿</span>
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="custom-select-option-check" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            </div>
+                                            <div class="custom-select-option" data-value="scheduled">
+                                                <span class="custom-select-option-name">定时发布</span>
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="custom-select-option-check" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="statusSelect" value="draft" />
                                 <p class="text-xs text-zinc-400 mt-2">选择文章发布方式，定时发布需要设置具体时间。</p>
                             </div>
                             <div>
@@ -305,6 +373,31 @@ const API_URL = getApiUrl();
         // 使用页面特定的标识符来检测重复初始化
         var pageId = document.getElementById("editorContainer")?.dataset.postId;
         var initKey = '_editPage_' + pageId + '_initialized';
+        var backButton = document.querySelector('[data-admin-back="posts"]');
+
+        function bindBackButton() {
+            if (!backButton || backButton.dataset.bound === "true") {
+                return;
+            }
+            backButton.dataset.bound = "true";
+            backButton.addEventListener("click", function (event) {
+                event.preventDefault();
+                if (window.__adminTabManager && typeof window.__adminTabManager.closeCurrentAndNavigate === "function") {
+                    window.__adminTabManager.closeCurrentAndNavigate("/admin/posts");
+                    return;
+                }
+                if (window.__adminTabManager && typeof window.__adminTabManager.close === "function") {
+                    window.__adminTabManager.close(window.location.pathname);
+                }
+                if (window.__adminTabManager && typeof window.__adminTabManager.navigate === "function") {
+                    window.__adminTabManager.navigate("/admin/posts");
+                } else {
+                    window.location.href = "/admin/posts";
+                }
+            });
+        }
+
+        bindBackButton();
 
         // Prevent duplicate initialization for the same post
         if (window[initKey]) {
@@ -323,17 +416,26 @@ const API_URL = getApiUrl();
         let initTimer = null;
         let selectedTagIds = []; // 存储选中的标签ID
         let allTags = []; // 存储所有标签数据
-        let currentPostCategory = ''; // 存储当前文章的分类
+        let allCategories = []; // 存储所有分类数据
+        let selectedCategory = ''; // 当前选中的分类
         let currentPostTags = []; // 存储当前文章的标签
         const statusSelect = document.getElementById("statusSelect");
+        const statusSelector = document.getElementById("statusSelector");
+        const statusTrigger = document.getElementById("statusTrigger");
+        const statusDropdown = document.getElementById("statusDropdown");
+        const statusValue = document.getElementById("statusValue");
+        const statusOptions = document.getElementById("statusOptions");
         const scheduledAtInput = document.getElementById("scheduledAt");
         const scheduledWrapper = document.getElementById("scheduledWrapper");
         const publishedAtInput = document.getElementById("publishedAt");
+        const passwordInput = document.getElementById("password");
+        const passwordToggle = document.getElementById("password-toggle");
         const autosaveNotice = document.getElementById("autosaveNotice");
         const loadAutosaveBtn = document.getElementById("loadAutosaveBtn");
         const discardAutosaveBtn = document.getElementById("discardAutosaveBtn");
         const autosaveStatus = document.getElementById("autosaveStatus");
         const revisionList = document.getElementById("revisionList");
+        let currentPostId = null;
         let autosaveTimer = null;
         const AUTOSAVE_INTERVAL = 30000;
         let lastAutosaveSignature = "";
@@ -367,13 +469,285 @@ const API_URL = getApiUrl();
             }
         }
 
-        statusSelect?.addEventListener("change", function(event) {
-            updateStatusUI(event.target.value);
-        });
-        if (statusSelect) {
-            statusSelect.value = postStatus;
+        function syncStatusUI(value) {
+            updateStatusUI(value);
+            if (statusOptions) {
+                statusOptions.querySelectorAll(".custom-select-option").forEach(function(option) {
+                    const isSelected = option.dataset.value === value;
+                    option.classList.toggle("selected", isSelected);
+                    if (isSelected && statusValue) {
+                        const labelEl = option.querySelector(".custom-select-option-name");
+                        statusValue.textContent = labelEl ? labelEl.textContent : value;
+                    }
+                });
+            } else if (statusValue) {
+                statusValue.textContent = value;
+            }
         }
-        updateStatusUI(postStatus);
+
+        function setStatusValue(value) {
+            if (!statusSelect) return;
+            const nextValue = value || "draft";
+            statusSelect.value = nextValue;
+            syncStatusUI(nextValue);
+        }
+
+        function openStatusDropdown() {
+            if (statusSelector) statusSelector.classList.add("open");
+            if (statusDropdown) statusDropdown.classList.remove("hidden");
+        }
+
+        function closeStatusDropdown() {
+            if (statusSelector) statusSelector.classList.remove("open");
+            if (statusDropdown) statusDropdown.classList.add("hidden");
+        }
+
+        function initStatusSelector() {
+            if (!statusSelector || !statusTrigger || !statusDropdown || !statusOptions) {
+                return;
+            }
+            if (statusSelector.dataset.bound === "true") {
+                return;
+            }
+            statusSelector.dataset.bound = "true";
+
+            statusTrigger.addEventListener("click", function(e) {
+                e.stopPropagation();
+                if (statusSelector.classList.contains("open")) {
+                    closeStatusDropdown();
+                } else {
+                    openStatusDropdown();
+                }
+            });
+
+            statusOptions.querySelectorAll(".custom-select-option").forEach(function(option) {
+                option.addEventListener("click", function() {
+                    setStatusValue(option.dataset.value);
+                    closeStatusDropdown();
+                });
+            });
+
+            document.addEventListener("click", function(e) {
+                if (!statusSelector.contains(e.target)) {
+                    closeStatusDropdown();
+                }
+            });
+        }
+
+        statusSelect?.addEventListener("change", function(event) {
+            syncStatusUI(event.target.value);
+        });
+        initStatusSelector();
+        setStatusValue(statusSelect ? statusSelect.value : postStatus);
+        setupMediaPicker();
+
+        function setupMediaPicker() {
+            var modal = document.getElementById("mediaPickerModal");
+            if (!modal || modal.dataset.bound === "true") {
+                return;
+            }
+            modal.dataset.bound = "true";
+
+            var openCoverBtn = document.getElementById("openCoverPicker");
+            var openEditorBtn = document.getElementById("openEditorImagePicker");
+            var closeBtn = document.getElementById("mediaPickerClose");
+            var searchInput = document.getElementById("mediaPickerSearch");
+            var grid = document.getElementById("mediaPickerGrid");
+            var countEl = document.getElementById("mediaPickerCount");
+            var prevBtn = document.getElementById("mediaPickerPrev");
+            var nextBtn = document.getElementById("mediaPickerNext");
+            var pageEl = document.getElementById("mediaPickerPage");
+
+            var pickerMode = "cover";
+            var currentPage = 1;
+            var totalPages = 1;
+            var keyword = "";
+            var searchTimer = null;
+
+            function getEditorInstance() {
+                return window._editPageVditor || vditor;
+            }
+
+            function sanitizeAlt(text) {
+                return (text || "image").replace(/\]/g, "\\]");
+            }
+
+            function isImageItem(item) {
+                if (item.mime_type && item.mime_type.indexOf("image/") === 0) {
+                    return true;
+                }
+                var name = item.filename || "";
+                var ext = name.toLowerCase().split(".").pop();
+                return ["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(ext);
+            }
+
+            function setCoverImage(url) {
+                var imageInput = document.getElementById("image");
+                if (!imageInput) return;
+                imageInput.value = url;
+                imageInput.dispatchEvent(new Event("input"));
+            }
+
+            function insertImageToEditor(url, name) {
+                var editor = getEditorInstance();
+                if (!editor || typeof editor.insertValue !== "function") {
+                    window.showAdminAlert("编辑器尚未就绪，请稍后重试", "warning");
+                    return;
+                }
+                var alt = sanitizeAlt(name || "image");
+                editor.insertValue("![" + alt + "](" + url + ")");
+            }
+
+            function openPicker(mode) {
+                pickerMode = mode;
+                currentPage = 1;
+                keyword = "";
+                if (searchInput) searchInput.value = "";
+                modal.classList.remove("hidden");
+                modal.classList.add("flex");
+                loadMedia();
+            }
+
+            function closePicker() {
+                modal.classList.add("hidden");
+                modal.classList.remove("flex");
+            }
+
+            async function loadMedia() {
+                if (!grid) return;
+                grid.innerHTML = '<div class="col-span-full text-center text-sm text-zinc-500 py-10">加载中...</div>';
+
+                try {
+                    var query = "page=" + currentPage + "&page_size=40";
+                    if (keyword) {
+                        query += "&keyword=" + encodeURIComponent(keyword);
+                    }
+                    var result = await window.adminRequest(API_URL + "/upload/media?" + query, {
+                        headers: {
+                            "Authorization": "Bearer " + localStorage.getItem("adminToken")
+                        }
+                    });
+
+                    if (!result.ok) {
+                        throw new Error(result.msg || "加载失败");
+                    }
+
+                    var data = result.data || {};
+                    var items = (data.items || []).filter(isImageItem);
+                    var total = data.pagination ? data.pagination.total : items.length;
+                    totalPages = data.pagination ? data.pagination.total_pages : 1;
+
+                    if (countEl) {
+                        countEl.textContent = "共 " + total + " 张图片";
+                    }
+                    if (pageEl) {
+                        pageEl.textContent = currentPage + "/" + (totalPages || 1);
+                    }
+                    if (prevBtn) prevBtn.disabled = currentPage <= 1;
+                    if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
+
+                    if (items.length === 0) {
+                        grid.innerHTML = '<div class="col-span-full text-center text-sm text-zinc-500 py-10">暂无图片</div>';
+                        return;
+                    }
+
+                    grid.innerHTML = items.map(function(item) {
+                        var name = item.original_name || item.filename || "image";
+                        return '' +
+                            '<button type="button" class="group text-left rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 hover:border-[var(--primary)]/50 transition-all" data-url="' + item.url + '" data-name="' + name + '">' +
+                                '<div class="aspect-square bg-zinc-100 dark:bg-zinc-800 overflow-hidden">' +
+                                    '<img src="' + item.url + '" alt="' + name + '" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform" />' +
+                                '</div>' +
+                                '<div class="px-2 py-1.5 text-xs text-zinc-600 dark:text-zinc-300 truncate">' + name + '</div>' +
+                            '</button>';
+                    }).join("");
+
+                    grid.querySelectorAll("button[data-url]").forEach(function(btn) {
+                        btn.addEventListener("click", function() {
+                            var url = this.dataset.url;
+                            var name = this.dataset.name || "image";
+                            if (pickerMode === "cover") {
+                                setCoverImage(url);
+                            } else {
+                                insertImageToEditor(url, name);
+                            }
+                            closePicker();
+                        });
+                    });
+                } catch (err) {
+                    console.error("加载媒体失败:", err);
+                    grid.innerHTML = '<div class="col-span-full text-center text-sm text-red-500 py-10">加载失败</div>';
+                }
+            }
+
+            openCoverBtn?.addEventListener("click", function() {
+                openPicker("cover");
+            });
+
+            openEditorBtn?.addEventListener("click", function() {
+                openPicker("editor");
+            });
+
+            closeBtn?.addEventListener("click", closePicker);
+            modal?.addEventListener("click", function(e) {
+                if (e.target === modal) {
+                    closePicker();
+                }
+            });
+
+            searchInput?.addEventListener("input", function() {
+                keyword = this.value.trim();
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(function() {
+                    currentPage = 1;
+                    loadMedia();
+                }, 300);
+            });
+
+            prevBtn?.addEventListener("click", function() {
+                if (currentPage > 1) {
+                    currentPage -= 1;
+                    loadMedia();
+                }
+            });
+
+            nextBtn?.addEventListener("click", function() {
+                if (currentPage < totalPages) {
+                    currentPage += 1;
+                    loadMedia();
+                }
+            });
+        }
+
+        function initPasswordToggle() {
+            if (!passwordInput || !passwordToggle) {
+                return;
+            }
+            if (passwordToggle.dataset.bound === "true") {
+                return;
+            }
+            passwordToggle.dataset.bound = "true";
+
+            const showIcon = passwordToggle.querySelector('[data-eye="show"]');
+            const hideIcon = passwordToggle.querySelector('[data-eye="hide"]');
+
+            function updatePasswordVisibility(isVisible) {
+                passwordInput.type = isVisible ? "text" : "password";
+                passwordToggle.setAttribute("aria-label", isVisible ? "隐藏密码" : "显示密码");
+                passwordToggle.setAttribute("title", isVisible ? "隐藏密码" : "显示密码");
+                if (showIcon) showIcon.classList.toggle("hidden", isVisible);
+                if (hideIcon) hideIcon.classList.toggle("hidden", !isVisible);
+            }
+
+            let isVisible = false;
+            updatePasswordVisibility(isVisible);
+
+            passwordToggle.addEventListener("click", function () {
+                isVisible = !isVisible;
+                updatePasswordVisibility(isVisible);
+                passwordInput.focus();
+            });
+        }
 
         function updateAutosaveStatus(savedAt) {
             if (!autosaveStatus) return;
@@ -433,10 +807,7 @@ const API_URL = getApiUrl();
             if (passwordEl) passwordEl.value = payload.password || "";
 
             if (payload.category_name) {
-                const categorySelect = document.getElementById("category");
-                if (categorySelect) {
-                    categorySelect.value = payload.category_name;
-                }
+                selectCategory(payload.category_name);
             }
             if (payload.tags && payload.tags.length) {
                 currentPostTags = payload.tags;
@@ -557,6 +928,16 @@ const API_URL = getApiUrl();
             }
         }
 
+        function resolvePostId() {
+            if (currentPostId) return currentPostId;
+            const container = document.getElementById("editorContainer");
+            const postId = container ? container.dataset.postId : null;
+            if (postId) {
+                currentPostId = postId;
+            }
+            return postId;
+        }
+
         async function loadRevisions(postId) {
             if (!revisionList || !postId) return;
             try {
@@ -575,20 +956,17 @@ const API_URL = getApiUrl();
                     }
                     revisionList.innerHTML = revisions.map(function(rev) {
                         const date = new Date(rev.created_at).toLocaleString();
-                        return '<div class="p-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/40 flex items-center justify-between gap-3">' +
-                            '<div>' +
-                                '<p class="font-medium text-zinc-800 dark:text-zinc-100 text-sm">' + rev.title + '</p>' +
-                                '<p class="text-[11px] text-zinc-400">' + date + (rev.editor ? ' · ' + rev.editor : '') + '</p>' +
+                        return '<div class="p-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/40 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">' +
+                            '<div class="min-w-0">' +
+                                '<p class="font-medium text-zinc-800 dark:text-zinc-100 text-sm truncate">' + rev.title + '</p>' +
+                                '<p class="text-[11px] text-zinc-400 truncate">' + date + (rev.editor ? ' · ' + rev.editor : '') + '</p>' +
                             '</div>' +
-                            '<button type="button" class="px-3 py-1 text-xs rounded-lg border border-indigo-300 text-indigo-600 hover:bg-indigo-50 dark:text-indigo-300" data-revision="' + rev.id + '">恢复</button>' +
+                            '<div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:shrink-0">' +
+                                '<button type="button" class="w-full sm:w-auto px-3 py-1 text-xs rounded-lg border border-zinc-300 text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800 whitespace-nowrap" data-revision-restore="' + rev.id + '">恢复</button>' +
+                                '<button type="button" class="w-full sm:w-auto px-3 py-1 text-xs rounded-lg border border-rose-300 text-rose-600 hover:bg-rose-50 dark:border-rose-400/40 dark:text-rose-300 dark:hover:bg-rose-900/20 whitespace-nowrap" data-revision-delete="' + rev.id + '">删除</button>' +
+                            '</div>' +
                         '</div>';
                     }).join('');
-
-                    revisionList.querySelectorAll("[data-revision]").forEach(function(btn) {
-                        btn.addEventListener("click", function() {
-                            restoreRevision(postId, btn.dataset.revision);
-                        });
-                    });
                 } else {
                     revisionList.innerHTML = '<p class="text-xs text-red-400">加载版本记录失败</p>';
                 }
@@ -597,6 +975,36 @@ const API_URL = getApiUrl();
                 revisionList.innerHTML = '<p class="text-xs text-red-400">加载版本记录失败</p>';
             }
         }
+
+        function bindRevisionListEvents() {
+            if (!revisionList || revisionList.dataset.bound === "true") return;
+            revisionList.dataset.bound = "true";
+            revisionList.addEventListener("click", function(event) {
+                const restoreBtn = event.target.closest("[data-revision-restore]");
+                if (restoreBtn) {
+                    event.preventDefault();
+                    const postId = resolvePostId();
+                    if (!postId) {
+                        window.showAdminAlert("无法识别文章ID", "error");
+                        return;
+                    }
+                    restoreRevision(postId, restoreBtn.dataset.revisionRestore);
+                    return;
+                }
+                const deleteBtn = event.target.closest("[data-revision-delete]");
+                if (deleteBtn) {
+                    event.preventDefault();
+                    const postId = resolvePostId();
+                    if (!postId) {
+                        window.showAdminAlert("无法识别文章ID", "error");
+                        return;
+                    }
+                    deleteRevision(postId, deleteBtn.dataset.revisionDelete);
+                }
+            });
+        }
+
+        bindRevisionListEvents();
 
         async function restoreRevision(postId, revisionId) {
             if (!postId || !revisionId) return;
@@ -622,39 +1030,168 @@ const API_URL = getApiUrl();
             }
         }
 
+        async function deleteRevision(postId, revisionId) {
+            if (!postId || !revisionId) return;
+            const token = localStorage.getItem("adminToken");
+            if (!token) return;
+
+            var confirmed = true;
+            if (window.showAdminConfirm) {
+                confirmed = await window.showAdminConfirm("确定删除该历史版本吗？");
+            } else {
+                confirmed = window.confirm("确定删除该历史版本吗？");
+            }
+            if (!confirmed) {
+                return;
+            }
+
+            try {
+                const result = await window.adminRequest(`${API_URL}/posts/${postId}/revisions/${revisionId}`, {
+                    method: "DELETE",
+                    headers: {
+                        Authorization: "Bearer " + token
+                    }
+                });
+                if (result.ok) {
+                    window.showAdminAlert("历史版本已删除", "success");
+                    loadRevisions(postId);
+                } else {
+                    window.showAdminAlert("删除失败: " + (result.msg || "未知错误"), "error");
+                }
+            } catch (err) {
+                console.error("删除版本失败:", err);
+                window.showAdminAlert("删除失败: " + err.message, "error");
+            }
+        }
+
         // 加载分类列表
-        async function loadCategories(selectedCategory) {
-            const categorySelect = document.getElementById('category');
-            if (!categorySelect) return;
+        async function loadCategories(categoryName) {
+            const categoryOptions = document.getElementById('categoryOptions');
+            if (!categoryOptions) return;
+
+            selectedCategory = categoryName || '';
 
             try {
                 const result = await window.adminRequest(API_URL + '/categories');
-                if (result.ok) {
-                    const categories = result.data || [];
-                    // 保留第一个占位选项
-                    const placeholder = categorySelect.querySelector('option');
-                    categorySelect.innerHTML = '';
-                    if (placeholder) categorySelect.appendChild(placeholder);
-
-                    categories.forEach(function(cat) {
-                        if (cat.enabled) {
-                            const option = document.createElement('option');
-                            option.value = cat.name;
-                            option.textContent = cat.name;
-                            if (cat.color) {
-                                option.style.color = cat.color;
-                            }
-                            // 如果是当前文章的分类，设置为选中
-                            if (selectedCategory && cat.name === selectedCategory) {
-                                option.selected = true;
-                            }
-                            categorySelect.appendChild(option);
-                        }
-                    });
+            if (result.ok) {
+                allCategories = (result.data || []).filter(c => c.enabled);
+                renderCategoryOptions();
+                initCategorySelector();
+                const hasSelected = selectedCategory && allCategories.some(function(cat) { return cat.name === selectedCategory; });
+                if (!hasSelected && allCategories.length) {
+                    selectedCategory = allCategories[0].name || '';
                 }
+                selectCategory(selectedCategory);
+            }
             } catch (err) {
                 console.error('加载分类失败:', err);
+                categoryOptions.innerHTML = '<div class="custom-select-empty">加载分类失败</div>';
             }
+        }
+
+        // 渲染分类选项
+        function renderCategoryOptions(filter = '') {
+            const categoryOptions = document.getElementById('categoryOptions');
+            if (!categoryOptions) return;
+
+            const filtered = filter
+                ? allCategories.filter(c => c.name.toLowerCase().includes(filter.toLowerCase()))
+                : allCategories;
+
+            if (filtered.length === 0) {
+                categoryOptions.innerHTML = '<div class="custom-select-empty">' + (filter ? '未找到匹配的分类' : '暂无可用分类') + '</div>';
+                return;
+            }
+
+            categoryOptions.innerHTML = filtered.map(function(cat) {
+                const isSelected = selectedCategory === cat.name;
+                return '<div class="custom-select-option' + (isSelected ? ' selected' : '') + '" data-value="' + cat.name + '">' +
+                    '<span class="custom-select-option-name">' + cat.name + '</span>' +
+                    '<svg xmlns="http://www.w3.org/2000/svg" class="custom-select-option-check" fill="none" viewBox="0 0 24 24" stroke="currentColor">' +
+                        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />' +
+                    '</svg>' +
+                '</div>';
+            }).join('');
+
+            categoryOptions.querySelectorAll('.custom-select-option').forEach(function(option) {
+                option.addEventListener('click', function() {
+                    selectCategory(option.dataset.value);
+                });
+            });
+        }
+
+        // 选择分类
+        function selectCategory(value) {
+            const normalized = value || '';
+            const exists = normalized && allCategories.some(function(cat) { return cat.name === normalized; });
+            selectedCategory = exists ? normalized : '';
+            const categoryInput = document.getElementById('category');
+            const categoryValue = document.getElementById('categoryValue');
+            const placeholder = categoryValue ? categoryValue.dataset.placeholder : '';
+
+            if (categoryInput) categoryInput.value = selectedCategory;
+            if (categoryValue) {
+                categoryValue.textContent = selectedCategory || placeholder;
+                categoryValue.classList.toggle('placeholder', !selectedCategory);
+            }
+
+            renderCategoryOptions();
+            closeCategoryDropdown();
+        }
+
+        // 初始化分类选择器交互
+        function initCategorySelector() {
+            const selector = document.getElementById('categorySelector');
+            const trigger = document.getElementById('categorySelectorTrigger');
+            const dropdown = document.getElementById('categoryDropdown');
+            const searchInput = document.getElementById('categorySearch');
+
+            if (!selector || !trigger || !dropdown) return;
+            if (selector.dataset.bound === 'true') return;
+            selector.dataset.bound = 'true';
+
+            trigger.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (selector.classList.contains('open')) {
+                    closeCategoryDropdown();
+                } else {
+                    openCategoryDropdown();
+                }
+            });
+
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    renderCategoryOptions(searchInput.value);
+                });
+            }
+
+            document.addEventListener('click', function(e) {
+                if (!selector.contains(e.target)) {
+                    closeCategoryDropdown();
+                }
+            });
+        }
+
+        function openCategoryDropdown() {
+            const selector = document.getElementById('categorySelector');
+            const dropdown = document.getElementById('categoryDropdown');
+            const searchInput = document.getElementById('categorySearch');
+
+            if (selector) selector.classList.add('open');
+            if (dropdown) dropdown.classList.remove('hidden');
+            if (searchInput) {
+                searchInput.value = '';
+                searchInput.focus();
+            }
+            renderCategoryOptions();
+        }
+
+        function closeCategoryDropdown() {
+            const selector = document.getElementById('categorySelector');
+            const dropdown = document.getElementById('categoryDropdown');
+
+            if (selector) selector.classList.remove('open');
+            if (dropdown) dropdown.classList.add('hidden');
         }
 
         // 加载标签列表
@@ -784,6 +1321,9 @@ const API_URL = getApiUrl();
                 return;
             }
 
+            currentPostId = postId;
+            bindRevisionListEvents();
+
             console.log("Initializing Vditor for post:", postId);
 
             // Initialize Vditor - 使用本地资源
@@ -846,17 +1386,13 @@ const API_URL = getApiUrl();
                     }
 
                     postStatus = data.status || (data.is_draft ? "draft" : "published");
-                    if (statusSelect) {
-                        statusSelect.value = postStatus;
-                    }
+                    setStatusValue(postStatus);
                     if (publishedAtInput) {
                         publishedAtInput.value = formatDatetimeForInput(data.published_at);
                     }
                     if (scheduledAtInput) {
                         scheduledAtInput.value = formatDatetimeForInput(data.scheduled_at);
                     }
-                    updateStatusUI(postStatus);
-
                     // Handle pinned status
                     if (data.pinned) {
                         isPinned = true;
@@ -900,20 +1436,21 @@ const API_URL = getApiUrl();
             var track = document.getElementById("pinnedToggleTrack");
             var handle = document.getElementById("pinnedToggleHandle");
             var pinOrderContainer = document.getElementById("pinOrderContainer");
+            var toggleBtn = document.getElementById("pinnedToggle");
             if (isPinned) {
                 if (track) {
-                    track.classList.add("bg-indigo-500");
-                    track.classList.remove("bg-zinc-200", "dark:bg-zinc-800");
+                    track.classList.add("is-active");
                 }
                 if (handle) handle.classList.add("translate-x-4");
                 if (pinOrderContainer) pinOrderContainer.classList.remove("hidden");
+                if (toggleBtn) toggleBtn.setAttribute("aria-pressed", "true");
             } else {
                 if (track) {
-                    track.classList.remove("bg-indigo-500");
-                    track.classList.add("bg-zinc-200", "dark:bg-zinc-800");
+                    track.classList.remove("is-active");
                 }
                 if (handle) handle.classList.remove("translate-x-4");
                 if (pinOrderContainer) pinOrderContainer.classList.add("hidden");
+                if (toggleBtn) toggleBtn.setAttribute("aria-pressed", "false");
             }
         }
 
@@ -1053,7 +1590,11 @@ const API_URL = getApiUrl();
                     if (result.ok) {
                         // Clear initialization flag for next visit
                         window._editPageInitialized = false;
-                        window.location.href = "/admin/posts";
+                        if (window.__adminTabManager && typeof window.__adminTabManager.closeCurrentAndNavigate === "function") {
+                            window.__adminTabManager.closeCurrentAndNavigate("/admin/posts");
+                        } else {
+                            window.location.href = "/admin/posts";
+                        }
                     } else {
                         var errorMsg = result.msg || "Unknown error";
                         window.showAdminAlert((t.saveFailed || 'Update failed') + ": " + errorMsg, "error");
@@ -1067,6 +1608,41 @@ const API_URL = getApiUrl();
                     saveBtn.innerHTML = saveBtn.dataset.updateText || "Update Post";
                 }
             });
+        }
+
+        function triggerInit() {
+            if (!window.location.pathname.includes('/admin/edit')) {
+                return;
+            }
+            syncEditorHeaderHeight();
+            setupMediaPicker();
+            if (window._editPageVditor) {
+                try {
+                    window._editPageVditor.destroy();
+                } catch (e) {}
+                window._editPageVditor = null;
+            }
+            if (initTimer) {
+                clearTimeout(initTimer);
+                initTimer = null;
+            }
+            vditor = null;
+            initPasswordToggle();
+            setTimeout(init, 100);
+        }
+
+        document.addEventListener('astro:page-load', triggerInit);
+
+        function syncEditorHeaderHeight() {
+            var header = document.querySelector('[data-editor-header]');
+            if (!header) return;
+            var height = header.offsetHeight || 0;
+            document.documentElement.style.setProperty('--admin-editor-header-height', height + 'px');
+        }
+
+        if (!window._adminEditorHeaderBound) {
+            window._adminEditorHeaderBound = true;
+            window.addEventListener('resize', syncEditorHeaderHeight);
         }
 
         // Clear initialization flag when leaving page
@@ -1083,11 +1659,40 @@ const API_URL = getApiUrl();
                 window._editPageVditor = null;
             }
         });
-
-        // Start initialization
-        setTimeout(init, 100);
     })();
     </script>
+
+    <!-- 媒体库选择器 -->
+    <div id="mediaPickerModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-5xl border border-zinc-200 dark:border-zinc-800 shadow-2xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-bold text-zinc-900 dark:text-zinc-100">选择图片</h3>
+                    <p class="text-xs text-zinc-500">从媒体库选择插入或作为封面</p>
+                </div>
+                <button id="mediaPickerClose" class="w-9 h-9 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-500 hover:bg-zinc-200 dark:hover:bg-zinc-700 flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="p-4 flex flex-col gap-3">
+                <div class="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+                    <div class="relative w-full sm:w-72">
+                        <input id="mediaPickerSearch" type="text" placeholder="搜索图片..." class="w-full px-4 h-10 pl-10 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-sm focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent outline-none transition-all" />
+                        <svg class="w-5 h-5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </div>
+                    <div class="text-xs text-zinc-500" id="mediaPickerCount">0</div>
+                </div>
+                <div id="mediaPickerGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 min-h-[240px]">
+                    <div class="col-span-full text-center text-sm text-zinc-500 py-10">加载中...</div>
+                </div>
+                <div class="flex items-center justify-between text-sm text-zinc-500">
+                    <button id="mediaPickerPrev" class="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">上一页</button>
+                    <span id="mediaPickerPage">1/1</span>
+                    <button id="mediaPickerNext" class="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">下一页</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <style is:global>
         .admin-input {
@@ -1102,13 +1707,17 @@ const API_URL = getApiUrl();
         }
 
         .admin-input:focus {
-            @apply border-indigo-400 dark:border-indigo-500/70 ring-4 ring-indigo-500/10 dark:ring-indigo-500/20;
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1), 0 2px 8px rgba(99, 102, 241, 0.15);
+            border-color: var(--primary);
+            box-shadow:
+                0 0 0 4px color-mix(in oklch, var(--primary) 18%, transparent),
+                0 2px 8px color-mix(in oklch, var(--primary) 30%, transparent);
         }
 
         /* 暗色模式下的炫光效果 */
         .dark .admin-input:focus {
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15), 0 0 20px rgba(99, 102, 241, 0.2);
+            box-shadow:
+                0 0 0 4px color-mix(in oklch, var(--primary) 22%, transparent),
+                0 0 20px color-mix(in oklch, var(--primary) 30%, transparent);
         }
 
         /* 输入框有内容时的样式 */
@@ -1170,12 +1779,16 @@ const API_URL = getApiUrl();
         }
 
         .tags-selector:focus-within {
-            @apply border-indigo-400 dark:border-indigo-500/70 ring-4 ring-indigo-500/10 dark:ring-indigo-500/20;
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1), 0 2px 8px rgba(99, 102, 241, 0.15);
+            border-color: var(--primary);
+            box-shadow:
+                0 0 0 4px color-mix(in oklch, var(--primary) 18%, transparent),
+                0 2px 8px color-mix(in oklch, var(--primary) 30%, transparent);
         }
 
         .dark .tags-selector:focus-within {
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15), 0 0 20px rgba(99, 102, 241, 0.2);
+            box-shadow:
+                0 0 0 4px color-mix(in oklch, var(--primary) 22%, transparent),
+                0 0 20px color-mix(in oklch, var(--primary) 30%, transparent);
         }
 
         /* 标签按钮样式 */
@@ -1194,6 +1807,22 @@ const API_URL = getApiUrl();
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
         }
 
+        .pinned-toggle {
+            @apply inline-flex items-center;
+        }
+
+        .pinned-toggle-track {
+            @apply w-10 h-6 rounded-full relative transition-colors duration-300 bg-zinc-200 dark:bg-zinc-800;
+        }
+
+        .pinned-toggle-track.is-active {
+            background-color: var(--primary);
+        }
+
+        .pinned-toggle-handle {
+            @apply absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 shadow-sm;
+        }
+
         .custom-scrollbar::-webkit-scrollbar {
             width: 6px;
         }
@@ -1209,6 +1838,9 @@ const API_URL = getApiUrl();
         }
         .vditor-toolbar {
             @apply transition-colors !important;
+            position: sticky !important;
+            top: 0;
+            z-index: 12;
             background-color: transparent !important;
             border-bottom: 1px solid theme("colors.zinc.100") !important;
         }
