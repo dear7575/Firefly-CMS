@@ -26,27 +26,104 @@ import { i18n } from "@/i18n/translation";
             </button>
         </div>
 
-        <!-- 筛选标签 -->
-        <div class="flex flex-wrap gap-2 mb-4">
-            <button id="filterAll" class="filter-tab active" data-filter="all">
-                全部
-                <span id="countAll" class="filter-count">0</span>
-            </button>
-            <button id="filterPublished" class="filter-tab" data-filter="published">
-                已发布
-                <span id="countPublished" class="filter-count">0</span>
-            </button>
-            <button id="filterDraft" class="filter-tab" data-filter="draft">
-                草稿箱
-                <span id="countDraft" class="filter-count">0</span>
-            </button>
-            <button id="filterTrash" class="filter-tab filter-tab-trash" data-filter="trash">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-                回收站
-                <span id="countTrash" class="filter-count">0</span>
-            </button>
+        <!-- 筛选标签和搜索栏 -->
+        <div class="flex flex-col gap-3 mb-4">
+            <!-- 第一行：筛选按钮 -->
+            <div class="flex flex-wrap items-center gap-2">
+                <button id="filterAll" class="filter-tab active" data-filter="all">
+                    全部
+                    <span id="countAll" class="filter-count">0</span>
+                </button>
+                <button id="filterPublished" class="filter-tab" data-filter="published">
+                    已发布
+                    <span id="countPublished" class="filter-count">0</span>
+                </button>
+                <button id="filterDraft" class="filter-tab" data-filter="draft">
+                    草稿箱
+                    <span id="countDraft" class="filter-count">0</span>
+                </button>
+                <button id="filterTrash" class="filter-tab filter-tab-trash" data-filter="trash">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    回收站
+                    <span id="countTrash" class="filter-count">0</span>
+                </button>
+
+                <!-- 桌面端：分类和搜索在同一行右侧 -->
+                <div class="hidden md:flex flex-1 items-center justify-end gap-2">
+                    <!-- 分类筛选下拉框 - 使用全局 custom-select 样式 -->
+                    <div class="custom-select" id="categorySelector">
+                        <div class="custom-select-trigger" id="categorySelectorTrigger">
+                            <span class="custom-select-value placeholder" id="categoryValue">全部分类</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="custom-select-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+                        <div class="custom-select-dropdown hidden" id="categoryDropdown">
+                            <div class="custom-select-search">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                                <input type="text" id="categorySearch" placeholder="搜索分类..." />
+                            </div>
+                            <div class="custom-select-options" id="categoryOptions">
+                                <!-- 分类选项会通过 JS 动态填充 -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 关键字搜索 -->
+                    <div class="relative">
+                        <input
+                            type="text"
+                            id="searchKeyword"
+                            placeholder="搜索标题、内容..."
+                            class="posts-search-input"
+                        />
+                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 移动端：分类和搜索在第二行 -->
+            <div class="flex md:hidden items-center gap-2">
+                <!-- 分类筛选下拉框 - 移动端 -->
+                <div class="custom-select flex-1" id="categorySelectorMobile">
+                    <div class="custom-select-trigger" id="categorySelectorTriggerMobile">
+                        <span class="custom-select-value placeholder" id="categoryValueMobile">全部分类</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="custom-select-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
+                    <div class="custom-select-dropdown hidden" id="categoryDropdownMobile">
+                        <div class="custom-select-search">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            <input type="text" id="categorySearchMobile" placeholder="搜索分类..." />
+                        </div>
+                        <div class="custom-select-options" id="categoryOptionsMobile">
+                            <!-- 分类选项会通过 JS 动态填充 -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 关键字搜索 - 移动端 -->
+                <div class="relative flex-1">
+                    <input
+                        type="text"
+                        id="searchKeywordMobile"
+                        placeholder="搜索..."
+                        class="posts-search-input w-full"
+                    />
+                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+            </div>
         </div>
 
         <!-- 回收站操作栏 -->
@@ -74,6 +151,9 @@ import { i18n } from "@/i18n/translation";
                             <th class="px-4 md:px-6 py-4 text-xs font-bold uppercase tracking-wider text-zinc-500 text-center hidden md:table-cell">
                                 {i18n(I18nKey.adminPostCategory)}
                             </th>
+                            <th class="px-4 md:px-6 py-4 text-xs font-bold uppercase tracking-wider text-zinc-500 text-center hidden lg:table-cell">
+                                浏览量
+                            </th>
                             <th class="px-4 md:px-6 py-4 text-xs font-bold uppercase tracking-wider text-zinc-500 text-center hidden md:table-cell">
                                 {i18n(I18nKey.adminPostDate)}
                             </th>
@@ -84,7 +164,7 @@ import { i18n } from "@/i18n/translation";
                     </thead>
                     <tbody id="postsTableBody" class="divide-y divide-zinc-100 dark:divide-zinc-800/50">
                         <tr>
-                            <td colspan="5" class="px-6 py-12 text-center text-zinc-500">{i18n(I18nKey.adminLoading)}</td>
+                            <td colspan="6" class="px-6 py-12 text-center text-zinc-500">{i18n(I18nKey.adminLoading)}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -126,6 +206,69 @@ import { i18n } from "@/i18n/translation";
         @apply bg-red-500 text-white;
         @apply dark:bg-red-600 dark:text-white;
     }
+
+    /* 搜索输入框样式 */
+    .posts-search-input {
+        @apply w-52 pl-9 pr-4 py-2.5 rounded-xl text-sm;
+        @apply border border-zinc-200 dark:border-zinc-700;
+        @apply bg-white dark:bg-zinc-900;
+        @apply text-zinc-900 dark:text-zinc-100;
+        @apply placeholder-zinc-400;
+        @apply outline-none transition-all;
+        height: 42px;
+    }
+
+    .posts-search-input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 20%, transparent);
+    }
+
+    /* 分类下拉框样式覆盖 */
+    #categorySelector,
+    #categorySelectorMobile {
+        width: auto;
+    }
+
+    #categorySelector .custom-select-trigger,
+    #categorySelectorMobile .custom-select-trigger {
+        width: auto;
+        min-width: 150px;
+        height: 42px;
+        padding: 0 1rem;
+        display: flex;
+        align-items: center;
+    }
+
+    #categorySelector .custom-select-dropdown {
+        left: auto;
+        right: 0;
+        min-width: 140px;
+        width: auto;
+    }
+
+    #categorySelectorMobile .custom-select-dropdown {
+        left: 0;
+        right: auto;
+        min-width: 140px;
+        width: auto;
+    }
+
+    /* 移动端适配 */
+    @media (max-width: 767px) {
+        .posts-search-input {
+            @apply w-full;
+        }
+
+        #categorySelectorMobile {
+            flex: 1;
+            min-width: 0;
+        }
+
+        #categorySelectorMobile .custom-select-trigger {
+            min-width: auto;
+            width: 100%;
+        }
+    }
 </style>
 
 <script is:inline>
@@ -139,8 +282,213 @@ import { i18n } from "@/i18n/translation";
 
         // 筛选功能
         var currentFilter = 'all';
+        var currentKeyword = '';
+        var currentCategory = '';
         var allPosts = [];
         var trashPosts = [];
+        var allCategories = [];
+
+        // 加载分类列表
+        async function loadCategories() {
+            try {
+                var API_URL = window.API_URL;
+                var result = await window.adminRequest(API_URL + "/categories", {
+                    headers: {
+                        "Authorization": "Bearer " + localStorage.getItem("adminToken")
+                    }
+                });
+                if (result.ok) {
+                    allCategories = result.data || [];
+                    renderCategoryOptions('categoryOptions', 'categoryValue');
+                    renderCategoryOptions('categoryOptionsMobile', 'categoryValueMobile');
+                }
+            } catch (err) {
+                console.error("Failed to load categories:", err);
+            }
+        }
+
+        // 渲染分类选项
+        function renderCategoryOptions(containerId, valueId) {
+            var optionsContainer = document.getElementById(containerId);
+            if (!optionsContainer) return;
+
+            var html = '<div class="custom-select-option selected" data-value="">' +
+                '<span class="custom-select-option-name">全部分类</span>' +
+                '<svg xmlns="http://www.w3.org/2000/svg" class="custom-select-option-check" fill="none" viewBox="0 0 24 24" stroke="currentColor">' +
+                '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></div>';
+
+            allCategories.forEach(function(cat) {
+                html += '<div class="custom-select-option" data-value="' + cat.name + '">' +
+                    '<span class="custom-select-option-name">' + cat.name + '</span>' +
+                    '<svg xmlns="http://www.w3.org/2000/svg" class="custom-select-option-check" fill="none" viewBox="0 0 24 24" stroke="currentColor">' +
+                    '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></div>';
+            });
+            optionsContainer.innerHTML = html;
+
+            // 绑定选项点击事件
+            optionsContainer.querySelectorAll('.custom-select-option').forEach(function(option) {
+                option.addEventListener('click', function() {
+                    var value = this.dataset.value;
+                    var name = this.querySelector('.custom-select-option-name').textContent;
+
+                    // 更新两个下拉框的选中状态
+                    updateCategorySelection(value, name);
+
+                    // 关闭所有下拉框
+                    closeAllCategoryDropdowns();
+
+                    // 触发筛选
+                    currentCategory = value;
+                    applyFilters();
+                });
+            });
+        }
+
+        // 更新分类选中状态（同步桌面端和移动端）
+        function updateCategorySelection(value, name) {
+            ['categoryOptions', 'categoryOptionsMobile'].forEach(function(containerId) {
+                var container = document.getElementById(containerId);
+                if (container) {
+                    container.querySelectorAll('.custom-select-option').forEach(function(opt) {
+                        if (opt.dataset.value === value) {
+                            opt.classList.add('selected');
+                        } else {
+                            opt.classList.remove('selected');
+                        }
+                    });
+                }
+            });
+
+            ['categoryValue', 'categoryValueMobile'].forEach(function(valueId) {
+                var valueDisplay = document.getElementById(valueId);
+                if (valueDisplay) {
+                    valueDisplay.textContent = name;
+                    if (value) {
+                        valueDisplay.classList.remove('placeholder');
+                    } else {
+                        valueDisplay.classList.add('placeholder');
+                    }
+                }
+            });
+        }
+
+        // 关闭所有分类下拉框
+        function closeAllCategoryDropdowns() {
+            ['categorySelector', 'categorySelectorMobile'].forEach(function(selectorId) {
+                var selector = document.getElementById(selectorId);
+                if (selector) {
+                    selector.classList.remove('open');
+                    var dropdown = selector.querySelector('.custom-select-dropdown');
+                    if (dropdown) dropdown.classList.add('hidden');
+                }
+            });
+        }
+
+        // 初始化分类下拉框交互
+        function initCategorySelector(selectorId, triggerId, dropdownId, searchId, optionsId) {
+            var selector = document.getElementById(selectorId);
+            var trigger = document.getElementById(triggerId);
+            var dropdown = document.getElementById(dropdownId);
+            var searchInput = document.getElementById(searchId);
+
+            if (!selector || !trigger || !dropdown) return;
+
+            // 点击触发器切换下拉框
+            trigger.addEventListener('click', function(e) {
+                e.stopPropagation();
+                var isOpen = !dropdown.classList.contains('hidden');
+
+                // 先关闭所有下拉框
+                closeAllCategoryDropdowns();
+
+                if (!isOpen) {
+                    dropdown.classList.remove('hidden');
+                    selector.classList.add('open');
+                    if (searchInput) {
+                        searchInput.value = '';
+                        setTimeout(function() { searchInput.focus(); }, 50);
+                        filterCategoryOptions(optionsId, '');
+                    }
+                }
+            });
+
+            // 搜索过滤
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    filterCategoryOptions(optionsId, this.value.trim().toLowerCase());
+                });
+                searchInput.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
+            }
+        }
+
+        // 过滤分类选项
+        function filterCategoryOptions(containerId, keyword) {
+            var optionsContainer = document.getElementById(containerId);
+            if (!optionsContainer) return;
+
+            optionsContainer.querySelectorAll('.custom-select-option').forEach(function(option) {
+                var name = option.querySelector('.custom-select-option-name').textContent.toLowerCase();
+                if (!keyword || name.indexOf(keyword) !== -1) {
+                    option.style.display = '';
+                } else {
+                    option.style.display = 'none';
+                }
+            });
+        }
+
+        // 点击外部关闭下拉框
+        document.addEventListener('click', function(e) {
+            var selectors = ['categorySelector', 'categorySelectorMobile'];
+            var clickedInside = false;
+            selectors.forEach(function(id) {
+                var el = document.getElementById(id);
+                if (el && el.contains(e.target)) {
+                    clickedInside = true;
+                }
+            });
+            if (!clickedInside) {
+                closeAllCategoryDropdowns();
+            }
+        });
+
+        // 搜索输入防抖（桌面端和移动端）
+        var searchTimer = null;
+        function setupSearchInput(inputId) {
+            var input = document.getElementById(inputId);
+            if (input) {
+                input.addEventListener('input', function() {
+                    clearTimeout(searchTimer);
+                    var value = this.value;
+                    // 同步两个搜索框的值
+                    syncSearchInputs(inputId, value);
+                    searchTimer = setTimeout(function() {
+                        currentKeyword = value.trim().toLowerCase();
+                        applyFilters();
+                    }, 300);
+                });
+            }
+        }
+
+        // 同步搜索框值
+        function syncSearchInputs(sourceId, value) {
+            var ids = ['searchKeyword', 'searchKeywordMobile'];
+            ids.forEach(function(id) {
+                if (id !== sourceId) {
+                    var input = document.getElementById(id);
+                    if (input) input.value = value;
+                }
+            });
+        }
+
+        // 初始化搜索框
+        setupSearchInput('searchKeyword');
+        setupSearchInput('searchKeywordMobile');
+
+        // 初始化分类下拉框（桌面端和移动端）
+        initCategorySelector('categorySelector', 'categorySelectorTrigger', 'categoryDropdown', 'categorySearch', 'categoryOptions');
+        initCategorySelector('categorySelectorMobile', 'categorySelectorTriggerMobile', 'categoryDropdownMobile', 'categorySearchMobile', 'categoryOptionsMobile');
 
         // 初始化筛选标签点击事件
         document.querySelectorAll('.filter-tab').forEach(function(tab) {
@@ -170,23 +518,52 @@ import { i18n } from "@/i18n/translation";
                         window.adminRenderTrashPosts(trashPosts);
                     }
                 } else {
-                    if (typeof window.adminRenderPosts === 'function') {
-                        window.adminRenderPosts(filterPosts(allPosts));
-                    }
+                    applyFilters();
                 }
             });
         });
 
+        // 应用所有筛选条件
+        function applyFilters() {
+            var filtered = filterPosts(allPosts);
+            if (typeof window.adminRenderPosts === 'function') {
+                window.adminRenderPosts(filtered);
+            }
+        }
+
         // 筛选文章
         function filterPosts(posts) {
-            if (currentFilter === 'all') {
-                return posts;
-            } else if (currentFilter === 'published') {
-                return posts.filter(function(p) { return !p.is_draft; });
+            var result = posts;
+
+            // 状态筛选
+            if (currentFilter === 'published') {
+                result = result.filter(function(p) { return !p.is_draft; });
             } else if (currentFilter === 'draft') {
-                return posts.filter(function(p) { return p.is_draft; });
+                result = result.filter(function(p) { return p.is_draft; });
             }
-            return posts;
+
+            // 分类筛选
+            if (currentCategory) {
+                result = result.filter(function(p) {
+                    return p.category === currentCategory || p.category_name === currentCategory;
+                });
+            }
+
+            // 关键字搜索
+            if (currentKeyword) {
+                result = result.filter(function(p) {
+                    var title = (p.title || '').toLowerCase();
+                    var content = (p.content || '').toLowerCase();
+                    var description = (p.description || '').toLowerCase();
+                    var slug = (p.slug || '').toLowerCase();
+                    return title.indexOf(currentKeyword) !== -1 ||
+                           content.indexOf(currentKeyword) !== -1 ||
+                           description.indexOf(currentKeyword) !== -1 ||
+                           slug.indexOf(currentKeyword) !== -1;
+                });
+            }
+
+            return result;
         }
 
         // 更新计数
@@ -270,6 +647,9 @@ import { i18n } from "@/i18n/translation";
                 }
             });
         }
+
+        // 加载分类列表
+        loadCategories();
 
         // Load posts when page loads
         if (typeof window.adminLoadPosts === 'function') {
