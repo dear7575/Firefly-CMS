@@ -1,37 +1,40 @@
 # 关于我 / About Me
 
-你好！我是 **夏叶** ，一个在数字世界中默默无闻的一片叶子。
+你好！我是 **北港不夏** ，一个热爱技术、喜欢折腾的开发者。
 
 ## 🛠️ 关于本站
 
-这个网站使用 **Astro** 框架构建，采用了 [Firefly](https://github.com/CuteLeaf/Firefly) 模板，Firefly 是基于 [Fuwari](https://github.com/saicaca/fuwari) 的二次开发。
+这个网站使用 **Astro** 框架构建，采用了 [Firefly-CMS](https://github.com/dear7575/Firefly-CMS) 模板，这是我基于 [Firefly](https://github.com/CuteLeaf/Firefly) 进行的二次开发版本。
 
-**Firefly** 是一款基于 Astro 框架和 Fuwari 模板开发的清新美观且现代化个人博客主题模板，专为技术爱好者和内容创作者设计。该主题融合了现代 Web 技术栈，提供了丰富的功能模块和高度可定制的界面，让您能够轻松打造出专业且美观的个人博客网站。
+**Firefly-CMS** 在原版 Firefly 的基础上，增加了完整的后台管理系统，支持：
 
+- 📝 **文章管理** - 在线编辑、发布、定时发布文章
+- 🏷️ **分类标签** - 灵活的分类和标签管理
+- 🖼️ **媒体库** - 图片和文件的统一管理
+- ⚙️ **站点设置** - 可视化配置站点信息
+- 💾 **数据备份** - 一键备份和恢复数据
+- 🔐 **安全设置** - 两步验证等安全功能
 
-**🖥️在线预览： [Firefly - Demo site](https://firefly.cuteleaf.cn/)**
+**🏠我的博客： [https://dear7575.cn](https://dear7575.cn/)**
 
-**🏠我的博客： [https://blog.cuteleaf.cn](https://blog.cuteleaf.cn/)**
+**⭐Firefly-CMS开源地址：[https://github.com/dear7575/Firefly-CMS](https://github.com/dear7575/Firefly-CMS)**
 
-**📝Firefly使用文档： [https://docs-firefly.cuteleaf.cn](https://docs-firefly.cuteleaf.cn/)**
+### 致谢
 
-**⭐Firefly开源地址：[https://github.com/CuteLeaf/Firefly](https://github.com/CuteLeaf/Firefly)** 
+感谢以下开源项目的支持：
 
-**⭐Fuwari开源地址：[https://github.com/saicaca/fuwari](https://github.com/saicaca/fuwari)**
+**⭐Firefly：[https://github.com/CuteLeaf/Firefly](https://github.com/CuteLeaf/Firefly)**
 
-::github{repo="CuteLeaf/Firefly"}
-
-::github{repo="saicaca/fuwari"}
-
+**⭐Fuwari：[https://github.com/saicaca/fuwari](https://github.com/saicaca/fuwari)**
 
 ## 📫 联系方式
 
 如果你想和我交流技术问题，分享有趣的想法，或者只是想打个招呼，欢迎通过以下方式联系我：
 
-- 💻 **GitHub**: [CuteLeaf](https://github.com/CuteLeaf)
-- ✉️ **Email**: [xiaye@msn.com](mailto:xiaye@msn.com)
+- 💻 **GitHub**: [dear7575](https://github.com/dear7575)
+- ✉️ **Email**: [dear7575@163.com](mailto:dear7575@163.com)
+- 🌐 **Blog**: [https://dear7575.cn](https://dear7575.cn/)
 
 ---
 
 *感谢你的来访！希望在这里能找到对你有用的内容！*
-
