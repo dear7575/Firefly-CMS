@@ -10,3 +10,5 @@ pydantic-settings
 pyotp>=2.9.0
 qrcode>=7.4.2
 Pillow>=10.0.0
+# API 速率限制
+slowapi>=0.1.9

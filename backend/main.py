@@ -8,7 +8,7 @@ import logging
 import os
 import time
 import uuid
-from collections import defaultdict
+from contextlib import asynccontextmanager
 from datetime import datetime
 
 from fastapi import FastAPI, Depends, HTTPException, status, Request, APIRouter
@@ -16,6 +16,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 from sqlalchemy.orm import Session
 
 import auth
@@ -31,6 +33,7 @@ from logging_config import (
     get_logging_config_dict
 )
 from response_utils import build_error, normalize_payload, is_standard_payload
+from rate_limiter import limiter, rate_limit_exceeded_handler, rate_limit_settings
 from routes import posts, categories, tags, friends, social, settings, dashboard, logs, search, upload, backup, \
     analytics, auth as auth_routes, totp
 
@@ -45,15 +48,62 @@ os.makedirs(db_settings.UPLOAD_DIR, exist_ok=True)
 # 创建备份目录
 os.makedirs(db_settings.BACKUP_DIR, exist_ok=True)
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """应用生命周期管理"""
+    # === 启动时执行 ===
+    stop_event = asyncio.Event()
+    app.state.scheduled_publish_stop = stop_event
+    app.state.scheduled_publish_task = asyncio.create_task(
+        scheduled_publish_worker(stop_event)
+    )
+
+    if AUTO_BACKUP_ENABLED:
+        backup_stop_event = asyncio.Event()
+        app.state.auto_backup_stop = backup_stop_event
+        app.state.auto_backup_task = asyncio.create_task(
+            auto_backup_worker(backup_stop_event)
+        )
+
+    yield  # 应用运行中
+
+    # === 关闭时执行 ===
+    stop_event = getattr(app.state, "scheduled_publish_stop", None)
+    task = getattr(app.state, "scheduled_publish_task", None)
+    if stop_event:
+        stop_event.set()
+    if task:
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
+
+    backup_stop = getattr(app.state, "auto_backup_stop", None)
+    backup_task = getattr(app.state, "auto_backup_task", None)
+    if backup_stop:
+        backup_stop.set()
+    if backup_task:
+        try:
+            await backup_task
+        except asyncio.CancelledError:
+            pass
+
+
 # 创建 FastAPI 应用实例
 app = FastAPI(
     title="Firefly CMS API",
     description="Firefly CMS 博客后台管理 API",
-    version="2.0.0"
+    version="2.0.0",
+    lifespan=lifespan
 )
 
 # 注册全局异常处理器
 register_exception_handlers(app)
+
+# 注册 slowapi 速率限制
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
 
 
 # 解析 CORS 配置
@@ -92,9 +142,6 @@ app.add_middleware(
 
 # 挂载静态文件目录（用于图片上传）
 app.mount("/uploads", StaticFiles(directory=db_settings.UPLOAD_DIR), name="uploads")
-
-# API 频率限制存储
-rate_limit_store = defaultdict(list)
 
 # 定时发布后台任务（秒）
 SCHEDULED_PUBLISH_INTERVAL = int(os.getenv("SCHEDULED_PUBLISH_INTERVAL", "60"))
@@ -199,25 +246,6 @@ def get_client_ip(request: Request) -> str:
     return request.client.host if request.client else "unknown"
 
 
-def check_rate_limit(client_ip: str) -> bool:
-    """检查 API 频率限制"""
-    current_time = time.time()
-    window_start = current_time - 60  # 1分钟窗口
-
-    # 清理过期记录
-    rate_limit_store[client_ip] = [
-        t for t in rate_limit_store[client_ip] if t > window_start
-    ]
-
-    # 检查是否超过限制
-    if len(rate_limit_store[client_ip]) >= db_settings.RATE_LIMIT_PER_MINUTE:
-        return False
-
-    # 记录本次请求
-    rate_limit_store[client_ip].append(current_time)
-    return True
-
-
 def save_access_log(
         log_type: str,
         request: Request,
@@ -285,27 +313,6 @@ async def standard_response_middleware(request: Request, call_next):
             new_response.headers[key] = value
 
     return new_response
-
-
-@app.middleware("http")
-async def rate_limit_middleware(request: Request, call_next):
-    """API 频率限制中间件"""
-    # 跳过静态资源
-    if request.url.path.startswith("/uploads") or request.url.path.startswith("/docs"):
-        return await call_next(request)
-
-    client_ip = get_client_ip(request)
-    if not check_rate_limit(client_ip):
-        # 使用统一的错误响应格式
-        return JSONResponse(
-            status_code=429,
-            content=build_error(
-                429,
-                "请求过于频繁，请稍后再试",
-                error_code="RATE_LIMIT_EXCEEDED"
-            )
-        )
-    return await call_next(request)
 
 
 @app.middleware("http")
@@ -387,46 +394,6 @@ async def request_id_middleware(request: Request, call_next):
     return response
 
 
-# 启动定时发布后台任务
-@app.on_event("startup")
-async def start_scheduled_publish_worker():
-    stop_event = asyncio.Event()
-    app.state.scheduled_publish_stop = stop_event
-    app.state.scheduled_publish_task = asyncio.create_task(
-        scheduled_publish_worker(stop_event)
-    )
-
-    if AUTO_BACKUP_ENABLED:
-        backup_stop_event = asyncio.Event()
-        app.state.auto_backup_stop = backup_stop_event
-        app.state.auto_backup_task = asyncio.create_task(
-            auto_backup_worker(backup_stop_event)
-        )
-
-
-@app.on_event("shutdown")
-async def stop_scheduled_publish_worker():
-    stop_event = getattr(app.state, "scheduled_publish_stop", None)
-    task = getattr(app.state, "scheduled_publish_task", None)
-    if stop_event:
-        stop_event.set()
-    if task:
-        try:
-            await task
-        except asyncio.CancelledError:
-            pass
-
-    backup_stop = getattr(app.state, "auto_backup_stop", None)
-    backup_task = getattr(app.state, "auto_backup_task", None)
-    if backup_stop:
-        backup_stop.set()
-    if backup_task:
-        try:
-            await backup_task
-        except asyncio.CancelledError:
-            pass
-
-
 # 创建 API 路由主入口
 api_router = APIRouter(prefix="/api")
 
@@ -448,6 +415,7 @@ api_router.include_router(totp.router)
 
 
 @api_router.post("/token", summary="用户登录", tags=["认证"])
+@limiter.limit(rate_limit_settings.RATE_LIMIT_AUTH)
 async def login(
         request: Request,
         form_data: OAuth2PasswordRequestForm = Depends(),

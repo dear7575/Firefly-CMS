@@ -2,7 +2,7 @@
 文件上传路由
 提供图片和文件上传功能
 """
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Header, Query
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Header, Query, Request
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
@@ -19,6 +19,7 @@ from database import get_db, settings
 import models
 from response_utils import build_error
 from media_usage import rebuild_media_usage
+from rate_limiter import limiter, rate_limit_settings
 
 router = APIRouter(prefix="/upload", tags=["文件上传"])
 
@@ -147,7 +148,9 @@ def record_media_file(
 
 
 @router.post("/image", summary="上传图片")
+@limiter.limit(rate_limit_settings.RATE_LIMIT_UPLOAD)
 async def upload_image(
+    request: Request,
     file: UploadFile = File(...),
     subdir: Optional[str] = Form(default="images"),
     db: Session = Depends(get_db),
@@ -216,7 +219,9 @@ async def upload_image(
 
 
 @router.post("/images", summary="批量上传文件")
+@limiter.limit(rate_limit_settings.RATE_LIMIT_UPLOAD)
 async def upload_images(
+    request: Request,
     files: List[UploadFile] = File(...),
     subdir: Optional[str] = Form(default="images"),
     db: Session = Depends(get_db),
