@@ -1140,6 +1140,9 @@ function disableAnimation() {
       }
     });
     window.swup.hooks.on("content:replace", () => {
+      // 移除骨架屏激活类
+      document.body.classList.remove("post-skeleton-active");
+
       // 更新主网格布局类名
       const gridClassCarrier = document.getElementById("grid-class-carrier");
       if (gridClassCarrier) {
@@ -1200,6 +1203,104 @@ function disableAnimation() {
       // change banner height immediately when a link is clicked
       const bodyElement = document.querySelector("body");
       const isHomePage = pathsEqual(visit.to.url, url("/"));
+      const targetPath = new URL(visit.to.url, window.location.origin).pathname;
+
+      // 检测页面类型并显示对应骨架屏
+      const isPostPage = visit.to.url.includes("/posts/");
+      const isListPage = isHomePage || /^\/\d+\/?$/.test(targetPath);
+
+      // 排除不需要骨架屏的页面（如管理后台）
+      const isAdminPage = targetPath.startsWith("/admin");
+
+      const contentWrapper = document.getElementById("content-wrapper");
+
+      if (!isAdminPage && contentWrapper) {
+        // 添加骨架屏激活类到 body，用于阻止离开动画
+        document.body.classList.add("post-skeleton-active");
+
+        let skeletonHTML = "";
+
+        if (isPostPage) {
+          // 文章详情页骨架屏
+          skeletonHTML = `
+            <div id="page-loading-skeleton" class="page-skeleton-inline">
+              <div class="card-base px-6 md:px-9 pt-6 pb-4">
+                <div class="skeleton-header">
+                  <div class="skeleton-line title"></div>
+                  <div class="skeleton-line subtitle"></div>
+                </div>
+                <div class="skeleton-body">
+                  <div class="skeleton-paragraph">
+                    <div class="skeleton-line long"></div>
+                    <div class="skeleton-line medium"></div>
+                    <div class="skeleton-line long"></div>
+                    <div class="skeleton-line short"></div>
+                  </div>
+                  <div class="skeleton-block"></div>
+                  <div class="skeleton-paragraph">
+                    <div class="skeleton-line long"></div>
+                    <div class="skeleton-line medium"></div>
+                    <div class="skeleton-line long"></div>
+                    <div class="skeleton-line short"></div>
+                    <div class="skeleton-line medium"></div>
+                  </div>
+                  <div class="skeleton-paragraph">
+                    <div class="skeleton-line medium"></div>
+                    <div class="skeleton-line long"></div>
+                    <div class="skeleton-line short"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+        } else if (isListPage) {
+          // 文章列表页骨架屏（首页、分页）
+          skeletonHTML = `
+            <div id="page-loading-skeleton" class="page-skeleton-inline">
+              ${[1, 2, 3, 4].map(() => `
+                <div class="card-base mb-4 p-4">
+                  <div class="flex gap-4">
+                    <div class="skeleton-cover"></div>
+                    <div class="flex-1">
+                      <div class="skeleton-line title" style="width: 70%; margin-bottom: 0.75rem;"></div>
+                      <div class="skeleton-line" style="width: 100%; margin-bottom: 0.5rem;"></div>
+                      <div class="skeleton-line" style="width: 85%; margin-bottom: 0.5rem;"></div>
+                      <div class="skeleton-line" style="width: 40%;"></div>
+                    </div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        } else {
+          // 通用页面骨架屏（归档、关于、友链等）
+          skeletonHTML = `
+            <div id="page-loading-skeleton" class="page-skeleton-inline">
+              <div class="card-base px-6 md:px-9 pt-6 pb-4">
+                <div class="skeleton-header">
+                  <div class="skeleton-line title" style="width: 50%;"></div>
+                </div>
+                <div class="skeleton-body" style="margin-top: 1.5rem;">
+                  <div class="skeleton-paragraph">
+                    <div class="skeleton-line long"></div>
+                    <div class="skeleton-line medium"></div>
+                    <div class="skeleton-line long"></div>
+                  </div>
+                  <div class="skeleton-list">
+                    <div class="skeleton-list-item"></div>
+                    <div class="skeleton-list-item"></div>
+                    <div class="skeleton-list-item"></div>
+                    <div class="skeleton-list-item"></div>
+                    <div class="skeleton-list-item"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+
+        contentWrapper.innerHTML = skeletonHTML;
+      }
 
       if (isHomePage) {
         bodyElement!.classList.add("lg:is-home");

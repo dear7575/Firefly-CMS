@@ -237,6 +237,195 @@ html.is-entering .transition-main {
     }
 }
 
+/* 页面骨架屏加载动画 - 通用版本 */
+.page-skeleton-inline,
+.post-skeleton-inline,
+.list-skeleton-inline {
+    width: 100%;
+    animation: skeleton-fade-in 0.2s ease;
+    /* 确保骨架屏始终可见 */
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* 确保骨架屏在页面切换时保持可见 */
+html.is-leaving .page-skeleton-inline,
+html.is-animating .page-skeleton-inline,
+html.is-changing .page-skeleton-inline,
+html.is-rendering .page-skeleton-inline,
+html.is-leaving .post-skeleton-inline,
+html.is-animating .post-skeleton-inline,
+html.is-changing .post-skeleton-inline,
+html.is-rendering .post-skeleton-inline,
+html.is-leaving .list-skeleton-inline,
+html.is-animating .list-skeleton-inline,
+html.is-changing .list-skeleton-inline,
+html.is-rendering .list-skeleton-inline {
+    opacity: 1 !important;
+    transform: none !important;
+    visibility: visible !important;
+}
+
+/* 骨架屏显示时，阻止父容器的离开动画 */
+.post-skeleton-active #content-wrapper,
+.post-skeleton-active #swup-container,
+.post-skeleton-active .transition-main,
+.post-skeleton-active .transition-leaving {
+    opacity: 1 !important;
+    transform: none !important;
+    visibility: visible !important;
+}
+
+/* 文章列表骨架屏封面图占位 */
+.skeleton-cover {
+    width: 8rem;
+    height: 6rem;
+    flex-shrink: 0;
+    background: linear-gradient(
+        90deg,
+        var(--skeleton-base, rgba(0, 0, 0, 0.06)) 0%,
+        var(--skeleton-base, rgba(0, 0, 0, 0.06)) 40%,
+        var(--skeleton-shine, rgba(0, 0, 0, 0.1)) 50%,
+        var(--skeleton-base, rgba(0, 0, 0, 0.06)) 60%,
+        var(--skeleton-base, rgba(0, 0, 0, 0.06)) 100%
+    );
+    background-size: 200% 100%;
+    border-radius: 0.5rem;
+    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+/* 通用页面骨架屏列表项 */
+.skeleton-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.skeleton-list-item {
+    height: 2.5rem;
+    background: linear-gradient(
+        90deg,
+        var(--skeleton-base, rgba(0, 0, 0, 0.06)) 0%,
+        var(--skeleton-base, rgba(0, 0, 0, 0.06)) 40%,
+        var(--skeleton-shine, rgba(0, 0, 0, 0.1)) 50%,
+        var(--skeleton-base, rgba(0, 0, 0, 0.06)) 60%,
+        var(--skeleton-base, rgba(0, 0, 0, 0.06)) 100%
+    );
+    background-size: 200% 100%;
+    border-radius: 0.5rem;
+    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+.skeleton-list-item:nth-child(1) { width: 100%; }
+.skeleton-list-item:nth-child(2) { width: 90%; }
+.skeleton-list-item:nth-child(3) { width: 95%; }
+.skeleton-list-item:nth-child(4) { width: 85%; }
+.skeleton-list-item:nth-child(5) { width: 92%; }
+
+/* 移动端隐藏封面图占位 */
+@media (max-width: 768px) {
+    .skeleton-cover {
+        display: none;
+    }
+}
+
+@keyframes skeleton-fade-in {
+    from {
+        opacity: 0.5;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.post-skeleton-inline .skeleton-header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px dashed var(--line-divider);
+}
+
+.post-skeleton-inline .skeleton-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.skeleton-line {
+    height: 1rem;
+    background: linear-gradient(
+        90deg,
+        var(--skeleton-base, rgba(0, 0, 0, 0.06)) 0%,
+        var(--skeleton-base, rgba(0, 0, 0, 0.06)) 40%,
+        var(--skeleton-shine, rgba(0, 0, 0, 0.1)) 50%,
+        var(--skeleton-base, rgba(0, 0, 0, 0.06)) 60%,
+        var(--skeleton-base, rgba(0, 0, 0, 0.06)) 100%
+    );
+    background-size: 200% 100%;
+    border-radius: 0.25rem;
+    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+.skeleton-line.short {
+    width: 45%;
+}
+
+.skeleton-line.medium {
+    width: 70%;
+}
+
+.skeleton-line.long {
+    width: 100%;
+}
+
+.skeleton-line.title {
+    height: 2rem;
+    width: 65%;
+    margin-bottom: 0.75rem;
+}
+
+.skeleton-line.subtitle {
+    height: 1rem;
+    width: 40%;
+}
+
+.skeleton-paragraph {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+}
+
+.skeleton-block {
+    height: 8rem;
+    background: linear-gradient(
+        90deg,
+        var(--skeleton-base, rgba(0, 0, 0, 0.06)) 0%,
+        var(--skeleton-base, rgba(0, 0, 0, 0.06)) 40%,
+        var(--skeleton-shine, rgba(0, 0, 0, 0.1)) 50%,
+        var(--skeleton-base, rgba(0, 0, 0, 0.06)) 60%,
+        var(--skeleton-base, rgba(0, 0, 0, 0.06)) 100%
+    );
+    background-size: 200% 100%;
+    border-radius: 0.5rem;
+    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* 暗色模式骨架屏颜色 */
+:root.dark .skeleton-line,
+:root.dark .skeleton-block {
+    --skeleton-base: rgba(255, 255, 255, 0.06);
+    --skeleton-shine: rgba(255, 255, 255, 0.12);
+}
+
 /* 性能优化 */
 .animate-gpu {
     will-change: transform, opacity;
