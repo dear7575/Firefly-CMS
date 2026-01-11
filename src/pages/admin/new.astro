@@ -20,7 +20,7 @@ const editorI18n = {
 ---
 
 <AdminLayout title={`${i18n(I18nKey.adminNewPost)} - ${siteConfig.title}`}>
-    <div class="h-full flex flex-col overflow-hidden">
+    <div class="h-full flex flex-col overflow-y-auto lg:overflow-hidden">
         <!-- Header -->
         <div
                 class="sticky top-0 z-20 px-4 sm:px-6 lg:px-8 py-3 sm:py-4 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between shadow-sm"
@@ -69,23 +69,23 @@ const editorI18n = {
             </div>
         </div>
 
-        <div class="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0">
+        <div class="flex-1 flex flex-col lg:flex-row lg:overflow-hidden min-h-0">
             <!-- Left Side: Editor -->
             <div
-                    class="flex-1 min-w-0 min-h-[50vh] lg:min-h-0 flex flex-col p-4 sm:p-6 lg:p-8 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 lg:border-b-0 lg:border-r"
+                    class="flex-1 min-w-0 min-h-[70vh] sm:min-h-[72vh] lg:min-h-0 flex flex-col p-4 sm:p-6 lg:p-8 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 lg:border-b-0 lg:border-r"
             >
                 <input
                         type="text"
                         id="title"
                         placeholder={i18n(I18nKey.adminPostTitlePlaceholder)}
-                        class="flex-shrink-0 text-xl sm:text-2xl lg:text-3xl font-bold mb-4 px-4 py-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-zinc-900 dark:text-zinc-100 transition-all"
+                        class="admin-input flex-shrink-0 text-xl sm:text-2xl lg:text-3xl font-bold mb-4 px-4 py-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-zinc-900 dark:text-zinc-100 transition-all"
                 />
                 <div id="vditor" class="flex-1 min-h-0 border-none shadow-none overflow-hidden"></div>
             </div>
 
             <!-- Right Side: Settings -->
             <div
-                    class="w-full lg:w-80 lg:flex-shrink-0 min-h-0 overflow-y-auto bg-zinc-50/50 dark:bg-zinc-950/50 p-4 sm:p-6 lg:p-6 custom-scrollbar backdrop-blur-sm border-t border-zinc-200 dark:border-zinc-800 lg:border-t-0"
+                    class="w-full lg:w-80 lg:flex-shrink-0 lg:min-h-0 lg:overflow-y-auto bg-zinc-50/50 dark:bg-zinc-950/50 p-4 sm:p-6 lg:p-6 custom-scrollbar backdrop-blur-sm border-t border-zinc-200 dark:border-zinc-800 lg:border-t-0"
             >
                 <div class="space-y-8">
                     <!-- Basic Info Section -->
@@ -1244,6 +1244,10 @@ function initNewPage() {
             });
 
             if (result.ok) {
+                // 清除文章缓存，确保列表页显示最新数据
+                if (window.adminClearCache) {
+                    window.adminClearCache('posts');
+                }
                 window.location.href = "/admin/posts";
             } else {
                 window.showAdminAlert(

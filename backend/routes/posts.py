@@ -10,6 +10,7 @@ import models
 import auth
 from media_usage import sync_post_media, refresh_media_usage_counts
 from database import get_db, settings
+from cache import posts_cache, make_cache_key, invalidate_posts_cache
 from fastapi import APIRouter, Depends, HTTPException, status, Header
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
@@ -484,6 +485,7 @@ def create_post(
     db.refresh(db_post)
     create_revision_snapshot(db, db_post, current_user)
     sync_post_media(db, db_post.id, db_post.content, db_post.image)
+    invalidate_posts_cache()
 
     return {"message": "文章创建成功", "id": db_post.id}
 
@@ -579,6 +581,7 @@ def update_post(
     db.commit()
     create_revision_snapshot(db, db_post, current_user)
     sync_post_media(db, db_post.id, db_post.content, db_post.image)
+    invalidate_posts_cache()
     return {"message": "文章更新成功"}
 
 
@@ -619,11 +622,13 @@ def delete_post(
         db.commit()
         refresh_media_usage_counts(db, media_ids)
         db.commit()
+        invalidate_posts_cache()
         return {"message": "文章已永久删除"}
     else:
         # 软删除
         db_post.deleted_at = datetime.utcnow()
         db.commit()
+        invalidate_posts_cache()
         return {"message": "文章已移入回收站"}
 
 
@@ -755,6 +760,7 @@ def toggle_post_pin(
     # 切换置顶状态
     db_post.pinned = not (db_post.pinned or False)
     db.commit()
+    invalidate_posts_cache()
 
     return {
         "message": "置顶" if db_post.pinned else "取消置顶" + "成功",
@@ -790,6 +796,7 @@ def set_post_pin(
 
     db_post.pinned = pinned
     db.commit()
+    invalidate_posts_cache()
 
     return {
         "message": "置顶状态更新成功",
@@ -1067,6 +1074,7 @@ def restore_post(
     # 恢复文章
     db_post.deleted_at = None
     db.commit()
+    invalidate_posts_cache()
 
     return {"message": "文章已恢复"}
 
@@ -1096,6 +1104,7 @@ def empty_trash(
         db.delete(post)
 
     db.commit()
+    invalidate_posts_cache()
 
     return {"message": f"已永久删除 {count} 篇文章"}
 

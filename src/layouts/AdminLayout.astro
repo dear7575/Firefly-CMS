@@ -2789,9 +2789,13 @@ const adminMenuIcons = Object.fromEntries(
     document.addEventListener('astro:page-load', () => {
         // ============== 全局美化弹框函数 ==============
         (function () {
-            // 使用动态获取 DOM 元素，避免页面切换后引用失效
-            var resolveCallback = null;
-            var currentMode = "alert";
+            // 使用全局变量，避免页面切换后闭包引用失效
+            if (!window._adminModalState) {
+                window._adminModalState = {
+                    resolveCallback: null,
+                    currentMode: "alert"
+                };
+            }
 
             var iconBgMap = {
                 success: 'bg-green-100 dark:bg-green-900/30',
@@ -2836,7 +2840,7 @@ const adminMenuIcons = Object.fromEntries(
                 var confirmText = options.confirmText || '确定';
                 var cancelText = options.cancelText || '取消';
                 var inputOptions = options.input || null;
-                currentMode = options.mode || (inputOptions ? "prompt" : (showCancel ? "confirm" : "alert"));
+                window._adminModalState.currentMode = options.mode || (inputOptions ? "prompt" : (showCancel ? "confirm" : "alert"));
 
                 // 设置内容
                 if (els.modalTitle) els.modalTitle.textContent = title;
@@ -2887,7 +2891,7 @@ const adminMenuIcons = Object.fromEntries(
                 }, 10);
 
                 return new Promise(function (resolve) {
-                    resolveCallback = resolve;
+                    window._adminModalState.resolveCallback = resolve;
                 });
             }
 
@@ -2901,15 +2905,15 @@ const adminMenuIcons = Object.fromEntries(
                 setTimeout(function () {
                     els.modal.classList.add('hidden');
                     els.modal.classList.remove('flex');
-                    if (resolveCallback) {
+                    if (window._adminModalState.resolveCallback) {
                         var finalResult = result;
-                        if (currentMode === "prompt") {
+                        if (window._adminModalState.currentMode === "prompt") {
                             finalResult = result ? (els.modalInput ? els.modalInput.value : "") : null;
                         }
-                        resolveCallback(finalResult);
-                        resolveCallback = null;
+                        window._adminModalState.resolveCallback(finalResult);
+                        window._adminModalState.resolveCallback = null;
                     }
-                    currentMode = "alert";
+                    window._adminModalState.currentMode = "alert";
                 }, 200);
             }
 
@@ -3413,6 +3417,58 @@ const adminMenuIcons = Object.fromEntries(
 
             loadUserInfo();
 
+            // ============== 数据缓存系统 ==============
+            // 缓存配置：缓存时间 5 分钟（300000 毫秒）
+            const CACHE_DURATION = 5 * 60 * 1000;
+
+            // 初始化全局缓存对象
+            if (!window._adminDataCache) {
+                window._adminDataCache = {
+                    posts: { data: null, timestamp: 0 },
+                    categories: { data: null, timestamp: 0 },
+                    tags: { data: null, timestamp: 0 },
+                    settings: { data: null, timestamp: 0 }
+                };
+            }
+
+            // 检查缓存是否有效
+            function isCacheValid(cacheKey) {
+                const cache = window._adminDataCache[cacheKey];
+                if (!cache || !cache.data) return false;
+                return (Date.now() - cache.timestamp) < CACHE_DURATION;
+            }
+
+            // 获取缓存数据
+            function getCachedData(cacheKey) {
+                if (isCacheValid(cacheKey)) {
+                    return window._adminDataCache[cacheKey].data;
+                }
+                return null;
+            }
+
+            // 设置缓存数据
+            function setCachedData(cacheKey, data) {
+                window._adminDataCache[cacheKey] = {
+                    data: data,
+                    timestamp: Date.now()
+                };
+            }
+
+            // 清除指定缓存
+            function clearCache(cacheKey) {
+                if (cacheKey) {
+                    window._adminDataCache[cacheKey] = { data: null, timestamp: 0 };
+                } else {
+                    // 清除所有缓存
+                    Object.keys(window._adminDataCache).forEach(key => {
+                        window._adminDataCache[key] = { data: null, timestamp: 0 };
+                    });
+                }
+            }
+
+            // 暴露清除缓存函数到全局，供其他地方调用
+            window.adminClearCache = clearCache;
+
             // ============== Posts list loading (for posts page) ==============
             let isLoading = false;
             let loadDebounceTimer = null;
@@ -3421,7 +3477,7 @@ const adminMenuIcons = Object.fromEntries(
             let totalPages = 1;
             let totalPosts = 0;
 
-            async function loadPosts(page = 1) {
+            async function loadPosts(page = 1, forceRefresh = false) {
                 const tableBody = document.getElementById("postsTableBody");
                 if (!tableBody) return;
 
@@ -3430,10 +3486,19 @@ const adminMenuIcons = Object.fromEntries(
                 currentPage = page;
 
                 try {
-                    // 获取所有文章用于筛选计数
-                    const result = await window.adminRequest(`${API_URL}/posts?all=true`);
-                    if (!result.ok) throw new Error(result.msg || '获取文章列表失败');
-                    let posts = result.data || [];
+                    let posts;
+
+                    // 检查缓存（如果不是强制刷新）
+                    if (!forceRefresh && isCacheValid('posts')) {
+                        posts = getCachedData('posts');
+                    } else {
+                        // 获取所有文章用于筛选计数
+                        const result = await window.adminRequest(`${API_URL}/posts?all=true`);
+                        if (!result.ok) throw new Error(result.msg || '获取文章列表失败');
+                        posts = result.data || [];
+                        // 缓存数据
+                        setCachedData('posts', posts);
+                    }
 
                     // 更新筛选计数并应用筛选
                     if (typeof window.postsFilterUpdate === 'function') {
@@ -3652,8 +3717,9 @@ const adminMenuIcons = Object.fromEntries(
                     });
 
                     if (result.ok) {
+                        clearCache('posts');  // 清除文章缓存
                         isLoading = false;
-                        loadPosts(currentPage);  // 保持当前页码
+                        loadPosts(currentPage, true);  // 强制刷新
                     } else if (result.code !== 401) {
                         // 401 由全局拦截器处理
                         window.showAdminAlert(result.msg || t.deleteFailed, "error");
@@ -3706,8 +3772,9 @@ const adminMenuIcons = Object.fromEntries(
                     });
 
                     if (updateResult.ok) {
+                        clearCache('posts');  // 清除文章缓存
                         isLoading = false;
-                        loadPosts(currentPage);  // 保持当前页码
+                        loadPosts(currentPage, true);  // 强制刷新
                     } else if (updateResult.code !== 401) {
                         // 401 由全局拦截器处理
                         window.showAdminAlert(updateResult.msg || '操作失败', "error");
@@ -3919,8 +3986,9 @@ const adminMenuIcons = Object.fromEntries(
 
                     if (result.ok) {
                         await window.showAdminAlert(result.msg || "文章已恢复", "success");
+                        clearCache('posts');  // 清除文章缓存
                         isLoading = false;
-                        loadPosts(1);
+                        loadPosts(1, true);  // 强制刷新
                     } else {
                         window.showAdminAlert(result.msg || "恢复失败", "error");
                     }
@@ -3946,8 +4014,9 @@ const adminMenuIcons = Object.fromEntries(
 
                     if (result.ok) {
                         await window.showAdminAlert(result.msg || "文章已永久删除", "success");
+                        clearCache('posts');  // 清除文章缓存
                         isLoading = false;
-                        loadPosts(1);
+                        loadPosts(1, true);  // 强制刷新
                     } else {
                         window.showAdminAlert(result.msg || "删除失败", "error");
                     }

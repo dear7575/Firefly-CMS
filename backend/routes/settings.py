@@ -222,7 +222,8 @@ def get_public_settings_by_group(group: str, db: Session = Depends(get_db)):
 @router.get("", response_model=List[SettingResponse], summary="获取所有设置")
 def get_settings(
     group: Optional[str] = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: models.Admin = Depends(get_current_user)
 ):
     """获取所有站点设置"""
     ensure_backup_settings(db)
@@ -238,7 +239,10 @@ def get_settings(
 
 
 @router.get("/groups", summary="获取设置分组列表")
-def get_setting_groups(db: Session = Depends(get_db)):
+def get_setting_groups(
+    db: Session = Depends(get_db),
+    current_user: models.Admin = Depends(get_current_user)
+):
     """获取所有设置分组"""
     groups = db.query(models.SiteSetting.group).distinct().all()
     return [g[0] for g in groups]
@@ -369,7 +373,11 @@ def update_announcement_config(
 
 
 @router.get("/by-key/{key}", response_model=SettingResponse, summary="根据键名获取设置")
-def get_setting_by_key(key: str, db: Session = Depends(get_db)):
+def get_setting_by_key(
+    key: str,
+    db: Session = Depends(get_db),
+    current_user: models.Admin = Depends(get_current_user)
+):
     """根据键名获取单个设置"""
     setting = db.query(models.SiteSetting).filter(
         models.SiteSetting.key == key
@@ -380,7 +388,11 @@ def get_setting_by_key(key: str, db: Session = Depends(get_db)):
 
 
 @router.get("/{setting_id}", response_model=SettingResponse, summary="获取单个设置")
-def get_setting(setting_id: str, db: Session = Depends(get_db)):
+def get_setting(
+    setting_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.Admin = Depends(get_current_user)
+):
     """根据ID获取设置详情"""
     setting = db.query(models.SiteSetting).filter(
         models.SiteSetting.id == setting_id
@@ -572,6 +584,13 @@ def init_default_settings(
         # 备份设置
         {"key": "backup_auto_enabled", "value": "true", "type": "boolean", "group": "backup", "label": "自动备份", "description": "是否启用自动备份", "sort_order": 100},
         {"key": "backup_auto_interval_hours", "value": "24", "type": "number", "group": "backup", "label": "备份间隔(小时)", "description": "自动备份执行间隔", "sort_order": 99},
+
+        # 缓存设置
+        {"key": "cache_posts_ttl", "value": "300", "type": "number", "group": "cache", "label": "文章缓存(秒)", "description": "文章列表缓存时间，默认5分钟", "sort_order": 100},
+        {"key": "cache_categories_ttl", "value": "600", "type": "number", "group": "cache", "label": "分类缓存(秒)", "description": "分类数据缓存时间，默认10分钟", "sort_order": 99},
+        {"key": "cache_tags_ttl", "value": "600", "type": "number", "group": "cache", "label": "标签缓存(秒)", "description": "标签数据缓存时间，默认10分钟", "sort_order": 98},
+        {"key": "cache_settings_ttl", "value": "1800", "type": "number", "group": "cache", "label": "设置缓存(秒)", "description": "站点设置缓存时间，默认30分钟", "sort_order": 97},
+        {"key": "cache_frontend_ttl", "value": "300", "type": "number", "group": "cache", "label": "前端缓存(秒)", "description": "前端管理后台数据缓存时间，默认5分钟", "sort_order": 96},
     ]
 
     created_count = 0

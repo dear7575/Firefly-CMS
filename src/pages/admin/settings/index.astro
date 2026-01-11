@@ -8,24 +8,25 @@ import { getApiUrl } from "@/utils/api-utils";
 const API_URL = getApiUrl();
 
 // 分组名称映射
-    const groupLabels: Record<string, string> = {
-        basic: "基本信息",
-        brand: "品牌设置",
-        profile: "个人资料",
-        theme: "主题设置",
-        footer: "页脚设置",
-        feature: "功能开关",
-        analytics: "统计埋点",
-        backup: "备份设置",
-        comment: "评论设置",
-        post: "文章设置",
-        general: "通用设置",
-        bangumi: "番组计划",
-        banner: "横幅设置",
-    page: "页面开关",
-    wallpaper: "壁纸设置",
-    waves: "波浪动画",
-    advertisement: "广告设置",
+const groupLabels: Record<string, string> = {
+    basic: i18n(I18nKey.adminSettingsGroupBasic),
+    brand: i18n(I18nKey.adminSettingsGroupBrand),
+    profile: i18n(I18nKey.adminSettingsGroupProfile),
+    theme: i18n(I18nKey.adminSettingsGroupTheme),
+    footer: i18n(I18nKey.adminSettingsGroupFooter),
+    feature: i18n(I18nKey.adminSettingsGroupFeature),
+    analytics: i18n(I18nKey.adminSettingsGroupAnalytics),
+    backup: i18n(I18nKey.adminSettingsGroupBackup),
+    cache: i18n(I18nKey.adminSettingsGroupCache),
+    comment: i18n(I18nKey.adminSettingsGroupComment),
+    post: i18n(I18nKey.adminSettingsGroupPost),
+    general: i18n(I18nKey.adminSettingsGroupGeneral),
+    bangumi: i18n(I18nKey.adminSettingsGroupBangumi),
+    banner: i18n(I18nKey.adminSettingsGroupBanner),
+    page: i18n(I18nKey.adminSettingsGroupPage),
+    wallpaper: i18n(I18nKey.adminSettingsGroupWallpaper),
+    waves: i18n(I18nKey.adminSettingsGroupWaves),
+    advertisement: i18n(I18nKey.adminSettingsGroupAdvertisement),
 };
 
 // 分组图标映射
@@ -42,6 +43,8 @@ const API_URL = getApiUrl();
             "M9 12h6m-3-3v6m9 0a9 9 0 11-18 0 9 9 0 0118 0zm-9-7v4",
         backup:
             "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z",
+        cache:
+            "M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4",
         comment:
             "M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z",
     post: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z",
@@ -672,6 +675,7 @@ const API_URL = getApiUrl();
                     "feature",
                     "analytics",
                     "backup",
+                    "cache",
                     "comment",
                     "post",
                     "api",
@@ -956,6 +960,7 @@ const API_URL = getApiUrl();
                 { value: "feature", label: "功能开关" },
                 { value: "post", label: "文章设置" },
                 { value: "general", label: "通用设置" },
+                { value: "cache", label: "缓存设置" },
                 { value: "bangumi", label: "番组计划" },
                 { value: "banner", label: "横幅设置" },
                 { value: "page", label: "页面开关" },

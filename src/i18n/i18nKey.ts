@@ -439,6 +439,26 @@ enum I18nKey {
 	adminConfirmDeleteCategory = "adminConfirmDeleteCategory",
 	adminNoCategories = "adminNoCategories",
 	adminPosts = "adminPosts",
+
+	// 设置分组
+	adminSettingsGroupBasic = "adminSettingsGroupBasic",
+	adminSettingsGroupBrand = "adminSettingsGroupBrand",
+	adminSettingsGroupProfile = "adminSettingsGroupProfile",
+	adminSettingsGroupTheme = "adminSettingsGroupTheme",
+	adminSettingsGroupFooter = "adminSettingsGroupFooter",
+	adminSettingsGroupFeature = "adminSettingsGroupFeature",
+	adminSettingsGroupAnalytics = "adminSettingsGroupAnalytics",
+	adminSettingsGroupBackup = "adminSettingsGroupBackup",
+	adminSettingsGroupCache = "adminSettingsGroupCache",
+	adminSettingsGroupComment = "adminSettingsGroupComment",
+	adminSettingsGroupPost = "adminSettingsGroupPost",
+	adminSettingsGroupGeneral = "adminSettingsGroupGeneral",
+	adminSettingsGroupBangumi = "adminSettingsGroupBangumi",
+	adminSettingsGroupBanner = "adminSettingsGroupBanner",
+	adminSettingsGroupPage = "adminSettingsGroupPage",
+	adminSettingsGroupWallpaper = "adminSettingsGroupWallpaper",
+	adminSettingsGroupWaves = "adminSettingsGroupWaves",
+	adminSettingsGroupAdvertisement = "adminSettingsGroupAdvertisement",
 }
 
 export default I18nKey;

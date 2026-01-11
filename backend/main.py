@@ -36,6 +36,7 @@ from response_utils import build_error, normalize_payload, is_standard_payload
 from rate_limiter import limiter, rate_limit_exceeded_handler, rate_limit_settings
 from routes import posts, categories, tags, friends, social, settings, dashboard, logs, search, upload, backup, \
     analytics, auth as auth_routes, totp
+from cache import set_cache_ttl_getter
 
 setup_logging()
 logger = logging.getLogger("firefly")
@@ -47,6 +48,27 @@ Base.metadata.create_all(bind=engine)
 os.makedirs(db_settings.UPLOAD_DIR, exist_ok=True)
 # 创建备份目录
 os.makedirs(db_settings.BACKUP_DIR, exist_ok=True)
+
+
+def get_cache_ttl_from_db(cache_type: str) -> int:
+    """从数据库读取缓存 TTL 配置"""
+    key = f"cache_{cache_type}_ttl"
+    db = SessionLocal()
+    try:
+        row = db.query(models.SiteSetting).filter(
+            models.SiteSetting.key == key
+        ).first()
+        if row and row.value:
+            return int(row.value)
+    except Exception:
+        pass
+    finally:
+        db.close()
+    return 0
+
+
+# 设置缓存 TTL 获取函数
+set_cache_ttl_getter(get_cache_ttl_from_db)
 
 
 @asynccontextmanager
