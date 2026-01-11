@@ -6,23 +6,37 @@ import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
 ---
 
-<AdminLayout title={`${i18n(I18nKey.adminPostManagement)} - ${siteConfig.title}`} activeMenu="posts">
+<AdminLayout
+    title={`${i18n(I18nKey.adminPostManagement)} - ${siteConfig.title}`}
+    activeMenu="posts"
+>
     <div class="p-6 lg:p-8 animate-fade-in-up">
         <div class="flex items-center justify-between gap-3 mb-6">
             <div class="min-w-0">
                 <h1 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
                     {i18n(I18nKey.adminPostManagement)}
                 </h1>
-                <p class="text-sm text-zinc-500 mt-1">{i18n(I18nKey.adminManageBlogPosts)}</p>
+                <p class="text-sm text-zinc-500 mt-1">
+                    {i18n(I18nKey.adminManageBlogPosts)}
+                </p>
             </div>
             <button
                 id="newPostBtn"
                 class="bg-[var(--primary)] dark:bg-zinc-800 hover:brightness-110 dark:hover:bg-zinc-700 text-white dark:text-zinc-100 px-6 py-2.5 rounded-xl font-medium transition-all active:scale-95 flex items-center gap-2 shadow-lg hover:shadow-xl hover:-translate-y-0.5 primary-glow flex-shrink-0"
             >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                >
+                    <path
+                        fill-rule="evenodd"
+                        d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                        clip-rule="evenodd"></path>
                 </svg>
-                {i18n(I18nKey.adminAdd)} {i18n(I18nKey.adminPost)}
+                {i18n(I18nKey.adminAdd)}
+                {i18n(I18nKey.adminPost)}
             </button>
         </div>
 
@@ -30,11 +44,19 @@ import { i18n } from "@/i18n/translation";
         <div class="flex flex-col gap-3 mb-4">
             <!-- 第一行：筛选按钮 -->
             <div class="flex flex-wrap items-center gap-2">
-                <button id="filterAll" class="filter-tab active" data-filter="all">
+                <button
+                    id="filterAll"
+                    class="filter-tab active"
+                    data-filter="all"
+                >
                     全部
                     <span id="countAll" class="filter-count">0</span>
                 </button>
-                <button id="filterPublished" class="filter-tab" data-filter="published">
+                <button
+                    id="filterPublished"
+                    class="filter-tab"
+                    data-filter="published"
+                >
                     已发布
                     <span id="countPublished" class="filter-count">0</span>
                 </button>
@@ -42,32 +64,86 @@ import { i18n } from "@/i18n/translation";
                     草稿箱
                     <span id="countDraft" class="filter-count">0</span>
                 </button>
-                <button id="filterTrash" class="filter-tab filter-tab-trash" data-filter="trash">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                <button
+                    id="filterTrash"
+                    class="filter-tab filter-tab-trash"
+                    data-filter="trash"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        ></path>
                     </svg>
                     回收站
                     <span id="countTrash" class="filter-count">0</span>
                 </button>
 
                 <!-- 桌面端：分类和搜索在同一行右侧 -->
-                <div class="hidden md:flex flex-1 items-center justify-end gap-2">
+                <div
+                    class="hidden md:flex flex-1 items-center justify-end gap-2"
+                >
                     <!-- 分类筛选下拉框 - 使用全局 custom-select 样式 -->
                     <div class="custom-select" id="categorySelector">
-                        <div class="custom-select-trigger" id="categorySelectorTrigger">
-                            <span class="custom-select-value placeholder" id="categoryValue">全部分类</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="custom-select-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        <div
+                            class="custom-select-trigger"
+                            id="categorySelectorTrigger"
+                        >
+                            <span
+                                class="custom-select-value placeholder"
+                                id="categoryValue">全部分类</span
+                            >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="custom-select-arrow"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M19 9l-7 7-7-7"></path>
                             </svg>
                         </div>
-                        <div class="custom-select-dropdown hidden" id="categoryDropdown">
+                        <div
+                            class="custom-select-dropdown hidden"
+                            id="categoryDropdown"
+                        >
                             <div class="custom-select-search">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    class="h-4 w-4 text-zinc-400"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                    ></path>
                                 </svg>
-                                <input type="text" id="categorySearch" placeholder="搜索分类..." />
+                                <input
+                                    type="text"
+                                    id="categorySearch"
+                                    placeholder="搜索分类..."
+                                />
                             </div>
-                            <div class="custom-select-options" id="categoryOptions">
+                            <div
+                                class="custom-select-options"
+                                id="categoryOptions"
+                            >
                                 <!-- 分类选项会通过 JS 动态填充 -->
                             </div>
                         </div>
@@ -81,8 +157,18 @@ import { i18n } from "@/i18n/translation";
                             placeholder="搜索标题、内容..."
                             class="posts-search-input"
                         />
-                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        <svg
+                            class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                            ></path>
                         </svg>
                     </div>
                 </div>
@@ -92,20 +178,57 @@ import { i18n } from "@/i18n/translation";
             <div class="flex md:hidden items-center gap-2">
                 <!-- 分类筛选下拉框 - 移动端 -->
                 <div class="custom-select flex-1" id="categorySelectorMobile">
-                    <div class="custom-select-trigger" id="categorySelectorTriggerMobile">
-                        <span class="custom-select-value placeholder" id="categoryValueMobile">全部分类</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="custom-select-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    <div
+                        class="custom-select-trigger"
+                        id="categorySelectorTriggerMobile"
+                    >
+                        <span
+                            class="custom-select-value placeholder"
+                            id="categoryValueMobile">全部分类</span
+                        >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="custom-select-arrow"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M19 9l-7 7-7-7"></path>
                         </svg>
                     </div>
-                    <div class="custom-select-dropdown hidden" id="categoryDropdownMobile">
+                    <div
+                        class="custom-select-dropdown hidden"
+                        id="categoryDropdownMobile"
+                    >
                         <div class="custom-select-search">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="h-4 w-4 text-zinc-400"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                ></path>
                             </svg>
-                            <input type="text" id="categorySearchMobile" placeholder="搜索分类..." />
+                            <input
+                                type="text"
+                                id="categorySearchMobile"
+                                placeholder="搜索分类..."
+                            />
                         </div>
-                        <div class="custom-select-options" id="categoryOptionsMobile">
+                        <div
+                            class="custom-select-options"
+                            id="categoryOptionsMobile"
+                        >
                             <!-- 分类选项会通过 JS 动态填充 -->
                         </div>
                     </div>
@@ -119,52 +242,106 @@ import { i18n } from "@/i18n/translation";
                         placeholder="搜索..."
                         class="posts-search-input w-full"
                     />
-                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    <svg
+                        class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                        ></path>
                     </svg>
                 </div>
             </div>
         </div>
 
         <!-- 回收站操作栏 -->
-        <div id="trashActions" class="hidden mb-4 p-3 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-800 flex items-center justify-between">
-            <span class="text-sm text-red-600 dark:text-red-400">回收站中的文章将在30天后自动删除</span>
-            <button id="emptyTrashBtn" class="px-4 py-1.5 bg-red-500 hover:bg-red-600 text-white text-sm rounded-lg transition-colors flex items-center gap-1">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        <div
+            id="trashActions"
+            class="hidden mb-4 p-3 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-800 flex items-center justify-between"
+        >
+            <span class="text-sm text-red-600 dark:text-red-400"
+                >回收站中的文章将在30天后自动删除</span
+            >
+            <button
+                id="emptyTrashBtn"
+                class="px-4 py-1.5 bg-red-500 hover:bg-red-600 text-white text-sm rounded-lg transition-colors flex items-center gap-1"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    ></path>
                 </svg>
                 清空回收站
             </button>
         </div>
 
-        <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden backdrop-blur-sm">
+        <div
+            class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden backdrop-blur-sm"
+        >
             <div class="overflow-x-auto">
                 <table class="w-full text-left">
-                    <thead class="bg-zinc-50/80 dark:bg-zinc-800/50 border-b border-zinc-200 dark:border-zinc-700/50">
+                    <thead
+                        class="bg-zinc-50/80 dark:bg-zinc-800/50 border-b border-zinc-200 dark:border-zinc-700/50"
+                    >
                         <tr>
-                            <th class="px-4 md:px-6 py-4 text-xs font-bold uppercase tracking-wider text-zinc-500 text-left md:text-center">
-                                {i18n(I18nKey.adminPostTitle)} & {i18n(I18nKey.adminPostSlug)}
+                            <th
+                                class="px-4 md:px-6 py-4 text-xs font-bold uppercase tracking-wider text-zinc-500 text-left md:text-center"
+                            >
+                                {i18n(I18nKey.adminPostTitle)} & {
+                                    i18n(I18nKey.adminPostSlug)
+                                }
                             </th>
-                            <th class="px-4 md:px-6 py-4 text-xs font-bold uppercase tracking-wider text-zinc-500 text-center hidden md:table-cell">
+                            <th
+                                class="px-4 md:px-6 py-4 text-xs font-bold uppercase tracking-wider text-zinc-500 text-center hidden md:table-cell"
+                            >
                                 {i18n(I18nKey.adminPostStatus)}
                             </th>
-                            <th class="px-4 md:px-6 py-4 text-xs font-bold uppercase tracking-wider text-zinc-500 text-center hidden md:table-cell">
+                            <th
+                                class="px-4 md:px-6 py-4 text-xs font-bold uppercase tracking-wider text-zinc-500 text-center hidden md:table-cell"
+                            >
                                 {i18n(I18nKey.adminPostCategory)}
                             </th>
-                            <th class="px-4 md:px-6 py-4 text-xs font-bold uppercase tracking-wider text-zinc-500 text-center hidden lg:table-cell">
+                            <th
+                                class="px-4 md:px-6 py-4 text-xs font-bold uppercase tracking-wider text-zinc-500 text-center hidden lg:table-cell"
+                            >
                                 浏览量
                             </th>
-                            <th class="px-4 md:px-6 py-4 text-xs font-bold uppercase tracking-wider text-zinc-500 text-center hidden md:table-cell">
+                            <th
+                                class="px-4 md:px-6 py-4 text-xs font-bold uppercase tracking-wider text-zinc-500 text-center hidden md:table-cell"
+                            >
                                 {i18n(I18nKey.adminPostDate)}
                             </th>
-                            <th class="px-4 md:px-6 py-4 text-xs font-bold uppercase tracking-wider text-zinc-500 text-center">
+                            <th
+                                class="px-4 md:px-6 py-4 text-xs font-bold uppercase tracking-wider text-zinc-500 text-center"
+                            >
                                 {i18n(I18nKey.adminPostActions)}
                             </th>
                         </tr>
                     </thead>
-                    <tbody id="postsTableBody" class="divide-y divide-zinc-100 dark:divide-zinc-800/50">
+                    <tbody
+                        id="postsTableBody"
+                        class="divide-y divide-zinc-100 dark:divide-zinc-800/50"
+                    >
                         <tr>
-                            <td colspan="6" class="px-6 py-12 text-center text-zinc-500">{i18n(I18nKey.adminLoading)}</td>
+                            <td
+                                colspan="6"
+                                class="px-6 py-12 text-center text-zinc-500"
+                                >{i18n(I18nKey.adminLoading)}</td
+                            >
                         </tr>
                     </tbody>
                 </table>
@@ -220,7 +397,8 @@ import { i18n } from "@/i18n/translation";
 
     .posts-search-input:focus {
         border-color: var(--primary);
-        box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 20%, transparent);
+        box-shadow: 0 0 0 3px
+            color-mix(in oklch, var(--primary) 20%, transparent);
     }
 
     /* 分类下拉框样式覆盖 */
@@ -272,18 +450,18 @@ import { i18n } from "@/i18n/translation";
 </style>
 
 <script is:inline>
-    document.addEventListener('astro:page-load', function() {
+    document.addEventListener("astro:page-load", function () {
         // 检查是否在文章管理页面
-        if (!document.getElementById('postsTableBody')) return;
+        if (!document.getElementById("postsTableBody")) return;
 
         document.getElementById("newPostBtn")?.addEventListener("click", () => {
             window.location.href = "/admin/new";
         });
 
         // 筛选功能
-        var currentFilter = 'all';
-        var currentKeyword = '';
-        var currentCategory = '';
+        var currentFilter = "all";
+        var currentKeyword = "";
+        var currentCategory = "";
         var allPosts = [];
         var trashPosts = [];
         var allCategories = [];
@@ -292,15 +470,22 @@ import { i18n } from "@/i18n/translation";
         async function loadCategories() {
             try {
                 var API_URL = window.API_URL;
-                var result = await window.adminRequest(API_URL + "/categories", {
-                    headers: {
-                        "Authorization": "Bearer " + localStorage.getItem("adminToken")
-                    }
-                });
+                var result = await window.adminRequest(
+                    API_URL + "/categories",
+                    {
+                        headers: {
+                            Authorization:
+                                "Bearer " + localStorage.getItem("adminToken"),
+                        },
+                    },
+                );
                 if (result.ok) {
                     allCategories = result.data || [];
-                    renderCategoryOptions('categoryOptions', 'categoryValue');
-                    renderCategoryOptions('categoryOptionsMobile', 'categoryValueMobile');
+                    renderCategoryOptions("categoryOptions", "categoryValue");
+                    renderCategoryOptions(
+                        "categoryOptionsMobile",
+                        "categoryValueMobile",
+                    );
                 }
             } catch (err) {
                 console.error("Failed to load categories:", err);
@@ -312,80 +497,106 @@ import { i18n } from "@/i18n/translation";
             var optionsContainer = document.getElementById(containerId);
             if (!optionsContainer) return;
 
-            var html = '<div class="custom-select-option selected" data-value="">' +
+            var html =
+                '<div class="custom-select-option selected" data-value="">' +
                 '<span class="custom-select-option-name">全部分类</span>' +
                 '<svg xmlns="http://www.w3.org/2000/svg" class="custom-select-option-check" fill="none" viewBox="0 0 24 24" stroke="currentColor">' +
                 '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></div>';
 
-            allCategories.forEach(function(cat) {
-                html += '<div class="custom-select-option" data-value="' + cat.name + '">' +
-                    '<span class="custom-select-option-name">' + cat.name + '</span>' +
+            allCategories.forEach(function (cat) {
+                html +=
+                    '<div class="custom-select-option" data-value="' +
+                    cat.name +
+                    '">' +
+                    '<span class="custom-select-option-name">' +
+                    cat.name +
+                    "</span>" +
                     '<svg xmlns="http://www.w3.org/2000/svg" class="custom-select-option-check" fill="none" viewBox="0 0 24 24" stroke="currentColor">' +
                     '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></div>';
             });
             optionsContainer.innerHTML = html;
 
             // 绑定选项点击事件
-            optionsContainer.querySelectorAll('.custom-select-option').forEach(function(option) {
-                option.addEventListener('click', function() {
-                    var value = this.dataset.value;
-                    var name = this.querySelector('.custom-select-option-name').textContent;
+            optionsContainer
+                .querySelectorAll(".custom-select-option")
+                .forEach(function (option) {
+                    option.addEventListener("click", function () {
+                        var value = this.dataset.value;
+                        var name = this.querySelector(
+                            ".custom-select-option-name",
+                        ).textContent;
 
-                    // 更新两个下拉框的选中状态
-                    updateCategorySelection(value, name);
+                        // 更新两个下拉框的选中状态
+                        updateCategorySelection(value, name);
 
-                    // 关闭所有下拉框
-                    closeAllCategoryDropdowns();
+                        // 关闭所有下拉框
+                        closeAllCategoryDropdowns();
 
-                    // 触发筛选
-                    currentCategory = value;
-                    applyFilters();
+                        // 触发筛选
+                        currentCategory = value;
+                        applyFilters();
+                    });
                 });
-            });
         }
 
         // 更新分类选中状态（同步桌面端和移动端）
         function updateCategorySelection(value, name) {
-            ['categoryOptions', 'categoryOptionsMobile'].forEach(function(containerId) {
-                var container = document.getElementById(containerId);
-                if (container) {
-                    container.querySelectorAll('.custom-select-option').forEach(function(opt) {
-                        if (opt.dataset.value === value) {
-                            opt.classList.add('selected');
-                        } else {
-                            opt.classList.remove('selected');
-                        }
-                    });
-                }
-            });
-
-            ['categoryValue', 'categoryValueMobile'].forEach(function(valueId) {
-                var valueDisplay = document.getElementById(valueId);
-                if (valueDisplay) {
-                    valueDisplay.textContent = name;
-                    if (value) {
-                        valueDisplay.classList.remove('placeholder');
-                    } else {
-                        valueDisplay.classList.add('placeholder');
+            ["categoryOptions", "categoryOptionsMobile"].forEach(
+                function (containerId) {
+                    var container = document.getElementById(containerId);
+                    if (container) {
+                        container
+                            .querySelectorAll(".custom-select-option")
+                            .forEach(function (opt) {
+                                if (opt.dataset.value === value) {
+                                    opt.classList.add("selected");
+                                } else {
+                                    opt.classList.remove("selected");
+                                }
+                            });
                     }
-                }
-            });
+                },
+            );
+
+            ["categoryValue", "categoryValueMobile"].forEach(
+                function (valueId) {
+                    var valueDisplay = document.getElementById(valueId);
+                    if (valueDisplay) {
+                        valueDisplay.textContent = name;
+                        if (value) {
+                            valueDisplay.classList.remove("placeholder");
+                        } else {
+                            valueDisplay.classList.add("placeholder");
+                        }
+                    }
+                },
+            );
         }
 
         // 关闭所有分类下拉框
         function closeAllCategoryDropdowns() {
-            ['categorySelector', 'categorySelectorMobile'].forEach(function(selectorId) {
-                var selector = document.getElementById(selectorId);
-                if (selector) {
-                    selector.classList.remove('open');
-                    var dropdown = selector.querySelector('.custom-select-dropdown');
-                    if (dropdown) dropdown.classList.add('hidden');
-                }
-            });
+            ["categorySelector", "categorySelectorMobile"].forEach(
+                function (selectorId) {
+                    var selector = document.getElementById(selectorId);
+                    if (selector) {
+                        selector.classList.remove("open");
+                        var dropdown = selector.querySelector(
+                            ".custom-select-dropdown",
+                        );
+                        if (dropdown) dropdown.classList.add("hidden");
+                    }
+                },
+            );
         }
 
         // 初始化分类下拉框交互
-        function initCategorySelector(selectorId, triggerId, dropdownId, searchId, optionsId) {
+        function initCategorySelector(
+            selectorId,
+            triggerId,
+            dropdownId,
+            searchId,
+            optionsId,
+        ) {
             var selector = document.getElementById(selectorId);
             var trigger = document.getElementById(triggerId);
             var dropdown = document.getElementById(dropdownId);
@@ -394,30 +605,35 @@ import { i18n } from "@/i18n/translation";
             if (!selector || !trigger || !dropdown) return;
 
             // 点击触发器切换下拉框
-            trigger.addEventListener('click', function(e) {
+            trigger.addEventListener("click", function (e) {
                 e.stopPropagation();
-                var isOpen = !dropdown.classList.contains('hidden');
+                var isOpen = !dropdown.classList.contains("hidden");
 
                 // 先关闭所有下拉框
                 closeAllCategoryDropdowns();
 
                 if (!isOpen) {
-                    dropdown.classList.remove('hidden');
-                    selector.classList.add('open');
+                    dropdown.classList.remove("hidden");
+                    selector.classList.add("open");
                     if (searchInput) {
-                        searchInput.value = '';
-                        setTimeout(function() { searchInput.focus(); }, 50);
-                        filterCategoryOptions(optionsId, '');
+                        searchInput.value = "";
+                        setTimeout(function () {
+                            searchInput.focus();
+                        }, 50);
+                        filterCategoryOptions(optionsId, "");
                     }
                 }
             });
 
             // 搜索过滤
             if (searchInput) {
-                searchInput.addEventListener('input', function() {
-                    filterCategoryOptions(optionsId, this.value.trim().toLowerCase());
+                searchInput.addEventListener("input", function () {
+                    filterCategoryOptions(
+                        optionsId,
+                        this.value.trim().toLowerCase(),
+                    );
                 });
-                searchInput.addEventListener('click', function(e) {
+                searchInput.addEventListener("click", function (e) {
                     e.stopPropagation();
                 });
             }
@@ -428,21 +644,25 @@ import { i18n } from "@/i18n/translation";
             var optionsContainer = document.getElementById(containerId);
             if (!optionsContainer) return;
 
-            optionsContainer.querySelectorAll('.custom-select-option').forEach(function(option) {
-                var name = option.querySelector('.custom-select-option-name').textContent.toLowerCase();
-                if (!keyword || name.indexOf(keyword) !== -1) {
-                    option.style.display = '';
-                } else {
-                    option.style.display = 'none';
-                }
-            });
+            optionsContainer
+                .querySelectorAll(".custom-select-option")
+                .forEach(function (option) {
+                    var name = option
+                        .querySelector(".custom-select-option-name")
+                        .textContent.toLowerCase();
+                    if (!keyword || name.indexOf(keyword) !== -1) {
+                        option.style.display = "";
+                    } else {
+                        option.style.display = "none";
+                    }
+                });
         }
 
         // 点击外部关闭下拉框
-        document.addEventListener('click', function(e) {
-            var selectors = ['categorySelector', 'categorySelectorMobile'];
+        document.addEventListener("click", function (e) {
+            var selectors = ["categorySelector", "categorySelectorMobile"];
             var clickedInside = false;
-            selectors.forEach(function(id) {
+            selectors.forEach(function (id) {
                 var el = document.getElementById(id);
                 if (el && el.contains(e.target)) {
                     clickedInside = true;
@@ -458,12 +678,12 @@ import { i18n } from "@/i18n/translation";
         function setupSearchInput(inputId) {
             var input = document.getElementById(inputId);
             if (input) {
-                input.addEventListener('input', function() {
+                input.addEventListener("input", function () {
                     clearTimeout(searchTimer);
                     var value = this.value;
                     // 同步两个搜索框的值
                     syncSearchInputs(inputId, value);
-                    searchTimer = setTimeout(function() {
+                    searchTimer = setTimeout(function () {
                         currentKeyword = value.trim().toLowerCase();
                         applyFilters();
                     }, 300);
@@ -473,8 +693,8 @@ import { i18n } from "@/i18n/translation";
 
         // 同步搜索框值
         function syncSearchInputs(sourceId, value) {
-            var ids = ['searchKeyword', 'searchKeywordMobile'];
-            ids.forEach(function(id) {
+            var ids = ["searchKeyword", "searchKeywordMobile"];
+            ids.forEach(function (id) {
                 if (id !== sourceId) {
                     var input = document.getElementById(id);
                     if (input) input.value = value;
@@ -483,38 +703,50 @@ import { i18n } from "@/i18n/translation";
         }
 
         // 初始化搜索框
-        setupSearchInput('searchKeyword');
-        setupSearchInput('searchKeywordMobile');
+        setupSearchInput("searchKeyword");
+        setupSearchInput("searchKeywordMobile");
 
         // 初始化分类下拉框（桌面端和移动端）
-        initCategorySelector('categorySelector', 'categorySelectorTrigger', 'categoryDropdown', 'categorySearch', 'categoryOptions');
-        initCategorySelector('categorySelectorMobile', 'categorySelectorTriggerMobile', 'categoryDropdownMobile', 'categorySearchMobile', 'categoryOptionsMobile');
+        initCategorySelector(
+            "categorySelector",
+            "categorySelectorTrigger",
+            "categoryDropdown",
+            "categorySearch",
+            "categoryOptions",
+        );
+        initCategorySelector(
+            "categorySelectorMobile",
+            "categorySelectorTriggerMobile",
+            "categoryDropdownMobile",
+            "categorySearchMobile",
+            "categoryOptionsMobile",
+        );
 
         // 初始化筛选标签点击事件
-        document.querySelectorAll('.filter-tab').forEach(function(tab) {
-            tab.addEventListener('click', function() {
+        document.querySelectorAll(".filter-tab").forEach(function (tab) {
+            tab.addEventListener("click", function () {
                 var filter = this.dataset.filter;
                 currentFilter = filter;
 
                 // 更新激活状态
-                document.querySelectorAll('.filter-tab').forEach(function(t) {
-                    t.classList.remove('active');
+                document.querySelectorAll(".filter-tab").forEach(function (t) {
+                    t.classList.remove("active");
                 });
-                this.classList.add('active');
+                this.classList.add("active");
 
                 // 显示/隐藏回收站操作栏
-                var trashActions = document.getElementById('trashActions');
+                var trashActions = document.getElementById("trashActions");
                 if (trashActions) {
-                    if (filter === 'trash') {
-                        trashActions.classList.remove('hidden');
+                    if (filter === "trash") {
+                        trashActions.classList.remove("hidden");
                     } else {
-                        trashActions.classList.add('hidden');
+                        trashActions.classList.add("hidden");
                     }
                 }
 
                 // 重新渲染文章列表
-                if (filter === 'trash') {
-                    if (typeof window.adminRenderTrashPosts === 'function') {
+                if (filter === "trash") {
+                    if (typeof window.adminRenderTrashPosts === "function") {
                         window.adminRenderTrashPosts(trashPosts);
                     }
                 } else {
@@ -526,7 +758,7 @@ import { i18n } from "@/i18n/translation";
         // 应用所有筛选条件
         function applyFilters() {
             var filtered = filterPosts(allPosts);
-            if (typeof window.adminRenderPosts === 'function') {
+            if (typeof window.adminRenderPosts === "function") {
                 window.adminRenderPosts(filtered);
             }
         }
@@ -536,30 +768,39 @@ import { i18n } from "@/i18n/translation";
             var result = posts;
 
             // 状态筛选
-            if (currentFilter === 'published') {
-                result = result.filter(function(p) { return !p.is_draft; });
-            } else if (currentFilter === 'draft') {
-                result = result.filter(function(p) { return p.is_draft; });
+            if (currentFilter === "published") {
+                result = result.filter(function (p) {
+                    return !p.is_draft;
+                });
+            } else if (currentFilter === "draft") {
+                result = result.filter(function (p) {
+                    return p.is_draft;
+                });
             }
 
             // 分类筛选
             if (currentCategory) {
-                result = result.filter(function(p) {
-                    return p.category === currentCategory || p.category_name === currentCategory;
+                result = result.filter(function (p) {
+                    return (
+                        p.category === currentCategory ||
+                        p.category_name === currentCategory
+                    );
                 });
             }
 
             // 关键字搜索
             if (currentKeyword) {
-                result = result.filter(function(p) {
-                    var title = (p.title || '').toLowerCase();
-                    var content = (p.content || '').toLowerCase();
-                    var description = (p.description || '').toLowerCase();
-                    var slug = (p.slug || '').toLowerCase();
-                    return title.indexOf(currentKeyword) !== -1 ||
-                           content.indexOf(currentKeyword) !== -1 ||
-                           description.indexOf(currentKeyword) !== -1 ||
-                           slug.indexOf(currentKeyword) !== -1;
+                result = result.filter(function (p) {
+                    var title = (p.title || "").toLowerCase();
+                    var content = (p.content || "").toLowerCase();
+                    var description = (p.description || "").toLowerCase();
+                    var slug = (p.slug || "").toLowerCase();
+                    return (
+                        title.indexOf(currentKeyword) !== -1 ||
+                        content.indexOf(currentKeyword) !== -1 ||
+                        description.indexOf(currentKeyword) !== -1 ||
+                        slug.indexOf(currentKeyword) !== -1
+                    );
                 });
             }
 
@@ -569,14 +810,18 @@ import { i18n } from "@/i18n/translation";
         // 更新计数
         function updateCounts(posts, trash) {
             var countAll = posts.length;
-            var countPublished = posts.filter(function(p) { return !p.is_draft; }).length;
-            var countDraft = posts.filter(function(p) { return p.is_draft; }).length;
+            var countPublished = posts.filter(function (p) {
+                return !p.is_draft;
+            }).length;
+            var countDraft = posts.filter(function (p) {
+                return p.is_draft;
+            }).length;
             var countTrash = trash ? trash.length : 0;
 
-            var countAllEl = document.getElementById('countAll');
-            var countPublishedEl = document.getElementById('countPublished');
-            var countDraftEl = document.getElementById('countDraft');
-            var countTrashEl = document.getElementById('countTrash');
+            var countAllEl = document.getElementById("countAll");
+            var countPublishedEl = document.getElementById("countPublished");
+            var countDraftEl = document.getElementById("countDraft");
+            var countTrashEl = document.getElementById("countTrash");
 
             if (countAllEl) countAllEl.textContent = countAll;
             if (countPublishedEl) countPublishedEl.textContent = countPublished;
@@ -588,11 +833,15 @@ import { i18n } from "@/i18n/translation";
         async function loadTrashPosts() {
             try {
                 var API_URL = window.API_URL;
-                var result = await window.adminRequest(API_URL + "/posts/trash/list?all=true", {
-                    headers: {
-                        "Authorization": "Bearer " + localStorage.getItem("adminToken")
-                    }
-                });
+                var result = await window.adminRequest(
+                    API_URL + "/posts/trash/list?all=true",
+                    {
+                        headers: {
+                            Authorization:
+                                "Bearer " + localStorage.getItem("adminToken"),
+                        },
+                    },
+                );
                 if (result.ok) {
                     trashPosts = result.data || [];
                 }
@@ -604,42 +853,57 @@ import { i18n } from "@/i18n/translation";
         }
 
         // 暴露给全局
-        window.postsFilterUpdate = function(posts) {
+        window.postsFilterUpdate = function (posts) {
             allPosts = posts;
             // 同时加载回收站数据
-            loadTrashPosts().then(function(trash) {
+            loadTrashPosts().then(function (trash) {
                 updateCounts(posts, trash);
             });
             return filterPosts(posts);
         };
 
         // 清空回收站
-        var emptyTrashBtn = document.getElementById('emptyTrashBtn');
+        var emptyTrashBtn = document.getElementById("emptyTrashBtn");
         if (emptyTrashBtn) {
-            emptyTrashBtn.addEventListener('click', async function() {
-                var confirmed = await window.showAdminConfirm("确定要清空回收站吗？所有文章将被永久删除，此操作不可恢复！");
+            emptyTrashBtn.addEventListener("click", async function () {
+                var confirmed = await window.showAdminConfirm(
+                    "确定要清空回收站吗？所有文章将被永久删除，此操作不可恢复！",
+                );
 
                 if (!confirmed) return;
 
                 try {
                     var API_URL = window.API_URL;
-                    var result = await window.adminRequest(API_URL + "/posts/trash/empty", {
-                        method: "DELETE",
-                        headers: {
-                            "Authorization": "Bearer " + localStorage.getItem("adminToken")
-                        }
-                    });
+                    var result = await window.adminRequest(
+                        API_URL + "/posts/trash/empty",
+                        {
+                            method: "DELETE",
+                            headers: {
+                                Authorization:
+                                    "Bearer " +
+                                    localStorage.getItem("adminToken"),
+                            },
+                        },
+                    );
 
                     if (result.ok) {
-                        await window.showAdminAlert(result.msg || "清空成功", "success");
+                        await window.showAdminAlert(
+                            result.msg || "清空成功",
+                            "success",
+                        );
                         // 清空本地回收站数据并重新渲染
                         trashPosts = [];
                         updateCounts(allPosts, trashPosts);
-                        if (typeof window.adminRenderTrashPosts === 'function') {
+                        if (
+                            typeof window.adminRenderTrashPosts === "function"
+                        ) {
                             window.adminRenderTrashPosts(trashPosts);
                         }
                     } else {
-                        window.showAdminAlert(result.msg || "清空失败", "error");
+                        window.showAdminAlert(
+                            result.msg || "清空失败",
+                            "error",
+                        );
                     }
                 } catch (err) {
                     console.error(err);
@@ -650,10 +914,5 @@ import { i18n } from "@/i18n/translation";
 
         // 加载分类列表
         loadCategories();
-
-        // Load posts when page loads
-        if (typeof window.adminLoadPosts === 'function') {
-            window.adminLoadPosts();
-        }
     });
 </script>

@@ -214,7 +214,6 @@ export function initAdminPages() {
                 }
             }
 
-            // Render charts via separate module
             initDashboardCharts(data.charts);
 
         } catch (err) {
@@ -222,11 +221,50 @@ export function initAdminPages() {
         }
     }
 
-    // Page initialization
-    const path = window.location.pathname;
-    if (path.startsWith("/admin/posts") || path === "/admin/posts") {
-        loadPosts();
-    } else if (path === "/admin" || path === "/admin/") {
-        loadDashboardStats();
+    // Expose functions globally
+    window.adminLoadPosts = loadPosts;
+    window.adminLoadDashboardStats = loadDashboardStats;
+
+    // Render posts table (exposed for filtering logic)
+    window.adminRenderPosts = (postsToRender) => {
+        const tableBody = document.getElementById("postsTableBody");
+        if (!tableBody) return;
+
+        if (!postsToRender || postsToRender.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="6" class="px-6 py-12 text-center text-zinc-500">${t.empty || '暂无数据'}</td></tr>`;
+        } else {
+            // Apply pagination to the filtered results if needed
+            // NOTE: admin-pages.js handles server-side fetching, but client-side filtering (in posts/index.astro) 
+            // passes the full unfiltered list to render? No, filterPosts returns filtered list.
+            // If filtering happens, we usually want to paginate the filtered result.
+            // For simplicity here, if adminRenderPosts is called manually with a list, we render it all or slice it.
+            // Let's slice it to respect pageSize.
+
+            // Recalculate pagination for rendered posts
+            totalPosts = postsToRender.length; // Update total based on filtered set
+            totalPages = Math.ceil(totalPosts / pageSize) || 1;
+            // Reset to page 1 if current page is out of bounds (unless we are just re-rendering same page)
+            if (currentPage > totalPages) currentPage = 1;
+
+            const startIndex = (currentPage - 1) * pageSize;
+            const pagedPosts = postsToRender.slice(startIndex, startIndex + pageSize);
+
+            tableBody.innerHTML = pagedPosts.map(post => renderPostRow(post)).join("");
+        }
+        renderPagination();
+    };
+
+    // Route Handler
+    function handleRoute() {
+        const path = window.location.pathname;
+        if (path.startsWith("/admin/posts") || path === "/admin/posts") {
+            loadPosts();
+        } else if (path === "/admin" || path === "/admin/") {
+            loadDashboardStats();
+        }
     }
+
+    // Initialize
+    handleRoute();
+    document.addEventListener('astro:page-load', handleRoute);
 }

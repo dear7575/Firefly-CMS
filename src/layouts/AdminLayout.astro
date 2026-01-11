@@ -344,10 +344,12 @@ const adminMenuIcons = Object.fromEntries(
     <script>
         import { initAdminCore } from "../scripts/admin-core";
         import { initAdminUI } from "../scripts/admin-ui";
+        import { initAdminPages } from "../scripts/admin-pages";
 
-        // Initialize core and UI
+        // Initialize core, UI, and page-specific logic
         initAdminCore();
         initAdminUI();
+        initAdminPages();
     </script>
     <FontManager/>
     <style is:global>
