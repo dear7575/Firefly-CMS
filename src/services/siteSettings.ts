@@ -39,10 +39,10 @@ const CACHE_CONFIG = {
 // 默认配置值
 const DEFAULT_SETTINGS: Record<string, any> = {
     // 基本信息
-    site_title: 'Firefly',
+    site_title: 'Firefly CMS',
     site_subtitle: 'A beautiful blog',
-    site_description: 'A modern blog powered by Firefly',
-    site_keywords: 'blog,firefly,astro',
+    site_description: 'A modern blog powered by Firefly CMS',
+    site_keywords: 'blog,firefly cms,astro',
     site_url: 'http://localhost:4321',
     site_lang: 'zh_CN',
     site_start_date: '',
@@ -55,8 +55,8 @@ const DEFAULT_SETTINGS: Record<string, any> = {
 
     // 个人资料
     profile_avatar: '/assets/images/avatar.webp',
-    profile_name: 'Firefly',
-    profile_bio: 'Hello, I\'m Firefly.',
+    profile_name: 'Firefly CMS',
+    profile_bio: 'Hello, I\'m Firefly CMS.',
 
     // 主题设置
     theme_hue: 165,

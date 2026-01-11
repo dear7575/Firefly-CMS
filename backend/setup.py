@@ -239,7 +239,7 @@ FRONTEND_SITE_SETTINGS = [
     {"key": "site_title", "value": "Firefly", "type": "string", "group": "basic", "label": "站点标题", "description": "网站的主标题", "sort_order": 100},
     {"key": "site_subtitle", "value": "Demo site", "type": "string", "group": "basic", "label": "站点副标题", "description": "网站的副标题", "sort_order": 99},
     {"key": "site_url", "value": "https://firefly.cuteleaf.cn", "type": "string", "group": "basic", "label": "站点URL", "description": "网站的完整URL地址", "sort_order": 98},
-    {"key": "site_description", "value": "Firefly 是一款基于 Astro 框架和 Fuwari 模板开发的清新美观且现代化个人博客主题模板。", "type": "text", "group": "basic", "label": "站点描述", "description": "用于SEO的网站描述", "sort_order": 97},
+    {"key": "site_description", "value": "Firefly CMS 是基于 Firefly 主题的二次开发项目，在保留原有精美前端的基础上，新增了完整的后台管理系统，实现了从静态博客到动态内容管理系统的升级，让您能够轻松打造出专业且美观的个人博客网站。", "type": "text", "group": "basic", "label": "站点描述", "description": "用于SEO的网站描述", "sort_order": 97},
     {"key": "site_keywords", "value": "Firefly,Fuwari,Astro,ACGN,博客,技术博客", "type": "string", "group": "basic", "label": "站点关键词", "description": "用于SEO的关键词", "sort_order": 96},
     {"key": "site_start_date", "value": "2025-01-01", "type": "string", "group": "basic", "label": "建站日期", "description": "网站创建日期", "sort_order": 94},
     {"key": "banner_title", "value": "Lovely firefly!", "type": "string", "group": "banner", "label": "横幅标题", "description": "主页横幅主标题", "sort_order": 99},
