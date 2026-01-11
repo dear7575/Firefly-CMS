@@ -215,6 +215,10 @@ export default defineConfig({
                 "gray-matter",
                 "reading-time",
                 "highlight.js",
+                "@astrojs/rss",
+                "markdown-it",
+                "sanitize-html",
+                "node-html-parser",
             ],
         },
         server: {
