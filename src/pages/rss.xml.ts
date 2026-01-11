@@ -71,8 +71,11 @@ function buildImageImportPath(src: string, postId: string): string | null {
 
 export async function GET(context: APIContext) {
 	if (!context.site) {
+		console.error("[RSS] site URL is not configured");
 		throw new Error("site not set");
 	}
+
+	console.log("[RSS] Generating RSS feed for site:", context.site.toString());
 
 	// Dynamic imports with type definitions for markdown-it and sanitize-html
 	type MarkdownItConstructor = new () => { render: (md: string) => string };
@@ -92,7 +95,14 @@ export async function GET(context: APIContext) {
 	const markdownParser = new MarkdownIt();
 
 	// Use the same ordering as site listing (pinned first, then by published desc)
-	const posts = await getSortedPosts();
+	let posts;
+	try {
+		posts = await getSortedPosts();
+		console.log(`[RSS] Found ${posts.length} posts`);
+	} catch (error) {
+		console.error("[RSS] Failed to get posts:", error);
+		throw error;
+	}
 	const feed: RSSFeedItem[] = [];
 
 	// Process posts in parallel for better performance
@@ -176,16 +186,25 @@ export async function GET(context: APIContext) {
 		});
 	}
 
-	return rss({
-		title:
-			sanitizeXmlContent(siteConfig.title) +
-			" - " +
-			sanitizeXmlContent(siteConfig.subtitle),
-		description: sanitizeXmlContent(
-			siteConfig.description || siteConfig.subtitle || "No description",
-		),
-		site: context.site,
-		items: feed,
-		customData: `<language>${sanitizeXmlContent(siteConfig.lang)}</language>`,
-	});
+	console.log(`[RSS] Generated ${feed.length} feed items`);
+
+	try {
+		const rssContent = rss({
+			title:
+				sanitizeXmlContent(siteConfig.title) +
+				" - " +
+				sanitizeXmlContent(siteConfig.subtitle),
+			description: sanitizeXmlContent(
+				siteConfig.description || siteConfig.subtitle || "No description",
+			),
+			site: context.site,
+			items: feed,
+			customData: `<language>${sanitizeXmlContent(siteConfig.lang)}</language>`,
+		});
+		console.log("[RSS] RSS feed generated successfully");
+		return rssContent;
+	} catch (error) {
+		console.error("[RSS] Failed to generate RSS feed:", error);
+		throw error;
+	}
 }

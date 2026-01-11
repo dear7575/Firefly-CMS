@@ -207,30 +207,51 @@ async def scheduled_publish_worker(stop_event: asyncio.Event):
 async def auto_backup_worker(stop_event: asyncio.Event):
     """后台循环执行自动备份"""
     logger.info("自动备份后台任务启动")
+
+    # 首次启动时先等待，避免立即备份
+    first_run = True
+
     while not stop_event.is_set():
         interval_hours = AUTO_BACKUP_INTERVAL_HOURS
+
+        # 计算等待时间
         try:
             db = SessionLocal()
             try:
                 enabled, interval_hours = read_backup_settings(db)
-                if enabled:
-                    backup.create_backup_record(db, backup_type="full", source="auto")
-                else:
-                    logger.info("自动备份已关闭，跳过本次执行")
             finally:
                 db.close()
         except Exception as exc:
-            logger.error("自动备份失败: %s", exc)
+            logger.error("读取备份配置失败: %s", exc)
 
+        wait_seconds = AUTO_BACKUP_INTERVAL_SECONDS
         try:
+            wait_seconds = interval_hours * 3600
+        except Exception:
             wait_seconds = AUTO_BACKUP_INTERVAL_SECONDS
-            try:
-                wait_seconds = interval_hours * 3600
-            except Exception:
-                wait_seconds = AUTO_BACKUP_INTERVAL_SECONDS
+
+        # 先等待指定时间
+        try:
+            if first_run:
+                logger.info("自动备份将在 %d 小时后首次执行", interval_hours)
+                first_run = False
             await asyncio.wait_for(stop_event.wait(), timeout=wait_seconds)
         except asyncio.TimeoutError:
-            continue
+            # 等待时间到，执行备份
+            try:
+                db = SessionLocal()
+                try:
+                    enabled, _ = read_backup_settings(db)
+                    if enabled:
+                        logger.info("开始执行自动备份")
+                        backup.create_backup_record(db, backup_type="full", source="auto")
+                        logger.info("自动备份完成")
+                    else:
+                        logger.info("自动备份已关闭，跳过本次执行")
+                finally:
+                    db.close()
+            except Exception as exc:
+                logger.error("自动备份失败: %s", exc)
 
 
 def get_client_ip(request: Request) -> str:

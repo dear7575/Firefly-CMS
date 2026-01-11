@@ -1,4 +1,4 @@
-import sitemap from "@astrojs/sitemap";
+// import sitemap from "@astrojs/sitemap"; // 已使用自定义sitemap.xml.ts，注释掉官方插件
 import node from "@astrojs/node";
 import svelte from "@astrojs/svelte";
 import tailwind from "@astrojs/tailwind";
@@ -116,25 +116,23 @@ export default defineConfig({
             },
         }),
         svelte(),
-        sitemap({
-            filter: (page) => {
-                // 根据页面开关配置过滤sitemap
-                const url = new URL(page);
-                const pathname = url.pathname;
-
-                if (pathname === "/sponsor" && !siteConfig.pages.sponsor) {
-                    return false;
-                }
-                if (pathname === "/guestbook" && !siteConfig.pages.guestbook) {
-                    return false;
-                }
-                if (pathname === "/bangumi" && !siteConfig.pages.bangumi) {
-                    return false;
-                }
-
-                return true;
-            },
-        }),
+        // sitemap插件已注释，使用自定义的 src/pages/sitemap.xml.ts
+        // sitemap({
+        //     filter: (page) => {
+        //         const url = new URL(page);
+        //         const pathname = url.pathname;
+        //         if (pathname === "/sponsor" && !siteConfig.pages.sponsor) {
+        //             return false;
+        //         }
+        //         if (pathname === "/guestbook" && !siteConfig.pages.guestbook) {
+        //             return false;
+        //         }
+        //         if (pathname === "/bangumi" && !siteConfig.pages.bangumi) {
+        //             return false;
+        //         }
+        //         return true;
+        //     },
+        // }),
         searchIndexer(),
         mdx(),
     ],

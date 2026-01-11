@@ -8,8 +8,11 @@ export const prerender = false;
 
 export async function GET(context: APIContext) {
   if (!context.site) {
+    console.error("[Sitemap] site URL is not configured");
     throw new Error("site not set");
   }
+
+  console.log("[Sitemap] Generating sitemap for site:", context.site.toString());
 
   const siteUrl = context.site.toString().replace(/\/$/, "");
 
@@ -17,13 +20,23 @@ export async function GET(context: APIContext) {
   let dynamicSettings: Record<string, any> = {};
   try {
     dynamicSettings = await fetchSiteSettings();
-  } catch {
+    console.log("[Sitemap] Loaded dynamic settings");
+  } catch (error) {
+    console.warn("[Sitemap] Failed to load dynamic settings, using static config:", error);
     // 使用静态配置
   }
 
   // 获取所有已发布的文章
-  const posts = await getSortedPosts();
+  let posts;
+  try {
+    posts = await getSortedPosts();
+    console.log(`[Sitemap] Found ${posts.length} total posts`);
+  } catch (error) {
+    console.error("[Sitemap] Failed to get posts:", error);
+    throw error;
+  }
   const publishedPosts = posts.filter(p => !p.data.draft);
+  console.log(`[Sitemap] Found ${publishedPosts.length} published posts`);
 
   // 获取所有分类和标签
   const categories = new Set<string>();
@@ -171,6 +184,8 @@ export async function GET(context: APIContext) {
         http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
 ${urls.join('')}
 </urlset>`;
+
+  console.log(`[Sitemap] Generated sitemap with ${urls.length} URLs`);
 
   return new Response(sitemap, {
     headers: {
