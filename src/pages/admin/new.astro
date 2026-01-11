@@ -1,143 +1,192 @@
 ---
 export const prerender = false;
 import AdminLayout from "../../layouts/AdminLayout.astro";
-import {siteConfig} from "../../config";
+import { siteConfig } from "../../config";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
 import { getApiUrl } from "@/utils/api-utils";
 const API_URL = getApiUrl();
 
 const isEdit = false;
-
-// i18n translations for inline script
-const editorI18n = {
-    requiredFields: i18n(I18nKey.adminRequiredFields),
-    contentEmpty: i18n(I18nKey.adminContentEmpty),
-    saveFailed: i18n(I18nKey.adminSaveFailed),
-    publishing: i18n(I18nKey.adminPostPublishing),
-    publish: i18n(I18nKey.adminPostPublish),
-};
 ---
 
 <AdminLayout title={`${i18n(I18nKey.adminNewPost)} - ${siteConfig.title}`}>
     <div class="h-full flex flex-col overflow-y-auto lg:overflow-hidden">
         <!-- Header -->
         <div
-                class="sticky top-0 z-20 px-4 sm:px-6 lg:px-8 py-3 sm:py-4 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between shadow-sm"
-                data-editor-header
+            class="sticky top-0 z-20 px-4 sm:px-6 lg:px-8 py-3 sm:py-4 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between shadow-sm"
+            data-editor-header
         >
             <div class="flex items-center gap-4">
                 <a
-                        href="/admin/posts"
-                        data-admin-back="posts"
-                        class="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors text-zinc-500"
+                    href="/admin/posts"
+                    data-admin-back="posts"
+                    class="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors text-zinc-500"
                 >
                     <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            class="h-5 w-5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
                     >
                         <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M15 19l-7-7 7-7"></path>
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M15 19l-7-7 7-7"></path>
                     </svg>
                 </a>
-                <h1 class="text-lg sm:text-xl font-bold text-zinc-900 dark:text-zinc-100">
+                <h1
+                    class="text-lg sm:text-xl font-bold text-zinc-900 dark:text-zinc-100"
+                >
                     {i18n(I18nKey.adminNewPost)}
                 </h1>
             </div>
             <div class="flex items-center gap-3">
                 <button
-                        type="button"
-                        id="openEditorImagePicker"
-                        class="px-4 py-2 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-sm text-zinc-700 dark:text-zinc-300 font-medium transition-all"
+                    type="button"
+                    id="openEditorImagePicker"
+                    class="px-4 py-2 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-sm text-zinc-700 dark:text-zinc-300 font-medium transition-all"
                 >
                     插入 图片
                 </button>
                 <button
-                        id="saveBtn"
-                        class="bg-[var(--primary)] dark:bg-zinc-800 hover:opacity-90 dark:hover:bg-zinc-700 text-white dark:text-zinc-100 px-4 sm:px-6 py-2 rounded-xl font-bold transition-all shadow-md hover:shadow-lg active:scale-95 primary-glow"
-                        data-publish-text={i18n(I18nKey.adminPostPublish)}
-                        data-publishing-text={i18n(I18nKey.adminPostPublishing)}
+                    id="saveBtn"
+                    class="bg-[var(--primary)] dark:bg-zinc-800 hover:opacity-90 dark:hover:bg-zinc-700 text-white dark:text-zinc-100 px-4 sm:px-6 py-2 rounded-xl font-bold transition-all shadow-md hover:shadow-lg active:scale-95 primary-glow"
+                    data-publish-text={i18n(I18nKey.adminPostPublish)}
+                    data-publishing-text={i18n(I18nKey.adminPostPublishing)}
                 >
                     {i18n(I18nKey.adminPostPublish)}
                 </button>
             </div>
         </div>
 
-        <div class="flex-1 flex flex-col lg:flex-row lg:overflow-hidden min-h-0">
+        <div
+            class="flex-1 flex flex-col lg:flex-row lg:overflow-hidden min-h-0"
+        >
             <!-- Left Side: Editor -->
             <div
-                    class="flex-1 min-w-0 min-h-[70vh] sm:min-h-[72vh] lg:min-h-0 flex flex-col p-4 sm:p-6 lg:p-8 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 lg:border-b-0 lg:border-r"
+                class="flex-1 min-w-0 min-h-[70vh] sm:min-h-[72vh] lg:min-h-0 flex flex-col p-4 sm:p-6 lg:p-8 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 lg:border-b-0 lg:border-r"
             >
                 <input
-                        type="text"
-                        id="title"
-                        placeholder={i18n(I18nKey.adminPostTitlePlaceholder)}
-                        class="admin-input flex-shrink-0 text-xl sm:text-2xl lg:text-3xl font-bold mb-4 px-4 py-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-zinc-900 dark:text-zinc-100 transition-all"
+                    type="text"
+                    id="title"
+                    placeholder={i18n(I18nKey.adminPostTitlePlaceholder)}
+                    class="admin-input flex-shrink-0 text-xl sm:text-2xl lg:text-3xl font-bold mb-4 px-4 py-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-zinc-900 dark:text-zinc-100 transition-all"
                 />
-                <div id="vditor" class="flex-1 min-h-0 border-none shadow-none overflow-hidden"></div>
+                <div
+                    id="vditor"
+                    class="flex-1 min-h-0 border-none shadow-none overflow-hidden"
+                >
+                </div>
             </div>
 
             <!-- Right Side: Settings -->
             <div
-                    class="w-full lg:w-80 lg:flex-shrink-0 lg:min-h-0 lg:overflow-y-auto bg-zinc-50/50 dark:bg-zinc-950/50 p-4 sm:p-6 lg:p-6 custom-scrollbar backdrop-blur-sm border-t border-zinc-200 dark:border-zinc-800 lg:border-t-0"
+                class="w-full lg:w-80 lg:flex-shrink-0 lg:min-h-0 lg:overflow-y-auto bg-zinc-50/50 dark:bg-zinc-950/50 p-4 sm:p-6 lg:p-6 custom-scrollbar backdrop-blur-sm border-t border-zinc-200 dark:border-zinc-800 lg:border-t-0"
             >
                 <div class="space-y-8">
                     <!-- Basic Info Section -->
                     <section>
                         <h3
-                                class="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-4 flex items-center gap-2"
+                            class="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-4 flex items-center gap-2"
                         >
                             <svg
-                                    class="w-1 h-1 rounded-full bg-zinc-400"
-                                    fill="currentColor"
-                                    viewBox="0 0 4 4"
+                                class="w-1 h-1 rounded-full bg-zinc-400"
+                                fill="currentColor"
+                                viewBox="0 0 4 4"
                             >
                                 <circle cx="2" cy="2" r="2"></circle>
-                            </svg
-                            >
+                            </svg>
                             {i18n(I18nKey.adminSectionBasicInfo)}
                         </h3>
                         <div class="space-y-4">
                             <div>
                                 <label
-                                        class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight"
-                                >{i18n(I18nKey.adminPostSlug)}</label
+                                    class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight"
+                                    >{i18n(I18nKey.adminPostSlug)}</label
                                 >
                                 <input
-                                        id="slug"
-                                        type="text"
-                                        placeholder={i18n(I18nKey.adminPostSlugPlaceholder)}
-                                        class="admin-input"
+                                    id="slug"
+                                    type="text"
+                                    placeholder={i18n(
+                                        I18nKey.adminPostSlugPlaceholder,
+                                    )}
+                                    class="admin-input"
                                 />
                             </div>
                             <div>
                                 <label
-                                        class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight"
-                                >{i18n(I18nKey.adminPostCategoryLabel)}</label
+                                    class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight"
+                                    >{
+                                        i18n(I18nKey.adminPostCategoryLabel)
+                                    }</label
                                 >
-                                <div class="custom-select" id="categorySelector">
-                                    <div class="custom-select-trigger" id="categorySelectorTrigger">
-                                        <span class="custom-select-value placeholder" id="categoryValue" data-placeholder={i18n(I18nKey.adminPostCategoryPlaceholder)}>
-                                            {i18n(I18nKey.adminPostCategoryPlaceholder)}
+                                <div
+                                    class="custom-select"
+                                    id="categorySelector"
+                                >
+                                    <div
+                                        class="custom-select-trigger"
+                                        id="categorySelectorTrigger"
+                                    >
+                                        <span
+                                            class="custom-select-value placeholder"
+                                            id="categoryValue"
+                                            data-placeholder={i18n(
+                                                I18nKey.adminPostCategoryPlaceholder,
+                                            )}
+                                        >
+                                            {
+                                                i18n(
+                                                    I18nKey.adminPostCategoryPlaceholder,
+                                                )
+                                            }
                                         </span>
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="custom-select-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            class="custom-select-arrow"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="2"
+                                                d="M19 9l-7 7-7-7"></path>
                                         </svg>
                                     </div>
-                                    <div class="custom-select-dropdown hidden" id="categoryDropdown">
+                                    <div
+                                        class="custom-select-dropdown hidden"
+                                        id="categoryDropdown"
+                                    >
                                         <div class="custom-select-search">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                class="h-4 w-4 text-zinc-400"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                            >
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                                ></path>
                                             </svg>
-                                            <input type="text" id="categorySearch" placeholder="搜索分类..." />
+                                            <input
+                                                type="text"
+                                                id="categorySearch"
+                                                placeholder="搜索分类..."
+                                            />
                                         </div>
-                                        <div class="custom-select-options" id="categoryOptions">
+                                        <div
+                                            class="custom-select-options"
+                                            id="categoryOptions"
+                                        >
                                             <!-- 分类选项会通过 JS 动态填充 -->
                                         </div>
                                     </div>
@@ -146,14 +195,22 @@ const editorI18n = {
                             </div>
                             <div>
                                 <label
-                                        class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight"
-                                >{i18n(I18nKey.adminPostTags)}</label
+                                    class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight"
+                                    >{i18n(I18nKey.adminPostTags)}</label
                                 >
                                 <div id="tagsContainer" class="tags-selector">
-                                    <span class="text-sm text-zinc-400 italic">{i18n(I18nKey.adminLoading)}</span>
+                                    <span class="text-sm text-zinc-400 italic"
+                                        >{i18n(I18nKey.adminLoading)}</span
+                                    >
                                 </div>
-                                <p class="text-xs text-zinc-400 mt-2">{i18n(I18nKey.adminPostTagsHint)}</p>
-                                <input type="hidden" id="selectedTags" value="" />
+                                <p class="text-xs text-zinc-400 mt-2">
+                                    {i18n(I18nKey.adminPostTagsHint)}
+                                </p>
+                                <input
+                                    type="hidden"
+                                    id="selectedTags"
+                                    value=""
+                                />
                             </div>
                         </div>
                     </section>
@@ -161,46 +218,47 @@ const editorI18n = {
                     <!-- Media Section -->
                     <section>
                         <h3
-                                class="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-4 flex items-center gap-2"
+                            class="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-4 flex items-center gap-2"
                         >
                             <svg
-                                    class="w-1 h-1 rounded-full bg-zinc-400"
-                                    fill="currentColor"
-                                    viewBox="0 0 4 4"
+                                class="w-1 h-1 rounded-full bg-zinc-400"
+                                fill="currentColor"
+                                viewBox="0 0 4 4"
                             >
                                 <circle cx="2" cy="2" r="2"></circle>
-                            </svg
-                            >
+                            </svg>
                             {i18n(I18nKey.adminSectionAppearance)}
                         </h3>
                         <div>
                             <label
-                                    class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight"
-                            >{i18n(I18nKey.adminPostImage)}</label
+                                class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight"
+                                >{i18n(I18nKey.adminPostImage)}</label
                             >
                             <div class="flex items-center gap-2">
                                 <input
-                                        id="image"
-                                        type="text"
-                                        placeholder={i18n(I18nKey.adminPostImagePlaceholder)}
-                                        class="admin-input flex-1"
+                                    id="image"
+                                    type="text"
+                                    placeholder={i18n(
+                                        I18nKey.adminPostImagePlaceholder,
+                                    )}
+                                    class="admin-input flex-1"
                                 />
                                 <button
-                                        type="button"
-                                        id="openCoverPicker"
-                                        class="h-[46px] px-3 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-sm text-zinc-700 dark:text-zinc-300 text-sm font-medium transition-all flex items-center justify-center"
+                                    type="button"
+                                    id="openCoverPicker"
+                                    class="h-[46px] px-3 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-sm text-zinc-700 dark:text-zinc-300 text-sm font-medium transition-all flex items-center justify-center"
                                 >
                                     从媒体库
                                 </button>
                             </div>
                             <div
-                                    id="imagePreview"
-                                    class="mt-2 w-full aspect-video rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 hidden"
+                                id="imagePreview"
+                                class="mt-2 w-full aspect-video rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 hidden"
                             >
                                 <img
-                                        src=""
-                                        alt="Preview"
-                                        class="w-full h-full object-cover"
+                                    src=""
+                                    alt="Preview"
+                                    class="w-full h-full object-cover"
                                 />
                             </div>
                         </div>
@@ -209,56 +267,97 @@ const editorI18n = {
                     <!-- Advanced Section -->
                     <section>
                         <h3
-                                class="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-4 flex items-center gap-2"
+                            class="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-4 flex items-center gap-2"
                         >
                             <svg
-                                    class="w-1 h-1 rounded-full bg-zinc-400"
-                                    fill="currentColor"
-                                    viewBox="0 0 4 4"
+                                class="w-1 h-1 rounded-full bg-zinc-400"
+                                fill="currentColor"
+                                viewBox="0 0 4 4"
                             >
                                 <circle cx="2" cy="2" r="2"></circle>
-                            </svg
-                            >
+                            </svg>
                             {i18n(I18nKey.adminSectionAdvanced)}
                         </h3>
                         <div class="space-y-4">
                             <div>
                                 <label
-                                        class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight"
-                                >{i18n(I18nKey.adminPostPassword)}</label
+                                    class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight"
+                                    >{i18n(I18nKey.adminPostPassword)}</label
                                 >
                                 <div class="relative">
                                     <input
-                                            id="password"
-                                            type="password"
-                                            placeholder={i18n(I18nKey.adminPostPasswordPlaceholder)}
-                                            class="admin-input pr-12"
+                                        id="password"
+                                        type="password"
+                                        placeholder={i18n(
+                                            I18nKey.adminPostPasswordPlaceholder,
+                                        )}
+                                        class="admin-input pr-12"
                                     />
                                     <button
-                                            type="button"
-                                            id="password-toggle"
-                                            class="admin-password-toggle"
-                                            aria-label="显示密码"
-                                            title="显示密码"
+                                        type="button"
+                                        id="password-toggle"
+                                        class="admin-password-toggle"
+                                        aria-label="显示密码"
+                                        title="显示密码"
                                     >
-                                        <svg data-eye="show" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12z"></path>
-                                            <circle cx="12" cy="12" r="3.5"></circle>
+                                        <svg
+                                            data-eye="show"
+                                            class="w-5 h-5"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="1.8"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                        >
+                                            <path
+                                                d="M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12z"
+                                            ></path>
+                                            <circle cx="12" cy="12" r="3.5"
+                                            ></circle>
                                         </svg>
-                                        <svg data-eye="hide" class="w-5 h-5 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                        <svg
+                                            data-eye="hide"
+                                            class="w-5 h-5 hidden"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="1.8"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                        >
                                             <path d="M3 3l18 18"></path>
-                                            <path d="M10.5 5.2A9.9 9.9 0 0 1 12 5c6 0 9.5 7 9.5 7a18.2 18.2 0 0 1-4 4.8"></path>
-                                            <path d="M6.4 6.4A18.4 18.4 0 0 0 2.5 12s3.5 6.5 9.5 6.5c1.6 0 3-.4 4.2-1"></path>
-                                            <path d="M9.9 9.9a3.5 3.5 0 0 0 4.2 4.2"></path>
+                                            <path
+                                                d="M10.5 5.2A9.9 9.9 0 0 1 12 5c6 0 9.5 7 9.5 7a18.2 18.2 0 0 1-4 4.8"
+                                            ></path>
+                                            <path
+                                                d="M6.4 6.4A18.4 18.4 0 0 0 2.5 12s3.5 6.5 9.5 6.5c1.6 0 3-.4 4.2-1"
+                                            ></path>
+                                            <path
+                                                d="M9.9 9.9a3.5 3.5 0 0 0 4.2 4.2"
+                                            ></path>
                                         </svg>
                                     </button>
                                 </div>
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight">是否置顶</label>
-                                <button type="button" class="pinned-toggle" id="pinnedToggle" aria-pressed="false">
-                                    <span class="pinned-toggle-track" id="pinnedToggleTrack">
-                                        <span class="pinned-toggle-handle" id="pinnedToggleHandle"></span>
+                                <label
+                                    class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight"
+                                    >是否置顶</label
+                                >
+                                <button
+                                    type="button"
+                                    class="pinned-toggle"
+                                    id="pinnedToggle"
+                                    aria-pressed="false"
+                                >
+                                    <span
+                                        class="pinned-toggle-track"
+                                        id="pinnedToggleTrack"
+                                    >
+                                        <span
+                                            class="pinned-toggle-handle"
+                                            id="pinnedToggleHandle"></span>
                                     </span>
                                 </button>
                             </div>
@@ -273,118 +372,362 @@ const editorI18n = {
                                     type="number"
                                     min="0"
                                     value="0"
-                                    placeholder={i18n(I18nKey.adminPostPinOrderPlaceholder)}
+                                    placeholder={i18n(
+                                        I18nKey.adminPostPinOrderPlaceholder,
+                                    )}
                                     class="admin-input"
                                 />
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight">发布状态</label>
+                                <label
+                                    class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight"
+                                    >发布状态</label
+                                >
                                 <div class="custom-select" id="statusSelector">
-                                    <div class="custom-select-trigger" id="statusTrigger">
-                                        <span class="custom-select-value" id="statusValue">保存草稿</span>
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="custom-select-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    <div
+                                        class="custom-select-trigger"
+                                        id="statusTrigger"
+                                    >
+                                        <span
+                                            class="custom-select-value"
+                                            id="statusValue">保存草稿</span
+                                        >
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            class="custom-select-arrow"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="2"
+                                                d="M19 9l-7 7-7-7"></path>
                                         </svg>
                                     </div>
-                                    <div class="custom-select-dropdown hidden" id="statusDropdown">
-                                        <div class="custom-select-options" id="statusOptions">
-                                            <div class="custom-select-option" data-value="published">
-                                                <span class="custom-select-option-name">{i18n(I18nKey.adminPostPublish)}</span>
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="custom-select-option-check" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                    <div
+                                        class="custom-select-dropdown hidden"
+                                        id="statusDropdown"
+                                    >
+                                        <div
+                                            class="custom-select-options"
+                                            id="statusOptions"
+                                        >
+                                            <div
+                                                class="custom-select-option"
+                                                data-value="published"
+                                            >
+                                                <span
+                                                    class="custom-select-option-name"
+                                                    >{
+                                                        i18n(
+                                                            I18nKey.adminPostPublish,
+                                                        )
+                                                    }</span
+                                                >
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    class="custom-select-option-check"
+                                                    fill="none"
+                                                    viewBox="0 0 24 24"
+                                                    stroke="currentColor"
+                                                >
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M5 13l4 4L19 7"
+                                                    ></path>
                                                 </svg>
                                             </div>
-                                            <div class="custom-select-option selected" data-value="draft">
-                                                <span class="custom-select-option-name">保存草稿</span>
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="custom-select-option-check" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                            <div
+                                                class="custom-select-option selected"
+                                                data-value="draft"
+                                            >
+                                                <span
+                                                    class="custom-select-option-name"
+                                                    >保存草稿</span
+                                                >
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    class="custom-select-option-check"
+                                                    fill="none"
+                                                    viewBox="0 0 24 24"
+                                                    stroke="currentColor"
+                                                >
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M5 13l4 4L19 7"
+                                                    ></path>
                                                 </svg>
                                             </div>
-                                            <div class="custom-select-option" data-value="scheduled">
-                                                <span class="custom-select-option-name">定时发布</span>
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="custom-select-option-check" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                            <div
+                                                class="custom-select-option"
+                                                data-value="scheduled"
+                                            >
+                                                <span
+                                                    class="custom-select-option-name"
+                                                    >定时发布</span
+                                                >
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    class="custom-select-option-check"
+                                                    fill="none"
+                                                    viewBox="0 0 24 24"
+                                                    stroke="currentColor"
+                                                >
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M5 13l4 4L19 7"
+                                                    ></path>
                                                 </svg>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <input type="hidden" id="statusSelect" value="draft" />
-                                <p class="text-xs text-zinc-400 mt-2">选择文章发布方式，定时发布需要设置具体时间。</p>
+                                <input
+                                    type="hidden"
+                                    id="statusSelect"
+                                    value="draft"
+                                />
+                                <p class="text-xs text-zinc-400 mt-2">
+                                    选择文章发布方式，定时发布需要设置具体时间。
+                                </p>
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight">自定义发布时间</label>
+                                <label
+                                    class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight"
+                                    >自定义发布时间</label
+                                >
                                 <div class="flatpickr-wrapper">
                                     <div class="flatpickr-input-group">
-                                        <input type="text" id="publishedAt" class="admin-input flatpickr-input" placeholder="点击选择时间" readonly />
+                                        <input
+                                            type="text"
+                                            id="publishedAt"
+                                            class="admin-input flatpickr-input"
+                                            placeholder="点击选择时间"
+                                            readonly
+                                        />
                                         <div class="flatpickr-input-icon">
-                                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            <svg
+                                                class="w-5 h-5"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                            >
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="1.5"
+                                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                                ></path>
                                             </svg>
                                         </div>
                                     </div>
                                     <div class="flatpickr-shortcuts">
-                                        <button type="button" class="shortcut-btn" data-action="now" data-target="publishedAt">
-                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                        <button
+                                            type="button"
+                                            class="shortcut-btn"
+                                            data-action="now"
+                                            data-target="publishedAt"
+                                        >
+                                            <svg
+                                                class="w-3.5 h-3.5"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                                ><path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                                ></path></svg
+                                            >
                                             现在
                                         </button>
-                                        <button type="button" class="shortcut-btn" data-action="tomorrow" data-target="publishedAt">
-                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                        <button
+                                            type="button"
+                                            class="shortcut-btn"
+                                            data-action="tomorrow"
+                                            data-target="publishedAt"
+                                        >
+                                            <svg
+                                                class="w-3.5 h-3.5"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                                ><path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                                ></path></svg
+                                            >
                                             明天
                                         </button>
-                                        <button type="button" class="shortcut-btn shortcut-btn-clear" data-action="clear" data-target="publishedAt">
-                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                        <button
+                                            type="button"
+                                            class="shortcut-btn shortcut-btn-clear"
+                                            data-action="clear"
+                                            data-target="publishedAt"
+                                        >
+                                            <svg
+                                                class="w-3.5 h-3.5"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                                ><path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M6 18L18 6M6 6l12 12"
+                                                ></path></svg
+                                            >
                                             清除
                                         </button>
                                     </div>
                                 </div>
-                                <p class="text-xs text-zinc-400 mt-2">可选：用于回填历史文章或自定义发布时间。</p>
+                                <p class="text-xs text-zinc-400 mt-2">
+                                    可选：用于回填历史文章或自定义发布时间。
+                                </p>
                             </div>
                             <div id="scheduledWrapper" class="hidden">
-                                <label class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight">定时发布时间</label>
+                                <label
+                                    class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight"
+                                    >定时发布时间</label
+                                >
                                 <div class="flatpickr-wrapper">
                                     <div class="flatpickr-input-group">
-                                        <input type="text" id="scheduledAt" class="admin-input flatpickr-input" placeholder="点击选择时间" readonly />
+                                        <input
+                                            type="text"
+                                            id="scheduledAt"
+                                            class="admin-input flatpickr-input"
+                                            placeholder="点击选择时间"
+                                            readonly
+                                        />
                                         <div class="flatpickr-input-icon">
-                                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            <svg
+                                                class="w-5 h-5"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                            >
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="1.5"
+                                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                                ></path>
                                             </svg>
                                         </div>
                                     </div>
                                     <div class="flatpickr-shortcuts">
-                                        <button type="button" class="shortcut-btn" data-action="now" data-target="scheduledAt">
-                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                        <button
+                                            type="button"
+                                            class="shortcut-btn"
+                                            data-action="now"
+                                            data-target="scheduledAt"
+                                        >
+                                            <svg
+                                                class="w-3.5 h-3.5"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                                ><path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                                ></path></svg
+                                            >
                                             现在
                                         </button>
-                                        <button type="button" class="shortcut-btn" data-action="tomorrow" data-target="scheduledAt">
-                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                        <button
+                                            type="button"
+                                            class="shortcut-btn"
+                                            data-action="tomorrow"
+                                            data-target="scheduledAt"
+                                        >
+                                            <svg
+                                                class="w-3.5 h-3.5"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                                ><path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                                ></path></svg
+                                            >
                                             明天
                                         </button>
-                                        <button type="button" class="shortcut-btn" data-action="week" data-target="scheduledAt">
-                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                                        <button
+                                            type="button"
+                                            class="shortcut-btn"
+                                            data-action="week"
+                                            data-target="scheduledAt"
+                                        >
+                                            <svg
+                                                class="w-3.5 h-3.5"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                                ><path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                                                ></path></svg
+                                            >
                                             一周后
                                         </button>
-                                        <button type="button" class="shortcut-btn shortcut-btn-clear" data-action="clear" data-target="scheduledAt">
-                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                        <button
+                                            type="button"
+                                            class="shortcut-btn shortcut-btn-clear"
+                                            data-action="clear"
+                                            data-target="scheduledAt"
+                                        >
+                                            <svg
+                                                class="w-3.5 h-3.5"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                                ><path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M6 18L18 6M6 6l12 12"
+                                                ></path></svg
+                                            >
                                             清除
                                         </button>
                                     </div>
                                 </div>
-                                <p class="text-xs text-amber-500 mt-2">启用定时发布后将于指定时间自动发布。</p>
+                                <p class="text-xs text-amber-500 mt-2">
+                                    启用定时发布后将于指定时间自动发布。
+                                </p>
                             </div>
                         </div>
                     </section>
 
                     <section class="mb-4">
                         <label
-                                class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight"
-                        >{i18n(I18nKey.adminPostDescription)}</label
+                            class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-tight"
+                            >{i18n(I18nKey.adminPostDescription)}</label
                         >
                         <textarea
-                                id="description"
-                                rows="3"
-                                placeholder={i18n(I18nKey.adminPostDescriptionPlaceholder)}
-                                class="admin-input resize-none"></textarea>
+                            id="description"
+                            rows="3"
+                            placeholder={i18n(
+                                I18nKey.adminPostDescriptionPlaceholder,
+                            )}
+                            class="admin-input resize-none"></textarea>
                     </section>
                 </div>
             </div>
@@ -392,1635 +735,113 @@ const editorI18n = {
     </div>
 
     <!-- 媒体库选择器 -->
-    <div id="mediaPickerModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-        <div class="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-5xl border border-zinc-200 dark:border-zinc-800 shadow-2xl overflow-hidden">
-            <div class="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+    <div
+        id="mediaPickerModal"
+        class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4"
+    >
+        <div
+            class="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-5xl border border-zinc-200 dark:border-zinc-800 shadow-2xl overflow-hidden"
+        >
+            <div
+                class="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between"
+            >
                 <div>
-                    <h3 class="text-lg font-bold text-zinc-900 dark:text-zinc-100">选择图片</h3>
-                    <p class="text-xs text-zinc-500">从媒体库选择插入或作为封面</p>
+                    <h3
+                        class="text-lg font-bold text-zinc-900 dark:text-zinc-100"
+                    >
+                        选择图片
+                    </h3>
+                    <p class="text-xs text-zinc-500">
+                        从媒体库选择插入或作为封面
+                    </p>
                 </div>
-                <button id="mediaPickerClose" class="w-9 h-9 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-500 hover:bg-zinc-200 dark:hover:bg-zinc-700 flex items-center justify-center">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                <button
+                    id="mediaPickerClose"
+                    class="w-9 h-9 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-500 hover:bg-zinc-200 dark:hover:bg-zinc-700 flex items-center justify-center"
+                >
+                    <svg
+                        class="w-5 h-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        ><path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12"></path></svg
+                    >
                 </button>
             </div>
             <div class="p-4 flex flex-col gap-3">
-                <div class="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+                <div
+                    class="flex flex-col sm:flex-row sm:items-center gap-3 justify-between"
+                >
                     <div class="relative w-full sm:w-72">
-                        <input id="mediaPickerSearch" type="text" placeholder="搜索图片..." class="w-full px-4 h-10 pl-10 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-sm focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent outline-none transition-all" />
-                        <svg class="w-5 h-5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        <input
+                            id="mediaPickerSearch"
+                            type="text"
+                            placeholder="搜索图片..."
+                            class="w-full px-4 h-10 pl-10 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-sm focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent outline-none transition-all"
+                        />
+                        <svg
+                            class="w-5 h-5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            ><path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                            ></path></svg
+                        >
                     </div>
-                    <div class="text-xs text-zinc-500" id="mediaPickerCount">0</div>
+                    <div class="text-xs text-zinc-500" id="mediaPickerCount">
+                        0
+                    </div>
                 </div>
-                <div id="mediaPickerGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 min-h-[240px]">
-                    <div class="col-span-full text-center text-sm text-zinc-500 py-10">加载中...</div>
+                <div
+                    id="mediaPickerGrid"
+                    class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 min-h-[240px]"
+                >
+                    <div
+                        class="col-span-full text-center text-sm text-zinc-500 py-10"
+                    >
+                        加载中...
+                    </div>
                 </div>
-                <div class="flex items-center justify-between text-sm text-zinc-500">
-                    <button id="mediaPickerPrev" class="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">上一页</button>
+                <div
+                    class="flex items-center justify-between text-sm text-zinc-500"
+                >
+                    <button
+                        id="mediaPickerPrev"
+                        class="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                        >上一页</button
+                    >
                     <span id="mediaPickerPage">1/1</span>
-                    <button id="mediaPickerNext" class="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">下一页</button>
+                    <button
+                        id="mediaPickerNext"
+                        class="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                        >下一页</button
+                    >
                 </div>
             </div>
         </div>
     </div>
 </AdminLayout>
 
-<link rel="stylesheet" href="/assets/vendor/flatpickr/flatpickr.min.css" />
-<script is:inline src="/assets/vendor/flatpickr/flatpickr.min.js"></script>
-<script is:inline src="/assets/vendor/flatpickr/zh.js"></script>
-
-<script is:inline define:vars={{ editorI18n }}>
-    window.editorI18n = editorI18n;
+<script>
+    import { initPostEditor } from "../../scripts/admin-post-editor";
+    document.addEventListener("astro:page-load", () => {
+        const vditorEl = document.getElementById("vditor");
+        // 检查是否在新建文章页面
+        if (
+            window.location.pathname.includes("/admin/new") &&
+            vditorEl &&
+            !vditorEl.dataset.initialized
+        ) {
+            vditorEl.dataset.initialized = "true";
+            window._currentEditor = initPostEditor();
+        }
+    });
 </script>
-
-<script is:inline src="/assets/vendor/vditor/index.min.js"></script>
-
-<script is:inline>
-// 使用 astro:page-load 事件确保每次导航都能初始化
-document.addEventListener('astro:page-load', function() {
-    // 检查是否在新建文章页面
-    if (!window.location.pathname.includes('/admin/new')) {
-        return;
-    }
-
-    syncEditorHeaderHeight();
-
-    // 清理之前的实例
-    if (window._newPageVditor) {
-        try {
-            window._newPageVditor.destroy();
-        } catch (e) {}
-        window._newPageVditor = null;
-    }
-    window._newPageVditorInitialized = false;
-
-    // 开始初始化
-    initNewPage();
-});
-
-function syncEditorHeaderHeight() {
-    var header = document.querySelector('[data-editor-header]');
-    if (!header) return;
-    var height = header.offsetHeight || 0;
-    document.documentElement.style.setProperty('--admin-editor-header-height', height + 'px');
-}
-
-if (!window._adminEditorHeaderBound) {
-    window._adminEditorHeaderBound = true;
-    window.addEventListener('resize', syncEditorHeaderHeight);
-}
-
-function initNewPage() {
-    // 防止重复初始化
-    if (window._newPageVditorInitialized) {
-        console.log("New page Vditor already initialized, skipping...");
-        return;
-    }
-    window._newPageVditorInitialized = true;
-
-    // Get i18n translations
-    const t = window.editorI18n || {};
-    const API_URL = window.API_URL;
-
-    let vditor = null;
-    let postStatus = "draft";
-    let isPinned = false;
-    let initTimer = null; // 跟踪初始化定时器
-    let selectedTagIds = []; // 存储选中的标签ID
-    let allTags = []; // 存储所有标签数据
-    let allCategories = []; // 存储所有分类数据
-    let selectedCategory = ''; // 当前选中的分类
-    const statusSelect = document.getElementById("statusSelect");
-    const statusSelector = document.getElementById("statusSelector");
-    const statusTrigger = document.getElementById("statusTrigger");
-    const statusDropdown = document.getElementById("statusDropdown");
-    const statusValue = document.getElementById("statusValue");
-    const statusOptions = document.getElementById("statusOptions");
-    const scheduledAtInput = document.getElementById("scheduledAt");
-    const scheduledWrapper = document.getElementById("scheduledWrapper");
-    const publishedAtInput = document.getElementById("publishedAt");
-    const passwordInput = document.getElementById("password");
-    const passwordToggle = document.getElementById("password-toggle");
-    const backButton = document.querySelector('[data-admin-back="posts"]');
-
-    function initPasswordToggle() {
-        if (!passwordInput || !passwordToggle) {
-            return;
-        }
-        if (passwordToggle.dataset.bound === "true") {
-            return;
-        }
-        passwordToggle.dataset.bound = "true";
-
-        const showIcon = passwordToggle.querySelector('[data-eye="show"]');
-        const hideIcon = passwordToggle.querySelector('[data-eye="hide"]');
-
-        function updatePasswordVisibility(isVisible) {
-            passwordInput.type = isVisible ? "text" : "password";
-            passwordToggle.setAttribute("aria-label", isVisible ? "隐藏密码" : "显示密码");
-            passwordToggle.setAttribute("title", isVisible ? "隐藏密码" : "显示密码");
-            if (showIcon) showIcon.classList.toggle("hidden", isVisible);
-            if (hideIcon) hideIcon.classList.toggle("hidden", !isVisible);
-        }
-
-        let isVisible = false;
-        updatePasswordVisibility(isVisible);
-
-        passwordToggle.addEventListener("click", function () {
-            isVisible = !isVisible;
-            updatePasswordVisibility(isVisible);
-            passwordInput.focus();
-        });
-    }
-
-    function convertLocalToISO(value) {
-        if (!value) return null;
-        const date = new Date(value);
-        if (Number.isNaN(date.getTime())) {
-            return null;
-        }
-        return date.toISOString();
-    }
-
-    function updateStatusUI(value) {
-        postStatus = value;
-        if (scheduledWrapper) {
-            if (value === "scheduled") {
-                scheduledWrapper.classList.remove("hidden");
-            } else {
-                scheduledWrapper.classList.add("hidden");
-            }
-        }
-    }
-
-    function syncStatusUI(value) {
-        updateStatusUI(value);
-        if (statusOptions) {
-            statusOptions.querySelectorAll(".custom-select-option").forEach(function(option) {
-                const isSelected = option.dataset.value === value;
-                option.classList.toggle("selected", isSelected);
-                if (isSelected && statusValue) {
-                    const labelEl = option.querySelector(".custom-select-option-name");
-                    statusValue.textContent = labelEl ? labelEl.textContent : value;
-                }
-            });
-        } else if (statusValue) {
-            statusValue.textContent = value;
-        }
-    }
-
-    function setStatusValue(value) {
-        if (!statusSelect) return;
-        const nextValue = value || "draft";
-        statusSelect.value = nextValue;
-        syncStatusUI(nextValue);
-    }
-
-    function openStatusDropdown() {
-        if (statusSelector) statusSelector.classList.add("open");
-        if (statusDropdown) statusDropdown.classList.remove("hidden");
-    }
-
-    function closeStatusDropdown() {
-        if (statusSelector) statusSelector.classList.remove("open");
-        if (statusDropdown) statusDropdown.classList.add("hidden");
-    }
-
-    function initStatusSelector() {
-        if (!statusSelector || !statusTrigger || !statusDropdown || !statusOptions) {
-            return;
-        }
-        if (statusSelector.dataset.bound === "true") {
-            return;
-        }
-        statusSelector.dataset.bound = "true";
-
-        statusTrigger.addEventListener("click", function(e) {
-            e.stopPropagation();
-            if (statusSelector.classList.contains("open")) {
-                closeStatusDropdown();
-            } else {
-                openStatusDropdown();
-            }
-        });
-
-        statusOptions.querySelectorAll(".custom-select-option").forEach(function(option) {
-            option.addEventListener("click", function() {
-                setStatusValue(option.dataset.value);
-                closeStatusDropdown();
-            });
-        });
-
-        document.addEventListener("click", function(e) {
-            if (!statusSelector.contains(e.target)) {
-                closeStatusDropdown();
-            }
-        });
-
-        setStatusValue(statusSelect ? statusSelect.value : postStatus);
-    }
-
-    function bindBackButton() {
-        if (!backButton || backButton.dataset.bound === "true") {
-            return;
-        }
-        backButton.dataset.bound = "true";
-        backButton.addEventListener("click", function (event) {
-            event.preventDefault();
-            if (window.__adminTabManager && typeof window.__adminTabManager.closeCurrentAndNavigate === "function") {
-                window.__adminTabManager.closeCurrentAndNavigate("/admin/posts");
-                return;
-            }
-            if (window.__adminTabManager && typeof window.__adminTabManager.close === "function") {
-                window.__adminTabManager.close(window.location.pathname);
-            }
-            if (window.__adminTabManager && typeof window.__adminTabManager.navigate === "function") {
-                window.__adminTabManager.navigate("/admin/posts");
-            } else {
-                window.location.href = "/admin/posts";
-            }
-        });
-    }
-
-    statusSelect?.addEventListener("change", function (event) {
-        syncStatusUI(event.target.value);
-    });
-    bindBackButton();
-    initStatusSelector();
-    setupMediaPicker();
-
-    function setupMediaPicker() {
-        var modal = document.getElementById("mediaPickerModal");
-        if (!modal || modal.dataset.bound === "true") {
-            return;
-        }
-        modal.dataset.bound = "true";
-
-        var openCoverBtn = document.getElementById("openCoverPicker");
-        var openEditorBtn = document.getElementById("openEditorImagePicker");
-        var closeBtn = document.getElementById("mediaPickerClose");
-        var searchInput = document.getElementById("mediaPickerSearch");
-        var grid = document.getElementById("mediaPickerGrid");
-        var countEl = document.getElementById("mediaPickerCount");
-        var prevBtn = document.getElementById("mediaPickerPrev");
-        var nextBtn = document.getElementById("mediaPickerNext");
-        var pageEl = document.getElementById("mediaPickerPage");
-
-        var pickerMode = "cover";
-        var currentPage = 1;
-        var totalPages = 1;
-        var keyword = "";
-        var searchTimer = null;
-
-        function getEditorInstance() {
-            return window._newPageVditor || vditor;
-        }
-
-        function sanitizeAlt(text) {
-            return (text || "image").replace(/\]/g, "\\]");
-        }
-
-        function isImageItem(item) {
-            if (item.mime_type && item.mime_type.indexOf("image/") === 0) {
-                return true;
-            }
-            var name = item.filename || "";
-            var ext = name.toLowerCase().split(".").pop();
-            return ["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(ext);
-        }
-
-        function setCoverImage(url) {
-            var imageInput = document.getElementById("image");
-            if (!imageInput) return;
-            imageInput.value = url;
-            imageInput.dispatchEvent(new Event("input"));
-        }
-
-        function insertImageToEditor(url, name) {
-            var editor = getEditorInstance();
-            if (!editor || typeof editor.insertValue !== "function") {
-                window.showAdminAlert("编辑器尚未就绪，请稍后重试", "warning");
-                return;
-            }
-            var alt = sanitizeAlt(name || "image");
-            editor.insertValue("![" + alt + "](" + url + ")");
-        }
-
-        function openPicker(mode) {
-            pickerMode = mode;
-            currentPage = 1;
-            keyword = "";
-            if (searchInput) searchInput.value = "";
-            modal.classList.remove("hidden");
-            modal.classList.add("flex");
-            loadMedia();
-        }
-
-        function closePicker() {
-            modal.classList.add("hidden");
-            modal.classList.remove("flex");
-        }
-
-        async function loadMedia() {
-            if (!grid) return;
-            grid.innerHTML = '<div class="col-span-full text-center text-sm text-zinc-500 py-10">加载中...</div>';
-
-            try {
-                var query = "page=" + currentPage + "&page_size=40";
-                if (keyword) {
-                    query += "&keyword=" + encodeURIComponent(keyword);
-                }
-                var result = await window.adminRequest(API_URL + "/upload/media?" + query, {
-                    headers: {
-                        "Authorization": "Bearer " + localStorage.getItem("adminToken")
-                    }
-                });
-
-                if (!result.ok) {
-                    throw new Error(result.msg || "加载失败");
-                }
-
-                var data = result.data || {};
-                var items = (data.items || []).filter(isImageItem);
-                var total = data.pagination ? data.pagination.total : items.length;
-                totalPages = data.pagination ? data.pagination.total_pages : 1;
-
-                if (countEl) {
-                    countEl.textContent = "共 " + total + " 张图片";
-                }
-                if (pageEl) {
-                    pageEl.textContent = currentPage + "/" + (totalPages || 1);
-                }
-                if (prevBtn) prevBtn.disabled = currentPage <= 1;
-                if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
-
-                if (items.length === 0) {
-                    grid.innerHTML = '<div class="col-span-full text-center text-sm text-zinc-500 py-10">暂无图片</div>';
-                    return;
-                }
-
-                grid.innerHTML = items.map(function(item) {
-                    var name = item.original_name || item.filename || "image";
-                    return '' +
-                        '<button type="button" class="group text-left rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 media-card-hover transition-all" data-url="' + item.url + '" data-name="' + name + '">' +
-                            '<div class="aspect-square bg-zinc-100 dark:bg-zinc-800 overflow-hidden">' +
-                                '<img src="' + item.url + '" alt="' + name + '" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform" />' +
-                            '</div>' +
-                            '<div class="px-2 py-1.5 text-xs text-zinc-600 dark:text-zinc-300 truncate">' + name + '</div>' +
-                        '</button>';
-                }).join("");
-
-                grid.querySelectorAll("button[data-url]").forEach(function(btn) {
-                    btn.addEventListener("click", function() {
-                        var url = this.dataset.url;
-                        var name = this.dataset.name || "image";
-                        if (pickerMode === "cover") {
-                            setCoverImage(url);
-                        } else {
-                            insertImageToEditor(url, name);
-                        }
-                        closePicker();
-                    });
-                });
-            } catch (err) {
-                console.error("加载媒体失败:", err);
-                grid.innerHTML = '<div class="col-span-full text-center text-sm text-red-500 py-10">加载失败</div>';
-            }
-        }
-
-        openCoverBtn?.addEventListener("click", function() {
-            openPicker("cover");
-        });
-
-        openEditorBtn?.addEventListener("click", function() {
-            openPicker("editor");
-        });
-
-        closeBtn?.addEventListener("click", closePicker);
-        modal?.addEventListener("click", function(e) {
-            if (e.target === modal) {
-                closePicker();
-            }
-        });
-
-        searchInput?.addEventListener("input", function() {
-            keyword = this.value.trim();
-            clearTimeout(searchTimer);
-            searchTimer = setTimeout(function() {
-                currentPage = 1;
-                loadMedia();
-            }, 300);
-        });
-
-        prevBtn?.addEventListener("click", function() {
-            if (currentPage > 1) {
-                currentPage -= 1;
-                loadMedia();
-            }
-        });
-
-        nextBtn?.addEventListener("click", function() {
-            if (currentPage < totalPages) {
-                currentPage += 1;
-                loadMedia();
-            }
-        });
-    }
-
-    // 加载分类列表
-    async function loadCategories() {
-        const categoryOptions = document.getElementById('categoryOptions');
-        if (!categoryOptions) return;
-
-        try {
-            const result = await window.adminRequest(API_URL + '/categories');
-            if (result.ok) {
-                allCategories = (result.data || []).filter(c => c.enabled);
-                renderCategoryOptions();
-                initCategorySelector();
-                const hasSelected = selectedCategory && allCategories.some(function(cat) { return cat.name === selectedCategory; });
-                if (!hasSelected && allCategories.length) {
-                    selectedCategory = allCategories[0].name || '';
-                }
-                selectCategory(selectedCategory);
-            }
-        } catch (err) {
-            console.error('加载分类失败:', err);
-            categoryOptions.innerHTML = '<div class="custom-select-empty">加载分类失败</div>';
-        }
-    }
-
-    // 渲染分类选项
-    function renderCategoryOptions(filter = '') {
-        const categoryOptions = document.getElementById('categoryOptions');
-        if (!categoryOptions) return;
-
-        const filtered = filter
-            ? allCategories.filter(c => c.name.toLowerCase().includes(filter.toLowerCase()))
-            : allCategories;
-
-        if (filtered.length === 0) {
-            categoryOptions.innerHTML = '<div class="custom-select-empty">' + (filter ? '未找到匹配的分类' : '暂无可用分类') + '</div>';
-            return;
-        }
-
-        categoryOptions.innerHTML = filtered.map(function(cat) {
-            const isSelected = selectedCategory === cat.name;
-            return '<div class="custom-select-option' + (isSelected ? ' selected' : '') + '" data-value="' + cat.name + '">' +
-                '<span class="custom-select-option-name">' + cat.name + '</span>' +
-                '<svg xmlns="http://www.w3.org/2000/svg" class="custom-select-option-check" fill="none" viewBox="0 0 24 24" stroke="currentColor">' +
-                    '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />' +
-                '</svg>' +
-            '</div>';
-        }).join('');
-
-        categoryOptions.querySelectorAll('.custom-select-option').forEach(function(option) {
-            option.addEventListener('click', function() {
-                selectCategory(option.dataset.value);
-            });
-        });
-    }
-
-    // 选择分类
-    function selectCategory(value) {
-        const normalized = value || '';
-        const exists = normalized && allCategories.some(function(cat) { return cat.name === normalized; });
-        selectedCategory = exists ? normalized : '';
-        const categoryInput = document.getElementById('category');
-        const categoryValue = document.getElementById('categoryValue');
-        const placeholder = categoryValue ? categoryValue.dataset.placeholder : '';
-
-        if (categoryInput) categoryInput.value = selectedCategory;
-        if (categoryValue) {
-            categoryValue.textContent = selectedCategory || placeholder;
-            categoryValue.classList.toggle('placeholder', !selectedCategory);
-        }
-
-        renderCategoryOptions();
-        closeCategoryDropdown();
-    }
-
-    // 初始化分类选择器交互
-    function initCategorySelector() {
-        const selector = document.getElementById('categorySelector');
-        const trigger = document.getElementById('categorySelectorTrigger');
-        const dropdown = document.getElementById('categoryDropdown');
-        const searchInput = document.getElementById('categorySearch');
-
-        if (!selector || !trigger || !dropdown) return;
-        if (selector.dataset.bound === 'true') return;
-        selector.dataset.bound = 'true';
-
-        trigger.addEventListener('click', function(e) {
-            e.stopPropagation();
-            if (selector.classList.contains('open')) {
-                closeCategoryDropdown();
-            } else {
-                openCategoryDropdown();
-            }
-        });
-
-        if (searchInput) {
-            searchInput.addEventListener('input', function() {
-                renderCategoryOptions(searchInput.value);
-            });
-        }
-
-        document.addEventListener('click', function(e) {
-            if (!selector.contains(e.target)) {
-                closeCategoryDropdown();
-            }
-        });
-    }
-
-    function openCategoryDropdown() {
-        const selector = document.getElementById('categorySelector');
-        const dropdown = document.getElementById('categoryDropdown');
-        const searchInput = document.getElementById('categorySearch');
-
-        if (selector) selector.classList.add('open');
-        if (dropdown) dropdown.classList.remove('hidden');
-        if (searchInput) {
-            searchInput.value = '';
-            searchInput.focus();
-        }
-        renderCategoryOptions();
-    }
-
-    function closeCategoryDropdown() {
-        const selector = document.getElementById('categorySelector');
-        const dropdown = document.getElementById('categoryDropdown');
-
-        if (selector) selector.classList.remove('open');
-        if (dropdown) dropdown.classList.add('hidden');
-    }
-
-    // 加载标签列表
-    async function loadTags() {
-        const tagsContainer = document.getElementById('tagsContainer');
-        if (!tagsContainer) return;
-
-        try {
-            const result = await window.adminRequest(API_URL + '/tags');
-            if (result.ok) {
-                allTags = result.data || [];
-                renderTags();
-            } else {
-                tagsContainer.innerHTML = '<span class="text-sm text-red-500">加载标签失败</span>';
-            }
-        } catch (err) {
-            console.error('加载标签失败:', err);
-            tagsContainer.innerHTML = '<span class="text-sm text-red-500">加载标签失败</span>';
-        }
-    }
-
-    // 渲染标签选择器
-    function renderTags() {
-        const tagsContainer = document.getElementById('tagsContainer');
-        if (!tagsContainer || !allTags.length) {
-            if (tagsContainer) {
-                tagsContainer.innerHTML = '<span class="text-sm text-zinc-400">暂无可用标签</span>';
-            }
-            return;
-        }
-
-        tagsContainer.innerHTML = allTags.filter(function(tag) {
-            return tag.enabled;
-        }).map(function(tag) {
-            const isSelected = selectedTagIds.indexOf(tag.id) !== -1;
-            const bgColor = isSelected ? (tag.color || '#6366f1') : 'transparent';
-            const textColor = isSelected ? '#fff' : (tag.color || '#71717a');
-            const borderColor = tag.color || '#d4d4d8';
-
-            return '<button type="button" ' +
-                'class="tag-btn px-3 py-1.5 text-xs font-medium rounded-full border transition-all hover:opacity-80" ' +
-                'data-tag-id="' + tag.id + '" ' +
-                'data-tag-name="' + tag.name + '" ' +
-                'data-tag-color="' + (tag.color || '#6366f1') + '" ' +
-                'style="background-color: ' + bgColor + '; color: ' + textColor + '; border-color: ' + borderColor + ';">' +
-                tag.name +
-            '</button>';
-        }).join('');
-
-        // 绑定点击事件
-        tagsContainer.querySelectorAll('.tag-btn').forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                const tagId = this.getAttribute('data-tag-id');
-                const tagColor = this.getAttribute('data-tag-color');
-                const idx = selectedTagIds.indexOf(tagId);
-
-                if (idx === -1) {
-                    // 选中
-                    selectedTagIds.push(tagId);
-                    this.style.backgroundColor = tagColor;
-                    this.style.color = '#fff';
-                } else {
-                    // 取消选中
-                    selectedTagIds.splice(idx, 1);
-                    this.style.backgroundColor = 'transparent';
-                    this.style.color = tagColor;
-                }
-
-                // 更新隐藏字段
-                updateSelectedTagsInput();
-            });
-        });
-    }
-
-    // 更新隐藏的标签输入字段
-    function updateSelectedTagsInput() {
-        const input = document.getElementById('selectedTags');
-        if (input) {
-            // 获取选中标签的名称
-            const selectedNames = selectedTagIds.map(function(id) {
-                const tag = allTags.find(function(t) { return t.id === id; });
-                return tag ? tag.name : '';
-            }).filter(function(name) { return name; });
-            input.value = selectedNames.join(',');
-        }
-    }
-
-    // 检查 Vditor 是否可用
-    function initVditor() {
-        // 清除之前的定时器
-        if (initTimer) {
-            clearTimeout(initTimer);
-            initTimer = null;
-        }
-
-        // 检查页面是否还在
-        if (!window._newPageVditorInitialized) {
-            console.log("Page changed, stopping Vditor init");
-            return;
-        }
-
-        if (typeof Vditor === "undefined") {
-            console.log("Vditor not loaded, retrying...");
-            initTimer = setTimeout(initVditor, 300);
-            window._newPageInitTimer = initTimer; // 保存到全局以便清理
-            return;
-        }
-
-        const container = document.getElementById("vditor");
-        if (!container) {
-            console.log("Vditor container not found");
-            return;
-        }
-
-        // 检测当前主题
-        const isDark = document.documentElement.classList.contains("dark");
-
-        // Initialize Vditor - 使用 IR 模式（即时渲染）
-        // cdn 设置为本地路径，避免从网络加载
-        vditor = new Vditor("vditor", {
-            height: "100%",
-            mode: "ir",
-            placeholder: "Write your story here...",
-            cdn: "/assets/vendor/vditor",
-            cache: {
-                enable: false,
-            },
-            theme: isDark ? "dark" : "classic",
-            preview: {
-                theme: {
-                    current: isDark ? "dark" : "light",
-                },
-            },
-            toolbarConfig: {
-                pin: true,
-            },
-            counter: {
-                enable: true,
-            },
-            after: function() {
-                console.log("Vditor initialized successfully");
-                // 强制设置 IR 模式内容区域样式
-                var resetEl = document.querySelector('#vditor .vditor-ir .vditor-reset');
-                if (resetEl) {
-                    resetEl.style.color = isDark ? '#f4f4f5' : '#18181b';
-                    resetEl.style.caretColor = isDark ? '#f4f4f5' : '#18181b';
-                }
-            },
-        });
-
-        // 保存到全局以便清理
-        window._newPageVditor = vditor;
-    }
-
-    // Handle Title -> Slug generation
-    document.getElementById("title")?.addEventListener("input", function(e) {
-        const title = e.target.value;
-        const slugInput = document.getElementById("slug");
-        if (slugInput && !slugInput.dataset.manual) {
-            slugInput.value = title
-                .toLowerCase()
-                .replace(/[^a-z0-9]+/g, "-")
-                .replace(/(^-|-$)/g, "");
-        }
-    });
-
-    document.getElementById("slug")?.addEventListener("input", function() {
-        const slugEl = document.getElementById("slug");
-        if (slugEl) slugEl.dataset.manual = "true";
-    });
-
-    // Handle Image Preview
-    document.getElementById("image")?.addEventListener("input", function(e) {
-        const url = e.target.value;
-        const preview = document.getElementById("imagePreview");
-        const img = preview?.querySelector("img");
-        if (url && preview && img) {
-            img.src = url;
-            preview.classList.remove("hidden");
-        } else if (preview) {
-            preview.classList.add("hidden");
-        }
-    });
-
-    updateStatusUI(postStatus);
-
-    // Handle Pinned Toggle
-    document.getElementById("pinnedToggle")?.addEventListener("click", function() {
-        isPinned = !isPinned;
-        const track = document.getElementById("pinnedToggleTrack");
-        const handle = document.getElementById("pinnedToggleHandle");
-        const pinOrderContainer = document.getElementById("pinOrderContainer");
-        const toggleBtn = document.getElementById("pinnedToggle");
-        if (isPinned) {
-            track?.classList.add("is-active");
-            handle?.classList.add("translate-x-4");
-            pinOrderContainer?.classList.remove("hidden");
-            toggleBtn?.setAttribute("aria-pressed", "true");
-        } else {
-            track?.classList.remove("is-active");
-            handle?.classList.remove("translate-x-4");
-            pinOrderContainer?.classList.add("hidden");
-            toggleBtn?.setAttribute("aria-pressed", "false");
-        }
-    });
-
-    // Handle Save
-    document.getElementById("saveBtn")?.addEventListener("click", async function() {
-        const titleEl = document.getElementById("title");
-        const slugEl = document.getElementById("slug");
-        const saveBtn = document.getElementById("saveBtn");
-
-        const title = titleEl ? titleEl.value : '';
-        const slug = slugEl ? slugEl.value : '';
-
-        if (!title || !slug) {
-            window.showAdminAlert(t.requiredFields || "Title and Slug are required", "warning");
-            return;
-        }
-
-        if (!vditor) {
-            window.showAdminAlert("Editor not initialized", "error");
-            return;
-        }
-
-        const content = vditor.getValue();
-        if (!content) {
-            window.showAdminAlert(t.contentEmpty || "Content is empty", "warning");
-            return;
-        }
-
-        const categoryEl = document.getElementById("category");
-        const selectedTagsEl = document.getElementById("selectedTags");
-        const descriptionEl = document.getElementById("description");
-        const imageEl = document.getElementById("image");
-        const passwordEl = document.getElementById("password");
-        const pinOrderEl = document.getElementById("pinOrder");
-
-        // 获取选中的标签名称
-        const tagsValue = selectedTagsEl ? selectedTagsEl.value : '';
-        const tagsArray = tagsValue ? tagsValue.split(',').map(function(t) { return t.trim(); }).filter(function(t) { return t; }) : [];
-
-        const statusValue = statusSelect ? statusSelect.value : postStatus;
-        updateStatusUI(statusValue);
-        const scheduledISO = convertLocalToISO(scheduledAtInput ? scheduledAtInput.value : "");
-        const publishedISO = convertLocalToISO(publishedAtInput ? publishedAtInput.value : "");
-
-        if (statusValue === "scheduled" && !scheduledISO) {
-            window.showAdminAlert("请设置定时发布时间", "warning");
-            return;
-        }
-
-        const postData = {
-            title,
-            slug,
-            category_name: categoryEl ? categoryEl.value || "General" : "General",
-            tags: tagsArray,
-            description: descriptionEl ? descriptionEl.value : "",
-            content,
-            image: imageEl ? imageEl.value || "" : "",
-            password: passwordEl ? passwordEl.value || "" : "",
-            is_draft: statusValue !== "published",
-            status: statusValue,
-            pinned: isPinned,
-            pin_order: pinOrderEl ? parseInt(pinOrderEl.value) || 0 : 0,
-            scheduled_at: scheduledISO,
-            published_at: publishedISO,
-        };
-
-        const token = localStorage.getItem("adminToken");
-        if (!token) {
-            window.location.href = "/admin/login";
-            return;
-        }
-
-        try {
-            if (saveBtn) {
-                saveBtn.disabled = true;
-                saveBtn.innerHTML =
-                    '<span class="animate-spin inline-block mr-2">◌</span> ' + (saveBtn.dataset.publishingText || 'Publishing...');
-            }
-
-            const result = await window.adminRequest(`${API_URL}/posts`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: "Bearer " + token,
-                },
-                body: JSON.stringify(postData),
-            });
-
-            if (result.ok) {
-                // 清除文章缓存，确保列表页显示最新数据
-                if (window.adminClearCache) {
-                    window.adminClearCache('posts');
-                }
-                window.location.href = "/admin/posts";
-            } else {
-                window.showAdminAlert(
-                    (t.saveFailed || "Save failed") + ": " + (result.msg || "Unknown error"),
-                    "error",
-                );
-                if (saveBtn) {
-                    saveBtn.disabled = false;
-                    saveBtn.innerHTML = saveBtn.dataset.publishText || "Publish Post";
-                }
-            }
-        } catch (err) {
-            console.error(err);
-            window.showAdminAlert(t.saveFailed || "An error occurred while saving.", "error");
-            if (saveBtn) {
-                saveBtn.disabled = false;
-                saveBtn.innerHTML = saveBtn.dataset.publishText || "Publish Post";
-            }
-        }
-    });
-
-    // 页面离开时清理
-    window.addEventListener("beforeunload", function() {
-        window._newPageVditorInitialized = false;
-        if (window._newPageVditor) {
-            try {
-                window._newPageVditor.destroy();
-            } catch (e) {
-                console.log("Vditor destroy error:", e);
-            }
-            window._newPageVditor = null;
-        }
-    });
-
-    // 启动初始化
-    initVditor();
-    loadCategories();
-    loadTags();
-    initPasswordToggle();
-    initFlatpickrDatetimePickers();
-}
-
-// Flatpickr 实例存储
-var flatpickrInstances = {};
-
-// 初始化 Flatpickr 时间选择器
-function initFlatpickrDatetimePickers() {
-    // 确保 Flatpickr 已加载
-    if (typeof flatpickr === 'undefined') {
-        console.log('Flatpickr 未加载，等待中...');
-        setTimeout(initFlatpickrDatetimePickers, 100);
-        return;
-    }
-
-    // 设置中文语言
-    if (flatpickr.l10ns && flatpickr.l10ns.zh) {
-        flatpickr.localize(flatpickr.l10ns.zh);
-    }
-
-    // 通用配置
-    var commonConfig = {
-        enableTime: true,
-        time_24hr: true,
-        dateFormat: "Y-m-d H:i",
-        allowInput: false,
-        disableMobile: true,
-        animate: true,
-        locale: flatpickr.l10ns && flatpickr.l10ns.zh ? "zh" : "default"
-    };
-
-    // 初始化自定义发布时间
-    var publishedAtEl = document.getElementById('publishedAt');
-    if (publishedAtEl && !flatpickrInstances.publishedAt) {
-        flatpickrInstances.publishedAt = flatpickr(publishedAtEl, {
-            ...commonConfig,
-            onChange: function(selectedDates, dateStr) {
-                // 触发 change 事件以便其他逻辑可以监听
-                publishedAtEl.dispatchEvent(new Event('change'));
-            }
-        });
-    }
-
-    // 初始化定时发布时间
-    var scheduledAtEl = document.getElementById('scheduledAt');
-    if (scheduledAtEl && !flatpickrInstances.scheduledAt) {
-        flatpickrInstances.scheduledAt = flatpickr(scheduledAtEl, {
-            ...commonConfig,
-            minDate: "today",
-            onChange: function(selectedDates, dateStr) {
-                scheduledAtEl.dispatchEvent(new Event('change'));
-            }
-        });
-    }
-
-    // 绑定快捷按钮事件
-    initShortcutButtons();
-}
-
-// 初始化快捷按钮
-function initShortcutButtons() {
-    document.querySelectorAll('.shortcut-btn').forEach(function(btn) {
-        if (btn.dataset.bound === 'true') return;
-        btn.dataset.bound = 'true';
-
-        btn.addEventListener('click', function() {
-            var action = this.dataset.action;
-            var targetId = this.dataset.target;
-            var instance = flatpickrInstances[targetId];
-
-            if (!instance) return;
-
-            var now = new Date();
-
-            switch(action) {
-                case 'now':
-                    instance.setDate(now, true);
-                    break;
-                case 'tomorrow':
-                    var tomorrow = new Date(now);
-                    tomorrow.setDate(tomorrow.getDate() + 1);
-                    instance.setDate(tomorrow, true);
-                    break;
-                case 'week':
-                    var nextWeek = new Date(now);
-                    nextWeek.setDate(nextWeek.getDate() + 7);
-                    instance.setDate(nextWeek, true);
-                    break;
-                case 'clear':
-                    instance.clear();
-                    break;
-            }
-        });
-    });
-}
-</script>
-
-<style is:global>
-    /* Flatpickr 时间选择器自定义样式 */
-    .flatpickr-wrapper {
-        @apply flex flex-col gap-3;
-    }
-
-    .flatpickr-input-group {
-        @apply relative;
-    }
-
-    .flatpickr-input-group .flatpickr-input {
-        @apply cursor-pointer pr-12;
-    }
-
-    .flatpickr-input-icon {
-        @apply absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none transition-colors;
-    }
-
-    .flatpickr-input-group:hover .flatpickr-input-icon {
-        @apply text-zinc-600 dark:text-zinc-300;
-    }
-
-    .flatpickr-shortcuts {
-        @apply flex flex-wrap gap-1.5 mt-2.5;
-    }
-
-    .shortcut-btn {
-        @apply inline-flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-medium rounded-lg border transition-all duration-200;
-        @apply bg-white dark:bg-zinc-800/80 border-zinc-200 dark:border-zinc-700;
-        @apply text-zinc-500 dark:text-zinc-400;
-        @apply hover:bg-zinc-100 dark:hover:bg-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600;
-        @apply hover:text-zinc-700 dark:hover:text-zinc-200;
-        @apply active:scale-95;
-    }
-
-    .shortcut-btn-clear {
-        @apply hover:text-red-500 hover:border-red-300 dark:hover:border-red-500/50;
-        @apply hover:bg-red-50 dark:hover:bg-red-900/20;
-    }
-
-    /* Flatpickr 日历弹窗样式覆盖 */
-    .flatpickr-calendar {
-        @apply rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-xl !important;
-        background: white !important;
-        font-family: inherit !important;
-    }
-
-    .dark .flatpickr-calendar {
-        background: rgb(24 24 27) !important;
-        border-color: rgb(63 63 70) !important;
-    }
-
-    .flatpickr-calendar.arrowTop:before,
-    .flatpickr-calendar.arrowTop:after,
-    .flatpickr-calendar.arrowBottom:before,
-    .flatpickr-calendar.arrowBottom:after {
-        display: none !important;
-    }
-
-    .flatpickr-months {
-        @apply pb-2 border-b border-zinc-100 dark:border-zinc-800 !important;
-    }
-
-    .flatpickr-months .flatpickr-month {
-        background: transparent !important;
-        height: 44px !important;
-    }
-
-    .flatpickr-current-month {
-        @apply text-zinc-800 dark:text-zinc-100 font-semibold !important;
-        font-size: 14px !important;
-    }
-
-    .flatpickr-current-month .flatpickr-monthDropdown-months {
-        @apply bg-transparent text-zinc-800 dark:text-zinc-100 font-semibold !important;
-    }
-
-    .flatpickr-current-month input.cur-year {
-        @apply text-zinc-800 dark:text-zinc-100 font-semibold !important;
-    }
-
-    .flatpickr-months .flatpickr-prev-month,
-    .flatpickr-months .flatpickr-next-month {
-        @apply text-zinc-500 hover:text-[var(--primary)] transition-colors !important;
-        fill: currentColor !important;
-    }
-
-    .flatpickr-months .flatpickr-prev-month svg,
-    .flatpickr-months .flatpickr-next-month svg {
-        fill: currentColor !important;
-    }
-
-    .dark .flatpickr-months .flatpickr-prev-month,
-    .dark .flatpickr-months .flatpickr-next-month {
-        @apply text-zinc-400 !important;
-    }
-
-    .flatpickr-weekdays {
-        background: transparent !important;
-    }
-
-    .flatpickr-weekday {
-        @apply text-zinc-400 dark:text-zinc-500 text-xs font-medium !important;
-        background: transparent !important;
-    }
-
-    .flatpickr-days {
-        border: none !important;
-    }
-
-    .dayContainer {
-        @apply gap-0.5 !important;
-    }
-
-    .flatpickr-day {
-        @apply text-zinc-700 dark:text-zinc-300 rounded-lg border-0 transition-all !important;
-        max-width: 36px !important;
-        height: 36px !important;
-        line-height: 36px !important;
-        font-size: 13px !important;
-    }
-
-    .flatpickr-day:hover {
-        background: color-mix(in srgb, var(--primary) 12%, transparent) !important;
-        border-color: transparent !important;
-    }
-
-    .flatpickr-day.today {
-        border: 1px solid var(--primary) !important;
-        background: transparent !important;
-    }
-
-    .flatpickr-day.selected,
-    .flatpickr-day.selected:hover {
-        background: var(--primary) !important;
-        @apply text-white !important;
-        border-color: var(--primary) !important;
-    }
-
-    .flatpickr-day.prevMonthDay,
-    .flatpickr-day.nextMonthDay {
-        @apply text-zinc-300 dark:text-zinc-600 !important;
-    }
-
-    .flatpickr-day.disabled,
-    .flatpickr-day.disabled:hover {
-        @apply text-zinc-300 dark:text-zinc-600 cursor-not-allowed !important;
-        background: transparent !important;
-    }
-
-    /* 时间选择器样式 */
-    .flatpickr-time {
-        @apply border-t border-zinc-100 dark:border-zinc-800 !important;
-        background: transparent !important;
-        max-height: none !important;
-    }
-
-    .flatpickr-time input {
-        @apply text-zinc-800 dark:text-zinc-100 font-medium !important;
-        background: transparent !important;
-    }
-
-    .flatpickr-time input:hover,
-    .flatpickr-time input:focus {
-        background: color-mix(in srgb, var(--primary) 10%, transparent) !important;
-    }
-
-    .flatpickr-time .flatpickr-time-separator,
-    .flatpickr-time .flatpickr-am-pm {
-        @apply text-zinc-400 dark:text-zinc-500 !important;
-    }
-
-    .flatpickr-time .flatpickr-am-pm:hover {
-        background: color-mix(in srgb, var(--primary) 10%, transparent) !important;
-    }
-
-    .numInputWrapper span {
-        @apply border-zinc-200 dark:border-zinc-700 !important;
-    }
-
-    .numInputWrapper span:hover {
-        background: color-mix(in srgb, var(--primary) 15%, transparent) !important;
-    }
-
-    .numInputWrapper span svg path {
-        fill: currentColor !important;
-    }
-
-    .admin-input {
-        @apply w-full px-4 py-3 bg-white dark:bg-zinc-900/80 border border-zinc-200 dark:border-zinc-700/50 rounded-xl text-sm text-zinc-900 dark:text-zinc-100 outline-none transition-all duration-300 placeholder:text-zinc-400 dark:placeholder:text-zinc-500;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
-        backdrop-filter: blur(8px);
-    }
-
-    .admin-input:hover {
-        @apply border-zinc-300 dark:border-zinc-600;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.08);
-    }
-
-    .admin-input:focus {
-        border-color: var(--primary);
-        box-shadow:
-            0 0 0 4px color-mix(in oklch, var(--primary) 18%, transparent),
-            0 2px 8px color-mix(in oklch, var(--primary) 30%, transparent);
-    }
-
-    /* 暗色模式下的炫光效果 */
-    .dark .admin-input:focus {
-        box-shadow:
-            0 0 0 4px color-mix(in oklch, var(--primary) 22%, transparent),
-            0 0 20px color-mix(in oklch, var(--primary) 30%, transparent);
-    }
-
-    /* 输入框有内容时的样式 */
-    .admin-input:not(:placeholder-shown) {
-        @apply border-zinc-300 dark:border-zinc-600;
-    }
-
-    /* 密码输入框特殊样式 */
-    input[type="password"].admin-input {
-        letter-spacing: 0.1em;
-    }
-
-    /* 数字输入框样式 */
-    input[type="number"].admin-input {
-        -moz-appearance: textfield;
-    }
-
-    input[type="number"].admin-input::-webkit-outer-spin-button,
-    input[type="number"].admin-input::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-    }
-
-    /* 文本域样式增强 */
-    textarea.admin-input {
-        @apply resize-none;
-        min-height: 80px;
-    }
-
-    textarea.admin-input:focus {
-        min-height: 100px;
-    }
-
-    /* 下拉选择框样式 */
-    select.admin-input {
-        appearance: none;
-        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-        background-position: right 0.75rem center;
-        background-repeat: no-repeat;
-        background-size: 1.25em 1.25em;
-        padding-right: 2.5rem;
-        cursor: pointer;
-    }
-
-    select.admin-input option {
-        @apply py-2 px-4 bg-white dark:bg-zinc-900;
-    }
-
-    /* 自定义分类选择器样式 */
-    .category-selector {
-        @apply relative;
-    }
-
-    .category-selector-trigger {
-        @apply w-full px-4 py-3 bg-white dark:bg-zinc-900/80 border border-zinc-200 dark:border-zinc-700/50 rounded-xl text-sm text-zinc-900 dark:text-zinc-100 cursor-pointer transition-all duration-300 flex items-center justify-between;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
-        backdrop-filter: blur(8px);
-    }
-
-    .category-selector-trigger:hover {
-        @apply border-zinc-300 dark:border-zinc-600;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.08);
-    }
-
-    .category-selector.open .category-selector-trigger {
-        border-color: var(--primary);
-        box-shadow:
-            0 0 0 4px color-mix(in oklch, var(--primary) 18%, transparent),
-            0 2px 8px color-mix(in oklch, var(--primary) 30%, transparent);
-    }
-
-    .dark .category-selector.open .category-selector-trigger {
-        box-shadow:
-            0 0 0 4px color-mix(in oklch, var(--primary) 22%, transparent),
-            0 0 20px color-mix(in oklch, var(--primary) 30%, transparent);
-    }
-
-    .category-selector.open #categoryArrow {
-        transform: rotate(180deg);
-    }
-
-    .category-selector-value {
-        @apply truncate;
-    }
-
-    .category-selector-value.placeholder {
-        @apply text-zinc-400 dark:text-zinc-500;
-    }
-
-    .category-selector-dropdown {
-        @apply absolute top-full left-0 right-0 mt-2 bg-white/95 dark:bg-zinc-900/95 border border-zinc-200 dark:border-zinc-700/50 rounded-xl overflow-hidden z-50;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.08);
-        backdrop-filter: blur(12px);
-        animation: dropdownFadeIn 0.2s ease-out;
-    }
-
-    @keyframes dropdownFadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(-8px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .category-search-wrapper {
-        @apply flex items-center gap-2 px-4 py-3 border-b border-zinc-100 dark:border-zinc-800/50;
-    }
-
-    .category-search-input {
-        @apply flex-1 bg-transparent text-sm text-zinc-900 dark:text-zinc-100 outline-none placeholder:text-zinc-400;
-    }
-
-    .category-options {
-        @apply max-h-[200px] overflow-y-auto;
-    }
-
-    .category-option {
-        @apply flex items-center gap-3 px-4 py-3 cursor-pointer transition-all duration-200;
-    }
-
-    .category-option:hover {
-        @apply bg-zinc-50 dark:bg-zinc-800/50;
-    }
-
-    .category-option.selected {
-        @apply bg-zinc-100 dark:bg-zinc-800;
-    }
-
-    .category-option-color {
-        @apply w-3 h-3 rounded-full flex-shrink-0;
-        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5), 0 1px 3px rgba(0, 0, 0, 0.2);
-    }
-
-    .category-option-name {
-        @apply text-sm text-zinc-700 dark:text-zinc-300 flex-1;
-    }
-
-    .category-option.selected .category-option-name {
-        @apply text-zinc-900 dark:text-zinc-100 font-medium;
-    }
-
-    .category-option-check {
-        @apply w-4 h-4 text-zinc-600 dark:text-zinc-400 opacity-0 transition-opacity;
-    }
-
-    .category-option.selected .category-option-check {
-        @apply opacity-100;
-    }
-
-    .category-empty {
-        @apply px-4 py-6 text-center text-sm text-zinc-400;
-    }
-
-    /* 标签选择器容器样式 */
-    .tags-selector {
-        @apply flex flex-wrap gap-2 p-4 bg-white/80 dark:bg-zinc-900/80 border border-zinc-200 dark:border-zinc-700/50 rounded-xl min-h-[60px] transition-all duration-300;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
-        backdrop-filter: blur(8px);
-    }
-
-    .tags-selector:hover {
-        @apply border-zinc-300 dark:border-zinc-600;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.08);
-    }
-
-    .tags-selector:focus-within {
-        border-color: var(--primary);
-        box-shadow:
-            0 0 0 4px color-mix(in oklch, var(--primary) 18%, transparent),
-            0 2px 8px color-mix(in oklch, var(--primary) 30%, transparent);
-    }
-
-    .dark .tags-selector:focus-within {
-        box-shadow:
-            0 0 0 4px color-mix(in oklch, var(--primary) 22%, transparent),
-            0 0 20px color-mix(in oklch, var(--primary) 30%, transparent);
-    }
-
-    /* 标签按钮样式 */
-    .tag-btn {
-        @apply px-3 py-1.5 text-xs font-medium rounded-full border-2 transition-all duration-200 cursor-pointer select-none;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-    }
-
-    .tag-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
-
-    .tag-btn:active {
-        transform: translateY(0);
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-    }
-
-    .pinned-toggle {
-        @apply inline-flex items-center;
-    }
-
-    .pinned-toggle-track {
-        @apply w-10 h-6 rounded-full relative transition-colors duration-300 bg-zinc-200 dark:bg-zinc-800;
-    }
-
-    .pinned-toggle-track.is-active {
-        background-color: var(--primary);
-    }
-
-    .pinned-toggle-handle {
-        @apply absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 shadow-sm;
-    }
-
-    .custom-scrollbar::-webkit-scrollbar {
-        width: 6px;
-    }
-
-    .custom-scrollbar::-webkit-scrollbar-track {
-        @apply bg-transparent;
-    }
-
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-        @apply bg-zinc-200 dark:bg-zinc-800 rounded-full;
-    }
-</style>
-
-<style is:global>
-    /* 修复 Vditor 编辑器样式问题 */
-
-    #vditor.vditor {
-        border: none !important;
-        background-color: #fff !important;
-    }
-
-    .dark #vditor.vditor {
-        background-color: #18181b !important;
-    }
-
-    #vditor .vditor-reset {
-        color: #18181b !important;
-    }
-
-    .dark #vditor .vditor-reset {
-        color: #f4f4f5 !important;
-    }
-
-    /* 光标颜色 */
-    #vditor.vditor--ir .vditor-reset,
-    #vditor.vditor--wysiwyg .vditor-reset,
-    #vditor.vditor--sv .vditor-reset {
-        caret-color: #18181b !important;
-    }
-
-    .dark #vditor.vditor--ir .vditor-reset,
-    .dark #vditor.vditor--wysiwyg .vditor-reset,
-    .dark #vditor.vditor--sv .vditor-reset {
-        caret-color: #f4f4f5 !important;
-    }
-
-    /* 确保空行时光标可见 - 设置最小行高和光标样式 */
-    #vditor .vditor-ir .vditor-reset {
-        min-height: 1.5em !important;
-        line-height: 1.75 !important;
-        caret-color: #18181b !important;
-        caret-shape: bar !important;
-    }
-
-    .dark #vditor .vditor-ir .vditor-reset {
-        caret-color: #f4f4f5 !important;
-    }
-
-    /* 空段落样式 */
-    #vditor .vditor-ir .vditor-reset p:empty::before,
-    #vditor .vditor-ir .vditor-reset > br {
-        content: '';
-        display: inline-block;
-        min-height: 1.5em;
-    }
-
-    /* 工具栏样式 */
-    #vditor .vditor-toolbar {
-        position: sticky !important;
-        top: 0;
-        z-index: 12;
-        background-color: #fafafa !important;
-        border-bottom: 1px solid #e4e4e7 !important;
-    }
-
-    .dark #vditor .vditor-toolbar {
-        background-color: #27272a !important;
-        border-bottom: 1px solid #3f3f46 !important;
-    }
-
-    #vditor .vditor-toolbar__item svg {
-        color: #71717a !important;
-    }
-
-    .dark #vditor .vditor-toolbar__item svg {
-        color: #a1a1aa !important;
-    }
-
-    #vditor .vditor-toolbar__item:hover svg {
-        color: #18181b !important;
-    }
-
-    .dark #vditor .vditor-toolbar__item:hover svg {
-        color: #f4f4f5 !important;
-    }
-
-    /* 内容区域 */
-    #vditor .vditor-content {
-        background-color: #fff !important;
-    }
-
-    .dark #vditor .vditor-content {
-        background-color: #18181b !important;
-    }
-
-    /* IR 模式下的代码块 */
-    #vditor .vditor-ir pre.vditor-reset {
-        background-color: #f4f4f5 !important;
-    }
-
-    .dark #vditor .vditor-ir pre.vditor-reset {
-        background-color: #27272a !important;
-    }
-
-    /* 行号 */
-    #vditor .vditor-linenumber {
-        color: #a1a1aa !important;
-    }
-
-    .dark #vditor .vditor-linenumber {
-        color: #71717a !important;
-    }
-
-    /* 计数器 */
-    #vditor .vditor-counter {
-        color: #71717a !important;
-        background-color: transparent !important;
-    }
-
-    .dark #vditor .vditor-counter {
-        color: #a1a1aa !important;
-    }
-
-    /* placeholder */
-    #vditor .vditor-reset::before {
-        color: #a1a1aa !important;
-    }
-
-    .dark #vditor .vditor-reset::before {
-        color: #71717a !important;
-    }
-
-    /* 确保 IR 模式下内容可见 */
-    #vditor .vditor-ir__node {
-        color: inherit !important;
-    }
-
-    #vditor .vditor-ir__marker {
-        color: #a1a1aa !important;
-    }
-
-    .dark #vditor .vditor-ir__marker {
-        color: #71717a !important;
-    }
-</style>
-
-<style is:global>
-    /* WYSIWYG 模式样式 */
-    #vditor .vditor-wysiwyg {
-        color: #18181b !important;
-        caret-color: #18181b !important;
-        background-color: #fff !important;
-    }
-
-    .dark #vditor .vditor-wysiwyg {
-        color: #f4f4f5 !important;
-        caret-color: #f4f4f5 !important;
-        background-color: #18181b !important;
-    }
-
-    #vditor .vditor-wysiwyg p,
-    #vditor .vditor-wysiwyg h1,
-    #vditor .vditor-wysiwyg h2,
-    #vditor .vditor-wysiwyg h3,
-    #vditor .vditor-wysiwyg h4,
-    #vditor .vditor-wysiwyg h5,
-    #vditor .vditor-wysiwyg h6,
-    #vditor .vditor-wysiwyg li,
-    #vditor .vditor-wysiwyg blockquote {
-        color: inherit !important;
-    }
-
-    .dark #vditor .vditor-wysiwyg p,
-    .dark #vditor .vditor-wysiwyg h1,
-    .dark #vditor .vditor-wysiwyg h2,
-    .dark #vditor .vditor-wysiwyg h3,
-    .dark #vditor .vditor-wysiwyg h4,
-    .dark #vditor .vditor-wysiwyg h5,
-    .dark #vditor .vditor-wysiwyg h6,
-    .dark #vditor .vditor-wysiwyg li,
-    .dark #vditor .vditor-wysiwyg blockquote {
-        color: #f4f4f5 !important;
-    }
-</style>
-
-<style is:global>
-    /* 强制光标可见 - 使用主题色 */
-    #vditor .vditor-ir .vditor-reset,
-    #vditor .vditor-ir .vditor-reset * {
-        caret-color: var(--primary) !important;
-    }
-
-    .dark #vditor .vditor-ir .vditor-reset,
-    .dark #vditor .vditor-ir .vditor-reset * {
-        caret-color: var(--primary) !important;
-    }
-
-    /* 确保 contenteditable 元素光标可见 */
-    #vditor [contenteditable="true"] {
-        caret-color: var(--primary) !important;
-    }
-
-    .dark #vditor [contenteditable="true"] {
-        caret-color: var(--primary) !important;
-    }
-</style>

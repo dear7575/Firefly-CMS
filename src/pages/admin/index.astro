@@ -1,127 +1,252 @@
 ---
 export const prerender = false;
 import AdminLayout from "../../layouts/AdminLayout.astro";
-import {siteConfig} from "../../config";
+import { siteConfig } from "../../config";
 import I18nKey from "@/i18n/i18nKey";
-import {i18n} from "@/i18n/translation";
-import {getApiUrl} from "@/utils/api-utils";
+import { i18n } from "@/i18n/translation";
+import { getApiUrl } from "@/utils/api-utils";
 const API_URL = getApiUrl();
 ---
 
-<AdminLayout title={`${i18n(I18nKey.adminDashboard)} - ${siteConfig.title}`} activeMenu="dashboard">
+<AdminLayout
+    title={`${i18n(I18nKey.adminDashboard)} - ${siteConfig.title}`}
+    activeMenu="dashboard"
+>
     <div class="p-6 lg:p-8">
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
             <!-- Posts Card -->
-            <div class="bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-zinc-200 dark:border-zinc-800 shadow-sm">
+            <div
+                class="bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-zinc-200 dark:border-zinc-800 shadow-sm"
+            >
                 <div class="flex items-start justify-between">
                     <div>
-                        <p class="text-xs font-medium text-zinc-500">{i18n(I18nKey.siteStatsPostCount)}</p>
+                        <p class="text-xs font-medium text-zinc-500">
+                            {i18n(I18nKey.siteStatsPostCount)}
+                        </p>
                         <div class="flex items-center gap-2 mt-2">
-                            <h3 class="text-3xl font-bold text-zinc-900 dark:text-zinc-100" id="totalPosts">-</h3>
-                            <span class="text-xs font-medium text-green-500 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-full"
-                                  id="recentPostsBadge">+0</span>
+                            <h3
+                                class="text-3xl font-bold text-zinc-900 dark:text-zinc-100"
+                                id="totalPosts"
+                            >
+                                -
+                            </h3>
+                            <span
+                                class="text-xs font-medium text-green-500 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-full"
+                                id="recentPostsBadge">+0</span
+                            >
                         </div>
                     </div>
-                    <div class="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[var(--primary)]"
-                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    <div
+                        class="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="h-5 w-5 text-[var(--primary)]"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                            ></path>
                         </svg>
                     </div>
                 </div>
                 <div class="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-xs">
-                    <span class="text-green-600 dark:text-green-400"><span
-                            id="publishedPosts">0</span> {i18n(I18nKey.adminPostPublic)}</span>
-                    <span class="text-zinc-400"><span id="draftPosts">0</span> {i18n(I18nKey.adminPostDraft)}</span>
-                    <span class="text-amber-600 dark:text-amber-400"><span
-                            id="encryptedPosts">0</span> {i18n(I18nKey.adminPostProtected)}</span>
+                    <span class="text-green-600 dark:text-green-400"
+                        ><span id="publishedPosts">0</span>
+                        {i18n(I18nKey.adminPostPublic)}</span
+                    >
+                    <span class="text-zinc-400"
+                        ><span id="draftPosts">0</span>
+                        {i18n(I18nKey.adminPostDraft)}</span
+                    >
+                    <span class="text-amber-600 dark:text-amber-400"
+                        ><span id="encryptedPosts">0</span>
+                        {i18n(I18nKey.adminPostProtected)}</span
+                    >
                 </div>
             </div>
 
             <!-- Categories Card -->
-            <div class="bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-zinc-200 dark:border-zinc-800 shadow-sm">
+            <div
+                class="bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-zinc-200 dark:border-zinc-800 shadow-sm"
+            >
                 <div class="flex items-start justify-between">
                     <div>
-                        <p class="text-xs font-medium text-zinc-500">{i18n(I18nKey.categories)}</p>
-                        <h3 class="mt-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100" id="totalCategories">-</h3>
+                        <p class="text-xs font-medium text-zinc-500">
+                            {i18n(I18nKey.categories)}
+                        </p>
+                        <h3
+                            class="mt-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100"
+                            id="totalCategories"
+                        >
+                            -
+                        </h3>
                     </div>
-                    <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-600 dark:text-emerald-400"
-                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                    <div
+                        class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="h-5 w-5 text-emerald-600 dark:text-emerald-400"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                            ></path>
                         </svg>
                     </div>
                 </div>
             </div>
 
             <!-- Tags Card -->
-            <div class="bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-zinc-200 dark:border-zinc-800 shadow-sm">
+            <div
+                class="bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-zinc-200 dark:border-zinc-800 shadow-sm"
+            >
                 <div class="flex items-start justify-between">
                     <div>
-                        <p class="text-xs font-medium text-zinc-500">{i18n(I18nKey.tags)}</p>
-                        <h3 class="mt-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100" id="totalTags">-</h3>
+                        <p class="text-xs font-medium text-zinc-500">
+                            {i18n(I18nKey.tags)}
+                        </p>
+                        <h3
+                            class="mt-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100"
+                            id="totalTags"
+                        >
+                            -
+                        </h3>
                     </div>
-                    <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-600 dark:text-amber-400"
-                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                    <div
+                        class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="h-5 w-5 text-amber-600 dark:text-amber-400"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                            ></path>
                         </svg>
                     </div>
                 </div>
             </div>
 
             <!-- Friends Card -->
-            <div class="bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-zinc-200 dark:border-zinc-800 shadow-sm">
+            <div
+                class="bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-zinc-200 dark:border-zinc-800 shadow-sm"
+            >
                 <div class="flex items-start justify-between">
                     <div>
-                        <p class="text-xs font-medium text-zinc-500">{i18n(I18nKey.friends)}</p>
-                        <h3 class="mt-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100" id="totalFriends">-</h3>
+                        <p class="text-xs font-medium text-zinc-500">
+                            {i18n(I18nKey.friends)}
+                        </p>
+                        <h3
+                            class="mt-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100"
+                            id="totalFriends"
+                        >
+                            -
+                        </h3>
                         <div class="mt-3 text-xs">
-                            <span class="text-green-600 dark:text-green-400"><span
-                                    id="enabledFriends">0</span> {i18n(I18nKey.adminActive)}</span>
+                            <span class="text-green-600 dark:text-green-400"
+                                ><span id="enabledFriends">0</span>
+                                {i18n(I18nKey.adminActive)}</span
+                            >
                         </div>
                     </div>
-                    <div class="w-10 h-10 rounded-xl bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-pink-600 dark:text-pink-400"
-                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                    <div
+                        class="w-10 h-10 rounded-xl bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="h-5 w-5 text-pink-600 dark:text-pink-400"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                            ></path>
                         </svg>
                     </div>
                 </div>
             </div>
 
             <!-- Views Card -->
-            <div class="bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-zinc-200 dark:border-zinc-800 shadow-sm">
+            <div
+                class="bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-zinc-200 dark:border-zinc-800 shadow-sm"
+            >
                 <div class="flex items-start justify-between">
                     <div>
-                        <p class="text-xs font-medium text-zinc-500">近7天访问数</p>
-                        <h3 class="mt-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100" id="totalViews">-</h3>
+                        <p class="text-xs font-medium text-zinc-500">
+                            近7天访问数
+                        </p>
+                        <h3
+                            class="mt-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100"
+                            id="totalViews"
+                        >
+                            -
+                        </h3>
                     </div>
-                    <div class="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[var(--primary)]"
-                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.065 7-9.542 7s-8.268-2.943-9.542-7z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <div
+                        class="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="h-5 w-5 text-[var(--primary)]"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.065 7-9.542 7s-8.268-2.943-9.542-7z"
+                            ></path>
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                         </svg>
                     </div>
                 </div>
-                <div class="mt-3 text-xs text-zinc-400" id="viewsHint">根据页面访问实时统计</div>
+                <div class="mt-3 text-xs text-zinc-400" id="viewsHint">
+                    根据页面访问实时统计
+                </div>
             </div>
         </div>
 
         <!-- Charts Section -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <!-- Daily Post Trends -->
-            <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+            <div
+                class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm"
+            >
                 <div class="p-6 border-b border-zinc-200 dark:border-zinc-800">
-                    <h2 class="text-lg font-bold text-zinc-900 dark:text-zinc-100">发布趋势（近30天）</h2>
+                    <h2
+                        class="text-lg font-bold text-zinc-900 dark:text-zinc-100"
+                    >
+                        发布趋势（近30天）
+                    </h2>
                 </div>
                 <div class="p-6">
                     <canvas id="dailyChart" height="200"></canvas>
@@ -129,9 +254,15 @@ const API_URL = getApiUrl();
             </div>
 
             <!-- Login Stats -->
-            <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+            <div
+                class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm"
+            >
                 <div class="p-6 border-b border-zinc-200 dark:border-zinc-800">
-                    <h2 class="text-lg font-bold text-zinc-900 dark:text-zinc-100">登录统计（近7天）</h2>
+                    <h2
+                        class="text-lg font-bold text-zinc-900 dark:text-zinc-100"
+                    >
+                        登录统计（近7天）
+                    </h2>
                 </div>
                 <div class="p-6">
                     <canvas id="loginChart" height="200"></canvas>
@@ -141,423 +272,189 @@ const API_URL = getApiUrl();
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Recent Posts -->
-            <div class="lg:col-span-2 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-                <div class="p-6 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
-                    <h2 class="text-lg font-bold text-zinc-900 dark:text-zinc-100">{i18n(I18nKey.recentPosts)}</h2>
-                    <a href="/admin/posts" class="text-sm text-[var(--primary)] hover:underline">{i18n(I18nKey.more)}
-                        →</a>
+            <div
+                class="lg:col-span-2 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm"
+            >
+                <div
+                    class="p-6 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between"
+                >
+                    <h2
+                        class="text-lg font-bold text-zinc-900 dark:text-zinc-100"
+                    >
+                        {i18n(I18nKey.recentPosts)}
+                    </h2>
+                    <a
+                        href="/admin/posts"
+                        class="text-sm text-[var(--primary)] hover:underline"
+                        >{i18n(I18nKey.more)}
+                        →</a
+                    >
                 </div>
-                <div class="divide-y divide-zinc-100 dark:divide-zinc-800" id="recentPostsList">
-                    <div class="p-6 text-center text-zinc-500">{i18n(I18nKey.adminLoading)}</div>
+                <div
+                    class="divide-y divide-zinc-100 dark:divide-zinc-800"
+                    id="recentPostsList"
+                >
+                    <div class="p-6 text-center text-zinc-500">
+                        {i18n(I18nKey.adminLoading)}
+                    </div>
                 </div>
             </div>
 
             <!-- Category Stats -->
-            <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+            <div
+                class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm"
+            >
                 <div class="p-6 border-b border-zinc-200 dark:border-zinc-800">
-                    <h2 class="text-lg font-bold text-zinc-900 dark:text-zinc-100">{i18n(I18nKey.categories)}</h2>
+                    <h2
+                        class="text-lg font-bold text-zinc-900 dark:text-zinc-100"
+                    >
+                        {i18n(I18nKey.categories)}
+                    </h2>
                 </div>
                 <div class="p-6 space-y-4" id="categoryStats">
-                    <div class="text-center text-zinc-500">{i18n(I18nKey.adminLoading)}</div>
+                    <div class="text-center text-zinc-500">
+                        {i18n(I18nKey.adminLoading)}
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Top viewed posts -->
-        <div class="mt-6 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-            <div class="p-6 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
-                <h2 class="text-lg font-bold text-zinc-900 dark:text-zinc-100">热门文章</h2>
-                <span class="text-xs px-2 py-1 rounded-full" style="background-color: color-mix(in srgb, var(--primary) 15%, transparent); color: var(--primary)">按浏览量</span>
+        <div
+            class="mt-6 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm"
+        >
+            <div
+                class="p-6 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between"
+            >
+                <h2 class="text-lg font-bold text-zinc-900 dark:text-zinc-100">
+                    热门文章
+                </h2>
+                <span
+                    class="text-xs px-2 py-1 rounded-full"
+                    style="background-color: color-mix(in srgb, var(--primary) 15%, transparent); color: var(--primary)"
+                    >按浏览量</span
+                >
             </div>
-            <div id="topViewList" class="divide-y divide-zinc-100 dark:divide-zinc-800">
-                <div class="p-6 text-center text-zinc-500">{i18n(I18nKey.adminLoading)}</div>
+            <div
+                id="topViewList"
+                class="divide-y divide-zinc-100 dark:divide-zinc-800"
+            >
+                <div class="p-6 text-center text-zinc-500">
+                    {i18n(I18nKey.adminLoading)}
+                </div>
             </div>
         </div>
 
         <!-- Quick Actions -->
         <div class="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
-            <a href="/admin/new"
-               class="flex items-center gap-3 p-4 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-[var(--primary)] hover:shadow-lg transition-all group">
-                <div class="w-10 h-10 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[var(--primary)]"
-                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            <a
+                href="/admin/new"
+                class="flex items-center gap-3 p-4 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-[var(--primary)] hover:shadow-lg transition-all group"
+            >
+                <div
+                    class="w-10 h-10 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center group-hover:scale-110 transition-transform"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5 text-[var(--primary)]"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 4v16m8-8H4"></path>
                     </svg>
                 </div>
-                <span class="font-medium text-zinc-700 dark:text-zinc-300">{i18n(I18nKey.adminAdd)} {i18n(I18nKey.adminPost)}</span>
+                <span class="font-medium text-zinc-700 dark:text-zinc-300"
+                    >{i18n(I18nKey.adminAdd)} {i18n(I18nKey.adminPost)}</span
+                >
             </a>
-            <a href="/admin/categories"
-               class="flex items-center gap-3 p-4 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-[var(--primary)] hover:shadow-lg transition-all group">
-                <div class="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-600 dark:text-emerald-400"
-                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+            <a
+                href="/admin/categories"
+                class="flex items-center gap-3 p-4 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-[var(--primary)] hover:shadow-lg transition-all group"
+            >
+                <div
+                    class="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center group-hover:scale-110 transition-transform"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5 text-emerald-600 dark:text-emerald-400"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                        ></path>
                     </svg>
                 </div>
-                <span class="font-medium text-zinc-700 dark:text-zinc-300">{i18n(I18nKey.categories)}</span>
+                <span class="font-medium text-zinc-700 dark:text-zinc-300"
+                    >{i18n(I18nKey.categories)}</span
+                >
             </a>
-            <a href="/admin/friends"
-               class="flex items-center gap-3 p-4 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-[var(--primary)] hover:shadow-lg transition-all group">
-                <div class="w-10 h-10 rounded-lg bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-pink-600 dark:text-pink-400" fill="none"
-                         viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+            <a
+                href="/admin/friends"
+                class="flex items-center gap-3 p-4 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-[var(--primary)] hover:shadow-lg transition-all group"
+            >
+                <div
+                    class="w-10 h-10 rounded-lg bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center group-hover:scale-110 transition-transform"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5 text-pink-600 dark:text-pink-400"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                        ></path>
                     </svg>
                 </div>
-                <span class="font-medium text-zinc-700 dark:text-zinc-300">{i18n(I18nKey.friends)}</span>
+                <span class="font-medium text-zinc-700 dark:text-zinc-300"
+                    >{i18n(I18nKey.friends)}</span
+                >
             </a>
-            <a href="/admin/settings"
-               class="flex items-center gap-3 p-4 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-[var(--primary)] hover:shadow-lg transition-all group">
-                <div class="w-10 h-10 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-zinc-600 dark:text-zinc-400" fill="none"
-                         viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            <a
+                href="/admin/settings"
+                class="flex items-center gap-3 p-4 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-[var(--primary)] hover:shadow-lg transition-all group"
+            >
+                <div
+                    class="w-10 h-10 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center group-hover:scale-110 transition-transform"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5 text-zinc-600 dark:text-zinc-400"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                        ></path>
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                     </svg>
                 </div>
-                <span class="font-medium text-zinc-700 dark:text-zinc-300">{i18n(I18nKey.other)}</span>
+                <span class="font-medium text-zinc-700 dark:text-zinc-300"
+                    >{i18n(I18nKey.other)}</span
+                >
             </a>
         </div>
     </div>
 </AdminLayout>
-
-<script is:inline>
-    (function () {
-        const API_URL = window.API_URL;
-        var t = window.adminI18n || {};
-
-        function formatNumber(value) {
-            return (value || 0).toLocaleString();
-        }
-
-        // Chart instances
-        var dailyChartInstance = null;
-        var loginChartInstance = null;
-
-        async function loadDashboardStats() {
-            // 检查是否在 dashboard 页面
-            var totalPostsEl = document.getElementById('totalPosts');
-            if (!totalPostsEl) return; // 不在 dashboard 页面，直接返回
-
-            try {
-                const result = await window.adminRequest(API_URL + '/dashboard/stats');
-                if (!result.ok) throw new Error(result.msg || 'Failed to load stats');
-                const data = result.data || {};
-
-                // Update stats - 添加 null 检查
-                var publishedPostsEl = document.getElementById('publishedPosts');
-                var draftPostsEl = document.getElementById('draftPosts');
-                var encryptedPostsEl = document.getElementById('encryptedPosts');
-                var recentPostsBadgeEl = document.getElementById('recentPostsBadge');
-                var totalCategoriesEl = document.getElementById('totalCategories');
-                var totalTagsEl = document.getElementById('totalTags');
-                var totalFriendsEl = document.getElementById('totalFriends');
-                var enabledFriendsEl = document.getElementById('enabledFriends');
-
-                if (totalPostsEl) totalPostsEl.textContent = data.posts.total;
-                if (publishedPostsEl) publishedPostsEl.textContent = data.posts.published;
-                if (draftPostsEl) draftPostsEl.textContent = data.posts.draft;
-                if (encryptedPostsEl) encryptedPostsEl.textContent = data.posts.encrypted || 0;
-                if (recentPostsBadgeEl) recentPostsBadgeEl.textContent = '+' + data.posts.recent;
-
-                if (totalCategoriesEl) totalCategoriesEl.textContent = data.categories.total;
-                if (totalTagsEl) totalTagsEl.textContent = data.tags.total;
-                if (totalFriendsEl) totalFriendsEl.textContent = data.friends.total;
-                if (enabledFriendsEl) enabledFriendsEl.textContent = data.friends.enabled;
-
-                // Update recent posts
-                var recentPostsList = document.getElementById('recentPostsList');
-                if (recentPostsList) {
-                    if (data.latest_posts.length === 0) {
-                        recentPostsList.innerHTML = '<div class="p-6 text-center text-zinc-500">' + t.empty + '</div>';
-                    } else {
-                        recentPostsList.innerHTML = data.latest_posts.map(function (post) {
-                            return '<a href="/admin/edit/' + post.id + '" class="flex items-center justify-between p-4 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">' +
-                                '<div class="flex-1 min-w-0">' +
-                                '<h3 class="font-medium text-zinc-900 dark:text-zinc-100 truncate">' + post.title + '</h3>' +
-                                '<p class="text-sm text-zinc-500 mt-1">' + (post.category || t.uncategorized) + ' · ' + new Date(post.published_at).toLocaleDateString() + '</p>' +
-                                '</div>' +
-                                '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">' +
-                                '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />' +
-                                '</svg>' +
-                                '</a>';
-                        }).join('');
-                    }
-                }
-
-                // Update category stats
-                var categoryStats = document.getElementById('categoryStats');
-                if (categoryStats) {
-                    if (data.categories.stats.length === 0) {
-                        categoryStats.innerHTML = '<div class="text-center text-zinc-500">' + t.noCategories + '</div>';
-                    } else {
-                        var maxCount = Math.max.apply(null, data.categories.stats.map(function (c) {
-                            return c.count;
-                        }).concat([1]));
-                        categoryStats.innerHTML = data.categories.stats.map(function (cat) {
-                            var widthPercent = (cat.count / maxCount) * 100;
-                            return '<div class="space-y-2">' +
-                                '<div class="flex items-center justify-between text-sm">' +
-                                '<span class="text-zinc-700 dark:text-zinc-300">' + cat.name + '</span>' +
-                                '<span class="font-medium" style="color: var(--primary)">' + cat.count + '</span>' +
-                                '</div>' +
-                                '<div class="h-2 bg-zinc-100 dark:bg-zinc-700 rounded-full overflow-hidden">' +
-                                '<div class="h-full rounded-full transition-all" style="width: ' + widthPercent + '%; background-color: var(--primary)"></div>' +
-                                '</div>' +
-                                '</div>';
-                        }).join('');
-                    }
-                }
-
-                var analytics = data.analytics || {};
-                var totalViewsElCard = document.getElementById('totalViews');
-                if (totalViewsElCard) {
-                    totalViewsElCard.textContent = formatNumber(analytics.total_views || 0);
-                }
-                var topViewList = document.getElementById('topViewList');
-                if (topViewList) {
-                    var topPosts = analytics.top_posts || [];
-                    if (!topPosts.length) {
-                        topViewList.innerHTML = '<div class="p-6 text-center text-zinc-500">暂无数据</div>';
-                    } else {
-                        topViewList.innerHTML = topPosts.map(function (item, index) {
-                            return '<div class="flex items-center justify-between px-6 py-4">' +
-                                '<div class="flex items-center gap-3 min-w-0">' +
-                                '<span class="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center font-semibold text-sm text-zinc-600 dark:text-zinc-300">' + (index + 1) + '</span>' +
-                                '<div class="min-w-0">' +
-                                '<p class="font-medium text-zinc-900 dark:text-zinc-100 truncate">' + (item.title || '未命名文章') + '</p>' +
-                                '<p class="text-xs text-zinc-500 dark:text-zinc-400">浏览 ' + formatNumber(item.views || 0) + '</p>' +
-                                '</div>' +
-                                '</div>' +
-                                '<a href="/admin/edit/' + item.id + '" class="text-xs text-[var(--primary)] hover:underline flex-shrink-0">管理</a>' +
-                                '</div>';
-                        }).join('');
-                    }
-                }
-
-                // Render charts
-                renderCharts(data.charts);
-            } catch (err) {
-                console.error('Failed to load dashboard stats:', err);
-            }
-        }
-
-        function renderCharts(chartsData) {
-            if (!chartsData) return;
-
-            // Check if Chart.js is loaded
-            if (typeof Chart === 'undefined') {
-                console.error('Chart.js is not loaded');
-                return;
-            }
-
-            var isDark = document.documentElement.classList.contains('dark');
-            var gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)';
-            var textColor = isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)';
-
-            // 获取主题色（从 CSS 变量）
-            var hue = getComputedStyle(document.documentElement).getPropertyValue('--hue').trim() || '165';
-            var hueNum = parseFloat(hue);
-            // 使用 HSL 生成主题色（饱和度 70%，亮度 50%）
-            var primaryColor = 'hsl(' + hueNum + ', 70%, 50%)';
-            var primaryColorLight = 'hsla(' + hueNum + ', 70%, 50%, 0.1)';
-
-            // Daily Chart - 发布趋势
-            var dailyCtx = document.getElementById('dailyChart');
-            if (dailyCtx && chartsData.daily) {
-                if (dailyChartInstance) {
-                    dailyChartInstance.destroy();
-                    dailyChartInstance = null;
-                }
-
-                var labels = chartsData.daily.map(function (d) {
-                    var date = new Date(d.date);
-                    return (date.getMonth() + 1) + '/' + date.getDate();
-                });
-                var counts = chartsData.daily.map(function (d) {
-                    return d.count;
-                });
-
-                dailyChartInstance = new Chart(dailyCtx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: '发布文章数',
-                            data: counts,
-                            borderColor: primaryColor,
-                            backgroundColor: primaryColorLight,
-                            fill: true,
-                            tension: 0.4,
-                            pointRadius: counts.length > 20 ? 0 : 3,
-                            pointHoverRadius: 5
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: false
-                            },
-                            tooltip: {
-                                backgroundColor: isDark ? 'rgba(24, 24, 27, 0.9)' : 'rgba(255, 255, 255, 0.9)',
-                                titleColor: isDark ? '#fff' : '#000',
-                                bodyColor: isDark ? '#fff' : '#000',
-                                borderColor: gridColor,
-                                borderWidth: 1,
-                                padding: 10,
-                                displayColors: false,
-                                callbacks: {
-                                    label: function (context) {
-                                        return '发布: ' + context.parsed.y + ' 篇';
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            x: {
-                                grid: {
-                                    color: gridColor,
-                                    drawBorder: false
-                                },
-                                ticks: {
-                                    color: textColor,
-                                    maxRotation: 0,
-                                    autoSkipPadding: 20
-                                }
-                            },
-                            y: {
-                                beginAtZero: true,
-                                grid: {
-                                    color: gridColor,
-                                    drawBorder: false
-                                },
-                                ticks: {
-                                    color: textColor,
-                                    stepSize: 1
-                                }
-                            }
-                        },
-                        interaction: {
-                            intersect: false,
-                            mode: 'index'
-                        }
-                    }
-                });
-            }
-
-            // Login Chart - 登录统计
-            var loginCtx = document.getElementById('loginChart');
-            if (loginCtx && chartsData.login) {
-                if (loginChartInstance) {
-                    loginChartInstance.destroy();
-                    loginChartInstance = null;
-                }
-
-                var loginLabels = chartsData.login.map(function (d) {
-                    var date = new Date(d.date);
-                    return (date.getMonth() + 1) + '/' + date.getDate();
-                });
-                var successData = chartsData.login.map(function (d) {
-                    return d.success;
-                });
-                var failedData = chartsData.login.map(function (d) {
-                    return d.failed;
-                });
-
-                loginChartInstance = new Chart(loginCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: loginLabels,
-                        datasets: [
-                            {
-                                label: '成功',
-                                data: successData,
-                                backgroundColor: 'rgba(34, 197, 94, 0.8)',
-                                borderRadius: 4
-                            },
-                            {
-                                label: '失败',
-                                data: failedData,
-                                backgroundColor: 'rgba(239, 68, 68, 0.8)',
-                                borderRadius: 4
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: true,
-                                position: 'top',
-                                align: 'end',
-                                labels: {
-                                    color: textColor,
-                                    usePointStyle: true,
-                                    padding: 20
-                                }
-                            },
-                            tooltip: {
-                                backgroundColor: isDark ? 'rgba(24, 24, 27, 0.9)' : 'rgba(255, 255, 255, 0.9)',
-                                titleColor: isDark ? '#fff' : '#000',
-                                bodyColor: isDark ? '#fff' : '#000',
-                                borderColor: gridColor,
-                                borderWidth: 1,
-                                padding: 10
-                            }
-                        },
-                        scales: {
-                            x: {
-                                grid: {
-                                    display: false,
-                                    drawBorder: false
-                                },
-                                ticks: {
-                                    color: textColor
-                                }
-                            },
-                            y: {
-                                beginAtZero: true,
-                                grid: {
-                                    color: gridColor,
-                                    drawBorder: false
-                                },
-                                ticks: {
-                                    color: textColor,
-                                    stepSize: 1
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-        }
-
-        // 初始化函数
-        function initDashboard() {
-            // 销毁旧的图表实例
-            if (dailyChartInstance) {
-                dailyChartInstance.destroy();
-                dailyChartInstance = null;
-            }
-            if (loginChartInstance) {
-                loginChartInstance.destroy();
-                loginChartInstance = null;
-            }
-            // 加载数据
-            loadDashboardStats();
-        }
-
-        // 监听页面加载事件（SPA 导航）
-        document.addEventListener('astro:page-load', initDashboard);
-
-        // 首次加载
-        initDashboard();
-    })();
-</script>
